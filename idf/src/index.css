@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html,
+  body {
+    overflow-x: clip;
+    background-color: #dec3b4;
+    color: #1c0505;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    @apply font-serif;
+  }
+  body {
+    @apply bg-ivory font-sans text-night antialiased selection:bg-walnut selection:text-ivory;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-gold ring-offset-2 ring-offset-ivory transition-all duration-300;
+  }
+}
+
+@layer components {
+  .container-lux {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+  .kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.34em] text-walnut;
+  }
+  .kicker-light {
+    @apply text-[11px] font-semibold uppercase tracking-[0.34em] text-gold;
+  }
+
+  .btn {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-[2px] px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.2em] transition-all duration-500 ease-lux active:scale-[0.98];
+  }
+  .btn-gold {
+    @apply bg-gold text-night hover:bg-gold-light hover:shadow-[0_12px_28px_-10px_rgba(211,170,50,0.65)] hover:-translate-y-0.5;
+  }
+  .btn-ghost-light {
+    @apply border border-ivory/40 text-ivory hover:border-gold hover:text-gold hover:bg-gold/10 hover:-translate-y-0.5;
+  }
+  .btn-ghost-dark {
+    @apply border border-walnut/40 text-night hover:border-gold-dark hover:text-gold-dark hover:bg-gold/10 hover:-translate-y-0.5;
+  }
+  .btn-sheen::before {
+    content: '';
+    @apply absolute inset-y-0 -left-3/4 w-1/2 -skew-x-12 bg-white/30 transition-all duration-700 ease-lux;
+  }
+  .btn-sheen:hover::before {
+    left: 125%;
+  }
+
+  .card-hover {
+    @apply transition-all duration-500 ease-lux hover:-translate-y-1.5 hover:shadow-xl;
+  }
+
+  .img-zoom {
+    @apply transition-transform duration-[1200ms] ease-lux;
+  }
+  .group:hover .img-zoom {
+    @apply scale-[1.06];
+  }
+
+  .frame-hover {
+    @apply pointer-events-none absolute inset-3 border border-transparent transition-all duration-700 ease-lux;
+  }
+  .group:hover .frame-hover {
+    @apply inset-4 border-gold/70;
+  }
+
+  .map-tint {
+    filter: sepia(0.25) saturate(0.85) contrast(1.02);
+  }
+
+  .font-nums {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: 'lnum' 1, 'tnum' 1;
+  }
+}
