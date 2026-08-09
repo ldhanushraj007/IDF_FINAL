@@ -93,6 +93,7 @@ export default function LoginPage() {
         id: res.user.id,
         email: res.user.email,
         name: res.user.name,
+        picture: '',
       });
       navigate('/account');
     } catch (err) {
@@ -136,6 +137,7 @@ export default function LoginPage() {
         id: res.user.id,
         email: res.user.email,
         name: res.user.name,
+        picture: '',
       });
       navigate('/account');
     } catch (err) {
@@ -199,7 +201,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-[11px] text-ivory/25">
-          {BUSINESS.address}
+          {BUSINESS.addressLine1}, {BUSINESS.addressLine3}
         </p>
       </div>
 

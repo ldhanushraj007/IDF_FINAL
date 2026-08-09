@@ -142,7 +142,7 @@ export default function AccountPage() {
               className="rounded-[2px] border border-walnut/20 bg-ivory px-3.5 py-3 text-[14px] text-ink placeholder-muted/60 outline-none focus:border-gold-dark sm:col-span-2"
             />
           </div>
-          <p className="mt-2 text-[12px] text-muted">{profile?.email || user.phone || ''}</p>
+          <p className="mt-2 text-[12px] text-muted">{profile?.email || profile?.phone || ''}</p>
           <button
             type="button"
             onClick={handleSave}

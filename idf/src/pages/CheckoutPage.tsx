@@ -28,6 +28,7 @@ import {
 import { clearPending, writePending } from '../lib/pendingOrder';
 import { saveOrder } from '../lib/customerApi';
 import { trackInteraction } from '../lib/useTrackInteraction';
+import { UPI, inr } from '../lib/constants';
 import AuthGate from '../components/AuthGate';
 
 const EMPTY: Customer = {

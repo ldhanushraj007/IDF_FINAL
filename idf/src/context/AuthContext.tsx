@@ -100,11 +100,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               id: customUser.id,
               email: customUser.email,
               name: customUser.name,
+              picture: '',
             });
             await loadProfile({
               id: customUser.id,
               email: customUser.email,
               name: customUser.name,
+              picture: '',
             });
             setLoading(false);
             return;
