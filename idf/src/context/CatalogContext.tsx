@@ -13,8 +13,6 @@ import {
   type CatalogOrigin,
   type Offer,
 } from '../lib/catalogSource';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import { fetchProducts, fetchOffer } from '../lib/adminApi';
 
 interface CatalogValue {
   items: Item[];
@@ -42,44 +40,13 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     /**
-     * SUPABASE PATH: a genuine live push. When the admin publishes, this
-     * fires within a second for every visitor with the page open — no
-     * polling delay, no reload.
-     */
-    if (isSupabaseConfigured && supabase) {
-      const sb = supabase;
-
-      const refresh = () => {
-        Promise.all([fetchProducts(), fetchOffer()])
-          .then(([prods, off]) => {
-            if (cancelled) return;
-            setItems(prods);
-            setOffer(off);
-            setOrigin('json'); // reuse the "freshly fetched" origin label
-            setUpdatedAt(new Date().toISOString());
-          })
-          .finally(() => {
-            if (!cancelled) setLoading(false);
-          });
-      };
-
-      refresh();
-
-      const channel = sb
-        .channel('storefront-catalog-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, refresh)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, refresh)
-        .subscribe();
-
-      return () => {
-        cancelled = true;
-        sb.removeChannel(channel);
-      };
-    }
-
-    /**
-     * FALLBACK PATH (no Supabase): the original file-based catalog, refreshed
-     * periodically since there's no server to push from.
+     * File-based catalog, refreshed periodically.
+     * NEAR-REAL-TIME WITHOUT A BACKEND: this site has no server to push
+     * changes to an open tab, so instead it quietly re-checks catalog.json
+     * every 45s. A customer already browsing gets the shop's price/stock
+     * change within under a minute, with no reload and no visible loading
+     * state — it just becomes true next time this fires. It's not instant
+     * push, but it's close, and it costs nothing to run.
      */
     const refresh = (isFirstLoad: boolean) => {
       loadCatalog()
@@ -97,14 +64,6 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
 
     refresh(true);
 
-    /**
-     * NEAR-REAL-TIME WITHOUT A BACKEND: this site has no server to push
-     * changes to an open tab, so instead it quietly re-checks catalog.json
-     * every 45s. A customer already browsing gets the shop's price/stock
-     * change within under a minute, with no reload and no visible loading
-     * state — it just becomes true next time this fires. It's not instant
-     * push, but it's close, and it costs nothing to run.
-     */
     const interval = setInterval(() => refresh(false), 45_000);
 
     // Also refresh the moment someone returns to the tab, so switching back

@@ -213,8 +213,41 @@ const bundled = (): LoadedCatalog => ({
 /** Cache-bust so the shop sees an uploaded file immediately, not tomorrow. */
 const bust = (url: string) => `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`;
 
+const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined;
+const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined;
+
 export async function loadCatalog(): Promise<LoadedCatalog> {
-  // 1. Google Sheet, if configured.
+  // 1. Google Sheets Apps Script Web App (Real-time DB)
+  if (SCRIPT_URL && SCRIPT_TOKEN) {
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ token: SCRIPT_TOKEN, action: 'get_catalog' }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.ok && json.data) {
+          const rawItems = Array.isArray(json.data.items) ? json.data.items : [];
+          const items = rawItems
+            .map((i: any) => normaliseItem(i))
+            .filter((i: any): i is Item => i !== null);
+          if (items.length) {
+            return {
+              items,
+              offer: normaliseOffer(json.data.offer),
+              origin: 'sheet',
+              updatedAt: json.data.updatedAt,
+            };
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Apps Script catalog fetch failed, trying fallback...', e);
+    }
+  }
+
+  // 2. Google Sheet Published CSV, if configured.
   if (CATALOG_SOURCE.sheetCsvUrl) {
     try {
       const res = await fetch(bust(CATALOG_SOURCE.sheetCsvUrl), { cache: 'no-store' });
@@ -227,7 +260,7 @@ export async function loadCatalog(): Promise<LoadedCatalog> {
     }
   }
 
-  // 2. catalog.json on the host.
+  // 3. catalog.json on the host.
   try {
     const res = await fetch(bust(CATALOG_SOURCE.jsonUrl), { cache: 'no-store' });
     if (res.ok) {
@@ -249,6 +282,6 @@ export async function loadCatalog(): Promise<LoadedCatalog> {
     /* fall through to the bundle */
   }
 
-  // 3. Whatever shipped with the build. The shop is never empty.
+  // 4. Whatever shipped with the build. The shop is never empty.
   return bundled();
 }

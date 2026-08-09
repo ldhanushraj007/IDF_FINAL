@@ -38,7 +38,7 @@ export default function AccountPage() {
   useEffect(() => {
     if (!user) return;
     setOrdersLoading(true);
-    fetchMyOrders()
+    fetchMyOrders(user.id, user.email)
       .then(setOrders)
       .finally(() => setOrdersLoading(false));
   }, [user]);

@@ -2,21 +2,12 @@
  * customerApi.ts
  * =============================================================================
  * All customer data (profiles, orders, wishlist) lives in Google Sheets and is
- * read/written via the Apps Script Web App endpoint. Supabase is used for Auth
- * only — no Supabase Postgres tables are touched here.
+ * read/written via the Apps Script Web App endpoint.
  *
- * HOW IT WORKS
- * Every request is a POST to VITE_APPS_SCRIPT_URL with a JSON body:
- *   { token, action, userId, userEmail, ...actionPayload }
- * The script verifies `token === SHARED_TOKEN` and routes on `action`.
- *
- * Set in .env.local:
- *   VITE_APPS_SCRIPT_URL=https://script.google.com/macros/s/<id>/exec
- *   VITE_APPS_SCRIPT_TOKEN=idf-change-this-to-something-random-and-secret
- *   (Token must match SHARED_TOKEN in IDF_CustDetails_sync.gs)
+ * Auth is handled by Google Identity Services (googleAuth.ts) OR custom email/password
+ * OTP verification stored and executed inside Google Sheets.
  */
 
-import { supabase } from './supabase';
 import type { Item } from '../data/catalog';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -24,28 +15,22 @@ import type { Item } from '../data/catalog';
 const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined;
 const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined;
 
-/** True when the Apps Script endpoint is configured. Falls back gracefully. */
 export const isSheetsConfigured = Boolean(SCRIPT_URL && SCRIPT_TOKEN);
 
 // ─── Core fetch helper ────────────────────────────────────────────────────────
 
 async function sheetsPost<T = unknown>(
   action: string,
-  payload: Record<string, unknown>,
+  userId: string,
+  userEmail: string,
+  payload: Record<string, unknown> = {},
 ): Promise<{ ok: boolean; data?: T; error?: string }> {
   if (!isSheetsConfigured) return { ok: false, error: 'sheets_not_configured' };
-
-  // Attach the current user's ID + email for every request so the script can
-  // find/create the right row without a separate auth call.
-  const { data: authData } = await supabase!.auth.getUser();
-  const userId = authData?.user?.id ?? '';
-  const userEmail = authData?.user?.email ?? '';
+  if (!userId) return { ok: false, error: 'not_signed_in' };
 
   try {
     const res = await fetch(SCRIPT_URL!, {
       method: 'POST',
-      // Apps Script doPost() reads e.postData.contents — must be text/plain,
-      // NOT application/json, otherwise Apps Script wraps it differently.
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ token: SCRIPT_TOKEN, action, userId, userEmail, ...payload }),
     });
@@ -100,55 +85,132 @@ export interface OrderHistoryRow {
   createdAt: string;
 }
 
+// ─── Custom Email Auth API Calls ─────────────────────────────────────────────
+
+export async function customerLoginApi(email: string, password: string) {
+  if (!isSheetsConfigured) throw new Error('Sheets backend not configured.');
+  try {
+    const res = await fetch(SCRIPT_URL!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        token: SCRIPT_TOKEN,
+        action: 'customer_login',
+        email,
+        password,
+      }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Login failed');
+    return json as { token: string; user: { id: string; email: string; name: string } };
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : String(err));
+  }
+}
+
+export async function customerSendOtpApi(name: string, phone: string, email: string, password: string) {
+  if (!isSheetsConfigured) throw new Error('Sheets backend not configured.');
+  try {
+    const res = await fetch(SCRIPT_URL!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        token: SCRIPT_TOKEN,
+        action: 'customer_send_otp',
+        name,
+        phone,
+        email,
+        password,
+      }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Failed to register/send OTP');
+    return json;
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : String(err));
+  }
+}
+
+export async function customerVerifyOtpApi(email: string, code: string) {
+  if (!isSheetsConfigured) throw new Error('Sheets backend not configured.');
+  try {
+    const res = await fetch(SCRIPT_URL!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        token: SCRIPT_TOKEN,
+        action: 'customer_verify_otp',
+        email,
+        code,
+      }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Verification failed');
+    return json as { token: string; user: { id: string; email: string; name: string } };
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : String(err));
+  }
+}
+
+export async function customerSessionApi(customerToken: string) {
+  if (!isSheetsConfigured) return null;
+  try {
+    const res = await fetch(SCRIPT_URL!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        token: SCRIPT_TOKEN,
+        action: 'customer_session',
+        customerToken,
+      }),
+    });
+    const json = await res.json();
+    if (!json.ok) return null;
+    return json.user as { id: string; email: string; name: string };
+  } catch (err) {
+    return null;
+  }
+}
+
 // ─── Profile ─────────────────────────────────────────────────────────────────
 
-/**
- * Fetch the profile for the signed-in user from Sheets.
- * Returns null if Sheets isn't configured or the user has no row yet.
- */
-export async function fetchProfile(): Promise<CustomerProfile | null> {
-  if (!isSheetsConfigured || !supabase) return null;
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData.user) return null;
-
-  const result = await sheetsPost<CustomerProfile>('get_profile', {});
-  if (!result.ok || !result.data) return { ...EMPTY_PROFILE, email: authData.user.email ?? '' };
+export async function fetchProfile(userId: string, userEmail: string): Promise<CustomerProfile | null> {
+  if (!isSheetsConfigured || !userId) return null;
+  const result = await sheetsPost<CustomerProfile>('get_profile', userId, userEmail);
+  if (!result.ok || !result.data) return { ...EMPTY_PROFILE, email: userEmail };
   return result.data;
 }
 
-/**
- * Upsert profile fields. Call after sign-up or when the customer saves their
- * details in checkout / account page. Only sends non-undefined fields.
- */
 export async function upsertProfile(
+  userId: string,
+  userEmail: string,
   fields: Partial<CustomerProfile>,
 ): Promise<CustomerProfile | null> {
-  if (!isSheetsConfigured || !supabase) return null;
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData.user) return null;
+  if (!isSheetsConfigured || !userId) return null;
 
-  await sheetsPost('upsert_customer', {
+  await sheetsPost('upsert_customer', userId, userEmail, {
     name:         fields.name,
     phone:        fields.phone,
     city:         fields.city,
     signupMethod: fields.signup_method,
   });
 
-  // Return the merged profile
-  return fetchProfile();
+  return fetchProfile(userId, userEmail);
 }
 
 // ─── Orders ──────────────────────────────────────────────────────────────────
 
-export async function saveOrder(order: OrderRecord): Promise<void> {
-  if (!isSheetsConfigured) return;
+export async function saveOrder(
+  userId: string,
+  userEmail: string,
+  order: OrderRecord,
+): Promise<void> {
+  if (!isSheetsConfigured || !userId) return;
 
-  const { data: authData } = await supabase!.auth.getUser();
-
-  await sheetsPost('save_order', {
+  await sheetsPost('save_order', userId, userEmail, {
     order: {
       orderCode:        order.orderCode,
-      customerName:     '', // filled from profile row in script
+      customerName:     '', 
       phone:            '',
       fulfilment:       order.fulfilment,
       address:          order.address,
@@ -171,8 +233,8 @@ export async function saveOrder(order: OrderRecord): Promise<void> {
   });
 }
 
-export async function fetchMyOrders(): Promise<OrderHistoryRow[]> {
-  if (!isSheetsConfigured) return [];
+export async function fetchMyOrders(userId: string, userEmail: string): Promise<OrderHistoryRow[]> {
+  if (!isSheetsConfigured || !userId) return [];
   const result = await sheetsPost<{
     orderCode: string;
     createdAt: string;
@@ -180,7 +242,7 @@ export async function fetchMyOrders(): Promise<OrderHistoryRow[]> {
     total: number;
     paid: boolean;
     status: string;
-  }[]>('get_my_orders', {});
+  }[]>('get_my_orders', userId, userEmail);
 
   if (!result.ok || !result.data) return [];
 
@@ -200,14 +262,19 @@ export async function fetchMyOrders(): Promise<OrderHistoryRow[]> {
 
 // ─── Wishlist ─────────────────────────────────────────────────────────────────
 
-export async function fetchWishlistIds(): Promise<Set<string>> {
-  if (!isSheetsConfigured) return new Set();
-  const result = await sheetsPost<string[]>('get_wishlist', {});
+export async function fetchWishlistIds(userId: string, userEmail: string): Promise<Set<string>> {
+  if (!isSheetsConfigured || !userId) return new Set();
+  const result = await sheetsPost<string[]>('get_wishlist', userId, userEmail);
   if (!result.ok || !result.data) return new Set();
   return new Set(result.data);
 }
 
-export async function toggleWishlist(productId: string, on: boolean): Promise<void> {
-  if (!isSheetsConfigured) return;
-  await sheetsPost('toggle_wishlist', { productId, on });
+export async function toggleWishlist(
+  userId: string,
+  userEmail: string,
+  productId: string,
+  on: boolean,
+): Promise<void> {
+  if (!isSheetsConfigured || !userId) return;
+  await sheetsPost('toggle_wishlist', userId, userEmail, { productId, on });
 }

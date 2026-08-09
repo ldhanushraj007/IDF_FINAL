@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from './supabase';
 
 const SESSION_KEY = 'idf_session_id';
 const RECENTLY_VIEWED_KEY = 'idf_recently_viewed';
@@ -36,40 +35,17 @@ export function getRecentlyViewedIds(): string[] {
   }
 }
 
+/**
+ * Track a product interaction. Currently saves views locally for the
+ * RecentlyViewed widget. Interaction analytics (Supabase) have been removed —
+ * add a lightweight analytics provider here if you need them later.
+ */
 export async function trackInteraction(productId: string, eventType: EventType) {
   if (!productId) return;
 
   // Always save view locally for fast RecentlyViewed widget
   if (eventType === 'view') {
     saveRecentlyViewed(productId);
-  }
-
-  if (!isSupabaseConfigured || !supabase) return;
-
-  try {
-    const { data: auth } = await supabase.auth.getUser();
-    const userId = auth?.user?.id ?? null;
-    const sessionId = getSessionId();
-
-    await supabase.from('product_interactions').insert({
-      session_id: sessionId,
-      user_id: userId,
-      product_id: productId,
-      event_type: eventType,
-    });
-  } catch (err) {
-    // Non-blocking log failure
-    console.warn('Interaction logging failed:', err);
-  }
-}
-
-export async function backfillSessionUser() {
-  if (!isSupabaseConfigured || !supabase) return;
-  try {
-    const sessionId = getSessionId();
-    await supabase.rpc('backfill_session_interactions', { target_session_id: sessionId });
-  } catch (err) {
-    console.warn('Session backfill failed:', err);
   }
 }
 

@@ -1,0 +1,133 @@
+/**
+ * googleAuth.ts
+ * =============================================================================
+ * Google Identity Services (GSI) auth — replaces Supabase auth.
+ *
+ * HOW IT WORKS
+ *  1. Google's GSI script (loaded in index.html) calls window.handleGoogleCredential
+ *     with a JWT `credential` after the user picks an account.
+ *  2. We decode that JWT client-side (no signature verification — the JWT was
+ *     delivered directly by Google's secure popup, not via a 3rd party).
+ *  3. We persist the raw credential string in localStorage so the session
+ *     survives page refreshes. On load we re-check expiry and clear if stale.
+ *
+ * SETUP (one time)
+ *  1. Google Cloud Console → APIs & Services → Credentials →
+ *     Create OAuth 2.0 Client ID → Web application
+ *  2. Authorised JavaScript origins: your Vercel URL + http://localhost:5173
+ *  3. Copy the Client ID → VITE_GOOGLE_CLIENT_ID in .env.local (and Vercel)
+ */
+
+export interface GoogleUser {
+  /** Google's stable, unique subject ID — used as the DB row key in Sheets. */
+  id: string;
+  email: string;
+  name: string;
+  picture: string;
+}
+
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+
+/** True when auth is configured and can be used. */
+export const isGoogleAuthConfigured = Boolean(CLIENT_ID);
+
+const SESSION_KEY = 'idf_google_credential';
+
+// ─── JWT decoding ─────────────────────────────────────────────────────────────
+
+/**
+ * Decode a Google ID-token JWT into a GoogleUser.
+ * We trust the payload because the token was delivered by Google's own popup
+ * (not user-supplied input). We still check `exp` to avoid stale sessions.
+ */
+export function decodeGoogleJwt(credential: string): GoogleUser | null {
+  try {
+    const parts = credential.split('.');
+    if (parts.length !== 3) return null;
+    // Base64url → Base64 → JSON
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    // Reject if expired
+    if (payload.exp && payload.exp * 1000 < Date.now()) return null;
+    return {
+      id: payload.sub as string,
+      email: payload.email as string,
+      name: (payload.name ?? payload.email) as string,
+      picture: (payload.picture ?? '') as string,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Session persistence ──────────────────────────────────────────────────────
+
+/** Persist the raw JWT credential in localStorage. */
+export function persistSession(credential: string) {
+  localStorage.setItem(SESSION_KEY, credential);
+}
+
+/** Load and decode the persisted session. Returns null if absent or expired. */
+export function loadSession(): { user: GoogleUser; credential: string } | null {
+  const credential = localStorage.getItem(SESSION_KEY);
+  if (!credential) return null;
+  const user = decodeGoogleJwt(credential);
+  if (!user) {
+    localStorage.removeItem(SESSION_KEY); // stale — clean up
+    return null;
+  }
+  return { user, credential };
+}
+
+/** Clear the persisted session (sign out). */
+export function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+  // Also revoke on Google's side so One Tap doesn't auto-sign back in
+  if (typeof window !== 'undefined' && window.google?.accounts?.id) {
+    window.google.accounts.id.disableAutoSelect();
+  }
+}
+
+// ─── GSI initialisation ───────────────────────────────────────────────────────
+
+type CredentialCallback = (credential: string) => void;
+
+/**
+ * Initialize the Google GSI library and render the One Tap prompt.
+ * `onCredential` is called with the raw JWT whenever the user signs in.
+ * Safe to call multiple times — Google's library handles deduplication.
+ */
+export function initGoogleAuth(onCredential: CredentialCallback) {
+  if (!isGoogleAuthConfigured || !CLIENT_ID) return;
+  if (typeof window === 'undefined' || !window.google?.accounts?.id) return;
+
+  window.google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: (response: { credential: string }) => {
+      onCredential(response.credential);
+    },
+    auto_select: true, // silently re-sign if session is active
+    cancel_on_tap_outside: false,
+  });
+
+  // Show the One Tap prompt (floats top-right on desktop)
+  window.google.accounts.id.prompt();
+}
+
+/**
+ * Render the standard "Sign in with Google" button into a container element.
+ */
+export function renderGoogleButton(containerId: string) {
+  if (!isGoogleAuthConfigured || !CLIENT_ID) return;
+  const el = document.getElementById(containerId);
+  if (!el || !window.google?.accounts?.id) return;
+
+  window.google.accounts.id.renderButton(el, {
+    type: 'standard',
+    theme: 'outline',
+    size: 'large',
+    text: 'continue_with',
+    shape: 'rectangular',
+    logo_alignment: 'left',
+    width: el.offsetWidth || 280,
+  });
+}

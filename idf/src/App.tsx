@@ -28,6 +28,7 @@ const ProductPage = lazy(() => import('./pages/ProductPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const AccountPage = lazy(() => import('./pages/AccountPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminPanel = lazy(() => import('./admin/AdminPanel'));
 
 function RouteFallback() {
@@ -64,6 +65,9 @@ function ScrollToTop() {
 
 function SiteChrome() {
   const { authModalOpen, closeAuthModal } = useAuth();
+  const { pathname } = useLocation();
+  const isLoginPage = pathname === '/login';
+
   return (
     <>
       <ScrollToTop />
@@ -74,22 +78,23 @@ function SiteChrome() {
         Skip to content
       </a>
       <Preloader />
-      <ScrollProgress />
-      <OfferBar />
-      <Navbar />
+      {!isLoginPage && <ScrollProgress />}
+      {!isLoginPage && <OfferBar />}
+      {!isLoginPage && <Navbar />}
       <main id="main">
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
           </Routes>
         </Suspense>
       </main>
-      <Footer />
-      <FloatingWhatsApp />
+      {!isLoginPage && <Footer />}
+      {!isLoginPage && <FloatingWhatsApp />}
       <CartDrawer />
       <PendingOrderBanner />
       <AuthModal open={authModalOpen} onClose={closeAuthModal} />

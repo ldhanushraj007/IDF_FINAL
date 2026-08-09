@@ -42,7 +42,33 @@ function normalise(raw: Record<string, unknown>): Review | null {
   };
 }
 
+const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined;
+const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined;
+
 export async function loadReviews(): Promise<Review[]> {
+  // 1. Google Sheets Apps Script Web App (Curated Reviews)
+  if (SCRIPT_URL && SCRIPT_TOKEN) {
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ token: SCRIPT_TOKEN, action: 'get_reviews' }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.ok && Array.isArray(json.data)) {
+          const list = json.data
+            .map((r: any) => normalise(r))
+            .filter((r: any): r is Review => r !== null);
+          if (list.length) return list;
+        }
+      }
+    } catch (e) {
+      console.warn('Apps Script reviews fetch failed, trying fallback...', e);
+    }
+  }
+
+  // 2. static reviews.json
   try {
     const url = CATALOG_SOURCE.reviewsUrl;
     const res = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });

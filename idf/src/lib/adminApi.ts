@@ -1,9 +1,21 @@
+/**
+ * adminApi.ts
+ * =============================================================================
+ * Admin Portal Backend API — calls Google Sheets Apps Script directly.
+ * All admin actions are protected by a session token in sessionStorage.
+ *
+ * Credentials and catalog are stored securely in Google Sheets (no Supabase needed).
+ */
+
 import type { Item } from '../data/catalog';
 import type { Review } from '../data/reviews';
 import type { Offer } from './catalogSource';
-import { adminAuthFunctionUrl, adminApiFunctionUrl } from './supabase';
 
 const TOKEN_KEY = 'idf_admin_jwt';
+const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined;
+const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined;
+
+export const isAdminConfigured = Boolean(SCRIPT_URL && SCRIPT_TOKEN);
 
 export function getAdminToken(): string | null {
   return sessionStorage.getItem(TOKEN_KEY);
@@ -17,30 +29,61 @@ export function clearAdminToken() {
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
+// ─── Core POST helper ────────────────────────────────────────────────────────
+
+async function sheetsAdminPost<T = unknown>(
+  action: string,
+  payload: Record<string, unknown> = {},
+): Promise<T> {
+  if (!isAdminConfigured) throw new Error('Google Sheets backend is not configured.');
+
+  const adminToken = getAdminToken() || '';
+  try {
+    const res = await fetch(SCRIPT_URL!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        token: SCRIPT_TOKEN,
+        adminToken,
+        action,
+        ...payload,
+      }),
+    });
+    const json = await res.json();
+    if (!json.ok) {
+      if (json.error === 'unauthorized_admin') {
+        clearAdminToken();
+      }
+      throw new Error(json.error || 'Request failed');
+    }
+    return json.data as T;
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : String(err));
+  }
+}
+
 /* ------------------------------------------------------------------ *
  * Admin Auth
  * ------------------------------------------------------------------ */
 
-async function callAdminAuth(body: Record<string, unknown>) {
-  const res = await fetch(adminAuthFunctionUrl, {
+export async function adminLogin(username: string, password: string): Promise<string> {
+  const res = await fetch(SCRIPT_URL!, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      token: SCRIPT_TOKEN,
+      action: 'admin_login',
+      username,
+      password,
+    }),
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Something went wrong');
-  return data;
-}
-
-export async function requestAdminCode(username: string, password: string): Promise<void> {
-  await callAdminAuth({ step: 'request', username, password });
-}
-
-export async function verifyAdminCode(username: string, code: string): Promise<string> {
-  const data = await callAdminAuth({ step: 'verify', username, code });
-  if (data.token) {
-    setAdminToken(data.token);
-    return data.token;
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || !json.ok) {
+    throw new Error(json.error || 'Authentication failed');
+  }
+  if (json.token) {
+    setAdminToken(json.token);
+    return json.token;
   }
   throw new Error('No token returned');
 }
@@ -54,31 +97,8 @@ export function adminSignOut(): void {
 }
 
 /* ------------------------------------------------------------------ *
- * Admin API Calls (via admin-api Edge Function)
+ * Admin Catalog API Calls
  * ------------------------------------------------------------------ */
-
-async function callAdminApi(action: string, payload: Record<string, unknown> = {}) {
-  const token = getAdminToken();
-  if (!token) throw new Error('Not authenticated as admin');
-
-  const res = await fetch(adminApiFunctionUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ action, ...payload }),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    if (res.status === 401) {
-      clearAdminToken();
-    }
-    throw new Error(data.error || 'Admin request failed');
-  }
-  return data;
-}
 
 interface ProductRow {
   id: string;
@@ -97,16 +117,16 @@ interface ProductRow {
   details: string;
 }
 
-const rowToItem = (r: ProductRow): Item => ({
+const rowToItem = (r: any): Item => ({
   id: r.id,
   name: r.name,
-  category: r.category,
+  category: r.category as Item['category'],
   composition: r.composition,
   width: r.width,
-  pricePerMetre: r.price_per_metre,
-  ...(r.mrp && r.mrp > r.price_per_metre ? { mrp: r.mrp } : {}),
-  minMetres: r.min_metres,
-  stock: r.stock,
+  pricePerMetre: r.pricePerMetre,
+  ...(r.mrp ? { mrp: r.mrp } : {}),
+  minMetres: r.minMetres,
+  stock: r.stock as Item['stock'],
   tags: r.tags as Item['tags'],
   image: r.image,
   ...(r.gallery?.length ? { gallery: r.gallery } : {}),
@@ -114,7 +134,7 @@ const rowToItem = (r: ProductRow): Item => ({
   ...(r.details ? { details: r.details } : {}),
 });
 
-const itemToRow = (i: Item): ProductRow => ({
+const itemToRow = (i: Item) => ({
   id: i.id,
   name: i.name,
   category: i.category,
@@ -132,28 +152,25 @@ const itemToRow = (i: Item): ProductRow => ({
 });
 
 export async function fetchProducts(): Promise<Item[]> {
-  const res = await callAdminApi('fetchProducts');
-  return (res.data as ProductRow[]).map(rowToItem);
+  const data = await sheetsAdminPost<{ items: any[] }>('get_catalog');
+  return (data.items || []).map(rowToItem);
 }
 
 export async function fetchOffer(): Promise<Offer> {
-  const res = await callAdminApi('fetchSettings');
-  const data = res.data;
-  if (!data) return { active: false, headline: '', detail: '' };
-  return { active: data.offer_active, headline: data.offer_headline, detail: data.offer_detail };
+  const data = await sheetsAdminPost<{ offer: Offer }>('get_catalog');
+  return data.offer;
 }
 
-export async function publishProducts(items: Item[], offer: Offer, originalIds: string[]): Promise<void> {
-  await callAdminApi('publishCatalog', {
+export async function publishProducts(items: Item[], offer: Offer, _originalIds?: string[]): Promise<void> {
+  await sheetsAdminPost('save_catalog', {
     items: items.map(itemToRow),
-    offer: {
-      active: offer.active,
-      headline: offer.headline,
-      detail: offer.detail ?? '',
-    },
-    originalIds,
+    offer,
   });
 }
+
+/* ------------------------------------------------------------------ *
+ * Admin Reviews API Calls
+ * ------------------------------------------------------------------ */
 
 export interface AdminReviewRow {
   id: string;
@@ -167,17 +184,8 @@ export interface AdminReviewRow {
 }
 
 export async function fetchAllReviews(): Promise<AdminReviewRow[]> {
-  const res = await callAdminApi('fetchReviews');
-  return (res.data as Array<{
-    id: string;
-    name: string;
-    city: string;
-    rating: number;
-    review_text: string;
-    status: 'pending' | 'published' | 'private';
-    user_email: string;
-    created_at: string;
-  }>).map((r) => ({
+  const data = await sheetsAdminPost<any[]>('fetch_reviews');
+  return (data || []).map((r) => ({
     id: r.id,
     name: r.name,
     city: r.city,
@@ -190,21 +198,25 @@ export async function fetchAllReviews(): Promise<AdminReviewRow[]> {
 }
 
 export async function setReviewStatus(id: string, status: 'published' | 'private'): Promise<void> {
-  await callAdminApi('setReviewStatus', { id, status });
+  await sheetsAdminPost('set_review_status', { id, status });
 }
 
 export async function deleteReview(id: string): Promise<void> {
-  await callAdminApi('deleteReview', { id });
+  await sheetsAdminPost('delete_review', { id });
 }
 
 export async function addManualReview(review: Review): Promise<void> {
-  await callAdminApi('addReview', {
+  await sheetsAdminPost('submit_review', {
     name: review.name,
     city: review.city,
     rating: review.rating,
     text: review.text,
   });
 }
+
+/* ------------------------------------------------------------------ *
+ * Admin Orders API Calls
+ * ------------------------------------------------------------------ */
 
 export interface AdminOrderRow {
   id: string;
@@ -229,8 +241,15 @@ export interface AdminOrderRow {
 }
 
 export async function fetchOrders(): Promise<AdminOrderRow[]> {
-  const res = await callAdminApi('fetchOrders');
-  return res.data as AdminOrderRow[];
+  const data = await sheetsAdminPost<any[]>('fetch_orders');
+  return (data || []).map((o) => ({
+    ...o,
+    items: o.items.map((line: any) => ({
+      item: { name: line.item.name },
+      metres: line.metres,
+      lineTotal: line.lineTotal || 0,
+    })),
+  }));
 }
 
 export async function setOrderStatus(
@@ -238,5 +257,5 @@ export async function setOrderStatus(
   order_status?: string,
   payment_status?: string,
 ): Promise<void> {
-  await callAdminApi('setOrderStatus', { id, order_status, payment_status });
+  await sheetsAdminPost('set_order_status', { id, order_status, payment_status });
 }

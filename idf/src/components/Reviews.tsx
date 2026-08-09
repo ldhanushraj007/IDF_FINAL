@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Heart, LogOut, Lock, Star, X } from 'lucide-react';
 import { REVIEWS, type Review } from '../data/reviews';
 import { loadReviews } from '../lib/reviewSource';
-import { supabase } from '../lib/supabase';
 import { BUSINESS, REVIEW_PUBLISH_THRESHOLD } from '../lib/constants';
 import { useAuth } from '../context/AuthContext';
 import AuthGate from './AuthGate';
@@ -24,18 +23,10 @@ function Stars({ n, size = 'h-3.5 w-3.5' }: { n: number; size?: string }) {
   );
 }
 
-/** Row shape as it comes back from the `reviews` table. */
-interface SupaReview {
-  id: string;
-  name: string;
-  city: string;
-  rating: number;
-  review_text: string;
-  created_at: string;
-}
+
 
 export default function Reviews() {
-  const { enabled, user, loading: authLoading, signOut } = useAuth();
+  const { enabled, user, loading: authLoading, signOut } = useAuth() as any;
 
   /**
    * Two independent data sources for the same on-screen list:
@@ -46,46 +37,6 @@ export default function Reviews() {
   const [published, setPublished] = useState<Review[]>(REVIEWS);
 
   useEffect(() => {
-    if (enabled && supabase) {
-      const sb = supabase;
-      let cancelled = false;
-
-      const fetchPublished = async () => {
-        const { data } = await sb
-          .from('reviews')
-          .select('name, city, rating, review_text, created_at')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false });
-        if (!cancelled && data) {
-          setPublished(
-            (data as SupaReview[]).map((r) => ({
-              name: r.name,
-              city: r.city,
-              rating: r.rating,
-              text: r.review_text,
-              date: new Date(r.created_at).toLocaleDateString('en-IN', {
-                month: 'short',
-                year: 'numeric',
-              }),
-            })),
-          );
-        }
-      };
-
-      fetchPublished();
-
-      const channel = sb
-        .channel('public-reviews-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, fetchPublished)
-        .subscribe();
-
-      return () => {
-        cancelled = true;
-        sb.removeChannel(channel);
-      };
-    }
-
-    // Non-Supabase fallback — unchanged from before.
     let cancelled = false;
     loadReviews().then((r) => {
       if (!cancelled) setPublished(r);
@@ -93,7 +44,7 @@ export default function Reviews() {
     return () => {
       cancelled = true;
     };
-  }, [enabled]);
+  }, []);
 
   const [formOpen, setFormOpen] = useState(false);
   const [rating, setRating] = useState(5);
@@ -104,12 +55,10 @@ export default function Reviews() {
   const [sent, setSent] = useState<'public' | 'private' | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Once signed in, default the name field from the account (Google gives a
-  // real name; email sign-up doesn't, so it starts blank either way is fine).
+  // Once signed in, default the name field from the Google account.
   useEffect(() => {
     if (user && !name) {
-      const fromGoogle = (user.user_metadata as { full_name?: string; name?: string } | undefined);
-      setName(fromGoogle?.full_name ?? fromGoogle?.name ?? '');
+      setName((user as any).name ?? '');
     }
   }, [user, name]);
 
@@ -167,38 +116,11 @@ export default function Reviews() {
     setSent(isPositive ? 'public' : 'private');
   };
 
-  /** Supabase path: a real row, tied to the signed-in account. */
-  const submitViaSupabase = async () => {
-    if (!supabase || !user) return;
-    const sb = supabase;
-    setSubmitting(true);
-    const { error: dbError } = await sb.from('reviews').insert({
-      user_id: user.id,
-      user_email: user.email,
-      name: name.trim(),
-      city: city.trim(),
-      rating,
-      review_text: text.trim(),
-      status: isPositive ? 'pending' : 'private',
-    });
-    setSubmitting(false);
-    if (dbError) {
-      setError(dbError.message);
-      return;
-    }
-    setSent(isPositive ? 'public' : 'private');
-  };
-
   const submit = () => {
     if (name.trim().length < 2) return setError('Please enter your name');
     if (text.trim().length < 12) return setError('Please write a little more about your experience');
     setError('');
-
-    if (enabled) {
-      submitViaSupabase();
-    } else {
-      submitViaWhatsApp();
-    }
+    submitViaWhatsApp();
   };
 
   const closeForm = () => {

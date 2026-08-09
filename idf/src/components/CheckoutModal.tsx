@@ -145,7 +145,7 @@ export default function CheckoutModal({ open, onClose }: Props) {
     // slow network here should never block WhatsApp from opening.
     if (accountsEnabled && user) {
       saveProfile({ name: customer.name, phone: customer.phone, city: customer.city });
-      saveOrder({
+      saveOrder(user.id, user.email, {
         orderCode: orderId,
         items,
         subtotal,

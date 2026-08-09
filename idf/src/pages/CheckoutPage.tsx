@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { BUSINESS, UPI, inr } from '../lib/constants';
 import {
   newOrderId,
   ownerMessage,
@@ -136,7 +135,7 @@ export default function CheckoutPage() {
 
     if (accountsEnabled && user) {
       saveProfile({ name: customer.name, phone: customer.phone, city: customer.city });
-      saveOrder({
+      saveOrder(user.id, user.email, {
         orderCode: orderId,
         items,
         subtotal,

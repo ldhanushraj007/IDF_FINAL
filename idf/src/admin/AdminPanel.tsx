@@ -46,10 +46,9 @@ import {
 import { type Review } from '../data/reviews';
 import { loadCatalog, EMPTY_OFFER, type Offer } from '../lib/catalogSource';
 import { loadReviews } from '../lib/reviewSource';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isAdminConfigured } from '../lib/adminApi';
 import {
-  requestAdminCode,
-  verifyAdminCode,
+  adminLogin,
   checkIsAdmin,
   adminSignOut,
   fetchProducts,
@@ -114,41 +113,25 @@ function exportCsv(filename: string, rows: Record<string, string | number | bool
 type LoginStep = 'credentials' | 'otp';
 
 function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
-  const [step, setStep] = useState<LoginStep>('credentials');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const submitCredentials = async () => {
+  const handleLogin = async () => {
     setError('');
     if (!username.trim() || !password) return setError('Enter your username and password');
     setBusy(true);
     try {
-      await requestAdminCode(username.trim(), password);
-      setStep('otp');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const submitCode = async () => {
-    setError('');
-    if (!/^\d{6}$/.test(code)) return setError('Enter the 6-digit code');
-    setBusy(true);
-    try {
-      await verifyAdminCode(username.trim(), code);
+      await adminLogin(username.trim(), password);
       if (!checkIsAdmin()) {
-        setError('Verification failed');
+        setError('Authentication failed');
         return;
       }
       onUnlocked();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong');
+      setError(e instanceof Error ? e.message : 'Invalid credentials');
     } finally {
       setBusy(false);
     }
@@ -158,71 +141,39 @@ function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
     <div className="w-full max-w-xs text-center">
       <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="mx-auto h-16 w-16 object-contain" />
       <h1 className="mt-4 font-serif text-2xl text-ivory">Showroom Admin Portal</h1>
-
-      {step === 'credentials' ? (
-        <>
-          <p className="mt-2 text-[13px] text-ivory/50">Sign in with admin credentials</p>
-          <input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoFocus
-            autoCapitalize="none"
-            placeholder="Username"
-            className="mt-5 w-full rounded-[2px] border border-ivory/15 bg-chocolate px-4 py-3 text-center text-ivory outline-none focus:border-gold"
-          />
-          <div className="relative mt-3">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && submitCredentials()}
-              placeholder="Password"
-              className="w-full rounded-[2px] border border-ivory/15 bg-chocolate px-4 py-3 pr-11 text-center text-ivory outline-none focus:border-gold"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-ivory/40 hover:text-ivory"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-          <button type="button" onClick={submitCredentials} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Continue'}
-          </button>
-        </>
-      ) : (
-        <>
-          <p className="mt-2 flex items-center justify-center gap-1.5 text-[13px] text-ivory/50">
-            <Lock className="h-3.5 w-3.5 text-gold" />
-            Check your admin email for a 6-digit code
-          </p>
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            onKeyDown={(e) => e.key === 'Enter' && submitCode()}
-            autoFocus
-            inputMode="numeric"
-            placeholder="000000"
-            className="mt-5 w-full rounded-[2px] border border-ivory/15 bg-chocolate px-4 py-3 text-center text-lg tracking-[0.4em] text-ivory outline-none focus:border-gold"
-          />
-          <button type="button" onClick={submitCode} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Unlock Portal'}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setStep('credentials');
-              setCode('');
-              setError('');
-            }}
-            className="mt-3 text-[12px] text-ivory/40 hover:text-gold"
-          >
-            ← Use a different account
-          </button>
-        </>
-      )}
+      <p className="mt-2 text-[13px] text-ivory/50">Sign in with admin credentials</p>
+      <input
+        type="text"
+        name="username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+        autoFocus
+        autoCapitalize="none"
+        placeholder="Username"
+        className="mt-5 w-full rounded-[2px] border border-ivory/15 bg-chocolate px-4 py-3 text-center text-ivory outline-none focus:border-gold"
+      />
+      <div className="relative mt-3">
+        <input
+          type={showPassword ? 'text' : 'password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+          placeholder="Password"
+          className="w-full rounded-[2px] border border-ivory/15 bg-chocolate px-4 py-3 pr-11 text-center text-ivory outline-none focus:border-gold"
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((v) => !v)}
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
+          className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-ivory/40 hover:text-ivory"
+        >
+          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+      <button type="button" onClick={handleLogin} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full">
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Login'}
+      </button>
 
       {error && <p className="mt-3 text-[12px] text-maroon">{error}</p>}
       <a href="/" className="mt-6 inline-block text-[12px] text-ivory/40 hover:text-gold">
@@ -301,14 +252,19 @@ export default function AdminPanel() {
     if (!unlocked) return;
     setDataLoading(true);
 
-    if (isSupabaseConfigured) {
+    if (isAdminConfigured) {
       Promise.all([fetchProducts(), fetchOffer(), fetchAllReviews(), fetchOrders()])
         .then(([prods, off, revs, ords]) => {
-          setItems(prods);
-          setOriginalIds(prods.map((p) => p.id));
+          // If the sheet has no products, fallback to default local CATALOG
+          const activeProds = prods.length > 0 ? prods : CATALOG;
+          setItems(activeProds);
+          setOriginalIds(activeProds.map((p) => p.id));
           setOffer(off);
           setLiveReviews(revs);
           setOrders(ords);
+          if (prods.length === 0) {
+            setDirty(true); // Mark as dirty so user can hit "Publish Live" to sync defaults
+          }
         })
         .catch((err) => console.error(err))
         .finally(() => setDataLoading(false));
@@ -382,7 +338,7 @@ export default function AdminPanel() {
   };
 
   const handlePublish = async () => {
-    if (!isSupabaseConfigured) return;
+    if (!isAdminConfigured) return;
     setPublishState('publishing');
     setPublishError('');
     try {
@@ -431,7 +387,7 @@ export default function AdminPanel() {
   if (!unlocked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#150a0a] px-4">
-        {isSupabaseConfigured ? (
+        {isAdminConfigured ? (
           <SupabaseLogin onUnlocked={() => setUnlocked(true)} />
         ) : (
           <PinLogin onUnlocked={() => setUnlocked(true)} />
@@ -493,7 +449,7 @@ export default function AdminPanel() {
 
         <div className="border-t border-gold/15 pt-4">
           <div className="flex items-center justify-between text-[12px] text-ivory/50">
-            <span>Mode: {isSupabaseConfigured ? 'Connected' : 'Static'}</span>
+            <span>Mode: {isAdminConfigured ? 'Connected' : 'Static'}</span>
             <button
               onClick={() => {
                 adminSignOut();
@@ -521,7 +477,7 @@ export default function AdminPanel() {
           </div>
 
           <div className="flex items-center gap-3">
-            {isSupabaseConfigured && (
+            {isAdminConfigured && (
               <button
                 onClick={handlePublish}
                 disabled={publishState === 'publishing'}

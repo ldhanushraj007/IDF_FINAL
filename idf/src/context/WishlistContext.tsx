@@ -23,7 +23,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       return;
     }
     setLoading(true);
-    fetchWishlistIds()
+    fetchWishlistIds(user.id, user.email)
       .then(setIds)
       .finally(() => setLoading(false));
   }, [user]);
@@ -40,7 +40,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         } else {
           next.delete(productId);
         }
-        toggleWishlist(productId, willBeOn);
+        toggleWishlist(user.id, user.email, productId, willBeOn);
         return next;
       });
     },
