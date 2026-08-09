@@ -221,7 +221,7 @@ export async function addManualReview(review: Review): Promise<void> {
 export interface AdminOrderRow {
   id: string;
   order_code: string;
-  items: Array<{ item: Item; metres: number; lineTotal: number }>;
+  items: Array<{ item: { name: string }; metres: number; lineTotal: number }>;
   subtotal: number;
   discount: number;
   shipping: number;
