@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import AddProductModal from './AddProductModal';
 import {
   ArrowLeft,
   Check,
@@ -241,6 +242,7 @@ export default function AdminPanel() {
   // UI state
   const [query, setQuery] = useState('');
   const [openId, setOpenId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrderRow | null>(null);
   const [orderFilter, setOrderFilter] = useState<'all' | 'pending_whatsapp' | 'confirmed' | 'fulfilled'>('all');
   const [dirty, setDirty] = useState(false);
@@ -756,12 +758,7 @@ export default function AdminPanel() {
                       className="rounded border border-ivory/15 bg-night/50 px-3 py-2 text-[13px] text-ivory w-64"
                     />
                     <button
-                      onClick={() => {
-                        const newItem = blankItem();
-                        setItems((prev) => [newItem, ...prev]);
-                        setOpenId(newItem.id);
-                        setDirty(true);
-                      }}
+                      onClick={() => setShowAddModal(true)}
                       className="btn btn-gold btn-sheen text-[12px] px-3 py-2 flex items-center gap-1.5"
                     >
                       <Plus className="h-4 w-4" />
@@ -977,6 +974,19 @@ export default function AdminPanel() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Add Product Modal */}
+      {showAddModal && (
+        <AddProductModal
+          onClose={() => setShowAddModal(false)}
+          onSave={(newItem) => {
+            setItems((prev) => [newItem, ...prev]);
+            setDirty(true);
+            setShowAddModal(false);
+            handlePublish();
+          }}
+        />
       )}
     </div>
   );

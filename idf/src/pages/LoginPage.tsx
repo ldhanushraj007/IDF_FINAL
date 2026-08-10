@@ -49,7 +49,7 @@ export default function LoginPage() {
   // Redirect if already signed in
   useEffect(() => {
     if (!loading && user) {
-      navigate('/account', { replace: true });
+      navigate('/', { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -95,7 +95,7 @@ export default function LoginPage() {
         name: res.user.name,
         picture: '',
       });
-      navigate('/account');
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid email or password.');
     } finally {
@@ -139,7 +139,7 @@ export default function LoginPage() {
         name: res.user.name,
         picture: '',
       });
-      navigate('/account');
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Incorrect or expired code.');
     } finally {
