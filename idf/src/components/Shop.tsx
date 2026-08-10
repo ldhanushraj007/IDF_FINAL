@@ -28,7 +28,7 @@ export default function Shop() {
   );
 
   return (
-    <section id="shop" className="scroll-mt-20 py-16 sm:py-24 lg:py-28" style={{ backgroundColor: '#d08446' }}>
+    <section id="shop" className="scroll-mt-20 py-16 sm:py-24 lg:py-28" style={{ backgroundColor: '#884d23' }}>
       <div className="container-lux">
         <SectionHeading
           light

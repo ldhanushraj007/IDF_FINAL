@@ -28,7 +28,7 @@ export default function TopPicks({ limit = 4 }: { limit?: number }) {
   if (!loaded || !topItems.length) return null;
 
   return (
-    <section className="bg-night py-12 sm:py-16 border-t border-gold/15">
+    <section className="py-12 sm:py-16 border-t border-gold/15" style={{ backgroundColor: '#884d23' }}>
       <div className="container-lux">
         <SectionHeading
           light
