@@ -259,3 +259,43 @@ export async function setOrderStatus(
 ): Promise<void> {
   await sheetsAdminPost('set_order_status', { id, order_status, payment_status });
 }
+
+export async function addManualCustomer(customer: any): Promise<void> {
+  await sheetsAdminPost('upsert_customer', {
+    userId: `cust-${Math.random().toString(36).slice(2, 7)}`,
+    userEmail: customer.email,
+    name: customer.name,
+    phone: customer.phone,
+    city: customer.city,
+    signupMethod: customer.signup_method,
+  });
+}
+
+export async function addManualOrder(order: AdminOrderRow): Promise<void> {
+  await sheetsAdminPost('save_order', {
+    userId: `cust-walkin`,
+    userEmail: order.customers?.email || 'walkin@idf.com',
+    order: {
+      orderCode: order.order_code,
+      customerName: order.customers?.name || '',
+      phone: order.customers?.phone || '',
+      fulfilment: order.fulfilment,
+      address: order.address,
+      city: order.city,
+      pincode: order.pincode,
+      items: order.items.map((i) => ({
+        name: i.item.name,
+        metres: i.metres,
+        lineTotal: i.lineTotal,
+      })),
+      subtotal: order.subtotal,
+      discount: order.discount,
+      shipping: order.shipping,
+      total: order.total,
+      notes: order.requirement,
+      paymentMethod: order.payment_method,
+      paid: order.paid,
+      paymentReference: order.payment_reference,
+    },
+  });
+}
