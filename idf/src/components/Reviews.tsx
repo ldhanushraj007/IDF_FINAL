@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import AuthGate from './AuthGate';
 import Reveal from './Reveal';
 import SectionHeading from './SectionHeading';
+import { isSheetsConfigured } from '../lib/customerApi';
 
 function Stars({ n, size = 'h-3.5 w-3.5' }: { n: number; size?: string }) {
   return (
@@ -116,11 +117,40 @@ export default function Reviews() {
     setSent(isPositive ? 'public' : 'private');
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (name.trim().length < 2) return setError('Please enter your name');
     if (text.trim().length < 12) return setError('Please write a little more about your experience');
     setError('');
-    submitViaWhatsApp();
+    setSubmitting(true);
+
+    try {
+      if (isSheetsConfigured && user) {
+        // Send directly to sheets db using Action: submit_review
+        const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL;
+        const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN;
+        await fetch(SCRIPT_URL!, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            token: SCRIPT_TOKEN,
+            action: 'submit_review',
+            name: name.trim(),
+            city: city.trim() || 'Bengaluru',
+            rating,
+            text: text.trim(),
+            userEmail: user.email,
+          }),
+        });
+        setSent(isPositive ? 'public' : 'private');
+      } else {
+        // Fallback to WhatsApp
+        submitViaWhatsApp();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit review. Try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const closeForm = () => {
