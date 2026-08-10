@@ -16,7 +16,7 @@ export default function Testimonials() {
   const t = TESTIMONIALS[idx];
 
   return (
-    <section className="relative overflow-hidden bg-night py-16 sm:py-24 lg:py-28">
+    <section className="relative overflow-hidden py-16 sm:py-24 lg:py-28" style={{ backgroundColor: '#884d23' }}>
       <div className="container-lux">
         <SectionHeading light kicker="Word of Mouth" title="What the house is told" />
 
