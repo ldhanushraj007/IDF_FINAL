@@ -5,7 +5,7 @@ import SectionHeading from './SectionHeading';
 
 export default function Collections() {
   return (
-    <section id="collections" className="scroll-mt-20 bg-ivory py-16 sm:py-24 lg:py-28">
+    <section id="collections" className="scroll-mt-20 bg-surface border-b border-[#1a1a1a] py-16 sm:py-24">
       <div className="container-lux">
         <SectionHeading
           kicker="The Collections"
@@ -20,7 +20,7 @@ export default function Collections() {
                 href={waLink(`Hello! I'm interested in the ${c.name} collection.`)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative block overflow-hidden rounded-[3px]"
+                className="group relative block overflow-hidden border border-[#1a1a1a] bg-surface"
                 aria-label={`Enquire about ${c.name} on WhatsApp`}
               >
                 <img
@@ -31,22 +31,21 @@ export default function Collections() {
                   className="img-zoom aspect-[4/5] w-full object-cover md:aspect-[3/4]"
                 />
                 <div
-                  className="absolute inset-0 bg-gradient-to-t from-night/90 via-night/25 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
                   aria-hidden="true"
                 />
-                <span className="frame-hover" aria-hidden="true" />
 
-                <div className="absolute inset-x-0 bottom-0 p-5 lg:p-6">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-gold-light">
+                <div className="absolute inset-x-0 bottom-0 p-5 lg:p-6 text-white">
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-brand-gold">
                     {c.tagline}
                   </p>
-                  <h3 className="mt-2 font-serif text-2xl leading-snug text-ivory md:text-xl lg:text-2xl">
+                  <h3 className="mt-2 font-serif text-2xl leading-snug text-white md:text-xl lg:text-2xl">
                     {c.name}
                   </h3>
-                  <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-ivory/65 md:max-lg:hidden">
+                  <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-white/80 md:max-lg:hidden">
                     {c.description}
                   </p>
-                  <p className="mt-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-gold opacity-0 transition-all duration-500 ease-lux group-hover:opacity-100 touch:opacity-100">
+                  <p className="mt-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-gold opacity-0 transition-all duration-500 ease-lux group-hover:opacity-100 touch:opacity-100">
                     Enquire on WhatsApp <span aria-hidden="true">→</span>
                   </p>
                 </div>

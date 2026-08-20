@@ -50,186 +50,162 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="bg-ivory pt-20 sm:pt-24">
-      {/* ---------- Hero / Our Story ---------- */}
-      <section className="container-lux py-16 sm:py-24">
-        <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
-          <Reveal className="relative mx-auto w-full max-w-md pb-6 sm:pb-0 lg:max-w-none">
-            <span
-              className="absolute -inset-2 translate-x-3 translate-y-3 border border-gold/40 sm:-inset-3 sm:translate-x-6 sm:translate-y-6"
-              aria-hidden="true"
-            />
-            <img
-              src="/images/about/story.jpg"
-              alt="In Design Luxury Fabrics showroom interior"
-              loading="lazy"
-              decoding="async"
-              className="relative aspect-[5/6] w-full rounded-[3px] object-cover"
-            />
-          </Reveal>
-          <Reveal delay={0.15}>
-            <p className="kicker">Our Story</p>
-            <h1 className="mt-4 font-serif text-4xl leading-[1.08] text-ink sm:text-5xl">
-              Luxury Woven Into Every Thread
-            </h1>
-            <p className="mt-6 text-[15px] leading-relaxed text-muted">
-              {BUSINESS.name} began in {BUSINESS.city} as a single counter of Banarasi silks and
-              grew into a trusted address for couture and bridal fabric — not by chasing every
-              trend, but by refusing to compromise on what goes into a single length of cloth.
-            </p>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              We believe fabric is the first decision in any garment, and the one every other
-              decision depends on. A weak fabric cannot be tailored into a strong dress. So we
-              spend our time where it matters most: sourcing, inspecting, and standing behind
-              every metre we sell.
-            </p>
-          </Reveal>
+    <div className="flex flex-grow relative w-full bg-surface border-x border-[#1a1a1a]">
+      {/* Left Sidebar (02 indicator area) */}
+      <aside className="hidden md:flex w-16 flex-col items-center py-8 border-r border-[#1a1a1a] relative shrink-0">
+        <div className="index-badge font-index-num text-index-num text-secondary w-full text-center left-0 ml-0 pl-2">02</div>
+        <div className="vertical-text font-label-caps text-label-caps tracking-widest text-secondary mt-32 uppercase whitespace-nowrap">
+          ABOUT US
         </div>
-      </section>
+      </aside>
 
-      {/* ---------- Vision & Mission ---------- */}
-      <section className="bg-night py-16 text-ivory sm:py-24">
-        <div className="container-lux grid gap-10 sm:grid-cols-2 sm:gap-14">
-          <Reveal>
-            <p className="kicker-light">Our Vision</p>
-            <h2 className="mt-3 font-serif text-2xl leading-snug sm:text-3xl">
-              To be the fabric house Indian designers reach for first
-            </h2>
-            <p className="mt-4 text-[14px] leading-relaxed text-ivory/65">
-              We want a stylist in Mumbai and a bride\u2019s mother in Bengaluru to think of the same
-              name when they think of fabric they can trust sight unseen.
-            </p>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="kicker-light">Our Mission</p>
-            <h2 className="mt-3 font-serif text-2xl leading-snug sm:text-3xl">
-              Provenance and honesty in every sale
-            </h2>
-            <p className="mt-4 text-[14px] leading-relaxed text-ivory/65">
-              Every fabric we stock is bought with the weaver\u2019s name attached. We pass that
-              provenance on, price honestly, and never sell a customer more than they need.
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ---------- Why Choose Us ---------- */}
-      <section className="container-lux py-16 sm:py-24">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="kicker">Why Choose Us</p>
-          <h2 className="mt-4 font-serif text-3xl leading-tight text-ink sm:text-4xl">
-            What sets the showroom apart
-          </h2>
-        </Reveal>
-
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
-          {VALUES.map((v, i) => (
-            <Reveal key={v.title} delay={(i % 3) * 0.08}>
-              <div className="h-full rounded-[3px] border border-walnut/12 bg-cream p-6">
-                <v.icon className="h-7 w-7 text-gold-dark" strokeWidth={1.5} />
-                <h3 className="mt-4 font-serif text-xl text-ink">{v.title}</h3>
-                <p className="mt-2 text-[13.5px] leading-relaxed text-muted">{v.body}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ---------- Craftsmanship ---------- */}
-      <section className="overflow-hidden bg-cream py-16 sm:py-24">
-        <div className="container-lux grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
-          <Reveal delay={0.1} className="order-2 lg:order-1">
-            <p className="kicker">Our Craftsmanship</p>
-            <h2 className="mt-4 font-serif text-3xl leading-[1.1] text-ink sm:text-4xl">
-              Every thread has a hand behind it
-            </h2>
-            <p className="mt-5 text-[15px] leading-relaxed text-muted">
-              Zardozi, zari, kadhwa, jamdani — the techniques behind our fabrics take years to
-              learn and hours per metre to execute. We work directly with the artisans who hold
-              that knowledge, rather than through layers of trading houses.
-            </p>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              That directness is what lets us tell you exactly what you\u2019re buying: which region,
-              which technique, sometimes which family.
-            </p>
-          </Reveal>
-          <Reveal className="relative order-1 mx-auto w-full max-w-md lg:order-2 lg:max-w-none">
-            <img
-              src="/images/about/craft.jpg"
-              alt="Hand embroidery and zari thread detail"
-              loading="lazy"
-              decoding="async"
-              className="aspect-[4/3] w-full rounded-[3px] object-cover"
-            />
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ---------- Timeline ---------- */}
-      <section className="container-lux py-16 sm:py-24">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="kicker">Milestones</p>
-          <h2 className="mt-4 font-serif text-3xl leading-tight text-ink sm:text-4xl">
-            Since {TIMELINE[0].year}
-          </h2>
-        </Reveal>
-        <div className="mx-auto mt-12 max-w-2xl space-y-8 border-l border-gold/30 pl-8">
-          {TIMELINE.map((t, i) => (
-            <Reveal key={t.year} delay={i * 0.08} className="relative">
-              <span className="absolute -left-[38px] top-1 h-3 w-3 rounded-full border-2 border-gold bg-ivory" />
-              <p className="font-nums text-sm font-semibold uppercase tracking-[0.14em] text-gold-dark">
-                {t.year}
+      {/* Main Scrollable Canvas */}
+      <main className="flex-grow flex flex-col w-full relative min-w-0">
+        {/* Hero Section: The Heritage Story (02) */}
+        <section className="relative w-full border-b border-[#1A1A1A] grid-line-b">
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[70vh]">
+            {/* Hero Text */}
+            <div className="p-8 md:p-16 flex flex-col justify-center relative border-r border-[#1A1A1A] grid-line-r">
+              <div className="md:hidden index-badge font-index-num text-index-num text-secondary">02</div>
+              <h1 className="font-display-lg text-[48px] md:text-[84px] text-primary mb-8 leading-tight font-serif">
+                Woven into<br/>history.
+              </h1>
+              <div className="w-12 h-[1px] bg-brand-gold mb-8"></div>
+              <h2 className="font-label-caps text-label-caps text-secondary tracking-widest uppercase mb-4">Our Story</h2>
+              <p className="font-body-lg text-body-lg text-secondary max-w-md">
+                Born from a profound respect for the loom, {BUSINESS.name} began its journey tracing the intricate threads of India's textile heartlands. From the opulent zari of Banaras to the structural majesty of Kanchipuram silks, and the raw elegance of Bhagalpur tussar, we source not just fabric, but heritage.
               </p>
-              <p className="mt-1.5 text-[14px] leading-relaxed text-muted">{t.text}</p>
-            </Reveal>
-          ))}
-        </div>
-      </section>
+            </div>
+            {/* Hero Image Area */}
+            <div className="relative h-64 md:h-auto bg-surface-container overflow-hidden">
+              <img
+                src="/images/about/story.jpg"
+                alt="Banaras Silk Loom"
+                className="w-full h-full object-cover grayscale opacity-90 hover:grayscale-0 transition-all duration-700"
+              />
+              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 border border-[#1A1A1A] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-brand-gold"></span>
+                <span className="font-label-caps text-[10px] tracking-widest uppercase">Banaras Silk Loom</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      {/* ---------- Showroom ---------- */}
-      <section className="bg-night py-16 sm:py-24">
-        <div className="container-lux">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <p className="kicker-light">Visit Us</p>
-            <h2 className="mt-4 font-serif text-3xl leading-tight text-ivory sm:text-4xl">
-              Step into the showroom
-            </h2>
-            <p className="mt-4 text-[14px] leading-relaxed text-ivory/60">
-              {BUSINESS.addressLine1}, {BUSINESS.addressLine2}
-            </p>
-          </Reveal>
+        {/* Vision & Mission (03) */}
+        <section className="relative w-full border-b border-[#1A1A1A] grid-line-b py-16 px-8 md:px-16 bg-surface-container-low">
+          <div className="absolute top-4 left-4 font-index-num text-index-num text-secondary">03</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-6xl mx-auto mt-8">
+            <div>
+              <h3 className="font-headline-md text-3xl text-primary mb-6 font-serif">Preservation of Heritage.</h3>
+              <p className="font-body-lg text-body-lg text-secondary">
+                Our mission extends beyond curation. We are committed to the preservation of ancient weaving techniques that define luxury. By partnering directly with master artisans, we ensure fair trade and sustain generational crafts that risk fading into obsolescence.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-headline-md text-3xl text-primary mb-6 font-serif">Uncompromising Quality.</h3>
+              <p className="font-body-lg text-body-lg text-secondary">
+                Our vision is focused strictly on the wearer. Every metre of fabric that enters our atelier is rigorously inspected. We believe true luxury is felt against the skin and seen in the drape. We curate for discerning designers and clientele who demand nothing less than perfection.
+              </p>
+            </div>
+          </div>
+        </section>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-6">
-            <Reveal>
+        {/* Milestone Timeline (04) */}
+        <section className="relative w-full border-b border-[#1A1A1A] grid-line-b overflow-hidden">
+          <div className="absolute top-4 left-4 font-index-num text-index-num text-secondary">04</div>
+          <div className="p-8 md:p-16 border-b border-[#E5E5E1] grid-line-b-light">
+            <h2 className="font-label-caps text-label-caps text-secondary tracking-widest uppercase mb-2">The Journey</h2>
+            <h3 className="font-headline-md text-3xl text-primary font-serif">Since 2009.</h3>
+          </div>
+          {/* Horizontal Scrolling Timeline / Grid */}
+          <div className="flex overflow-x-auto no-scrollbar border-b border-[#1A1A1A] min-h-[300px]">
+            {TIMELINE.map((t, i) => (
+              <div key={t.year} className="min-w-[300px] flex-1 border-r border-[#E5E5E1] grid-line-r-light p-8 relative group hover:bg-surface-container-high transition-colors">
+                <div className="font-headline-md text-4xl text-outline mb-6 group-hover:text-brand-gold transition-colors font-serif">{t.year}</div>
+                <h4 className="font-label-caps text-label-caps uppercase text-primary mb-4 font-bold">Milestone</h4>
+                <p className="font-body-sm text-body-sm text-secondary">
+                  {t.text}
+                </p>
+                <div className="absolute left-8 bottom-8 w-[1px] h-12 bg-secondary-container group-hover:bg-brand-gold"></div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Showroom Gallery Bento Grid (05) */}
+        <section className="relative w-full border-b border-[#1A1A1A] grid-line-b">
+          <div className="absolute top-4 left-4 font-index-num text-index-num text-secondary z-10">05</div>
+          <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 h-auto md:h-[80vh]">
+            {/* Text Block */}
+            <div className="col-span-1 md:col-span-1 row-span-1 border-r border-b border-[#1A1A1A] p-8 pt-16 flex flex-col justify-end bg-surface">
+              <h2 className="font-label-caps text-label-caps text-secondary tracking-widest uppercase mb-2">The Space</h2>
+              <h3 className="font-headline-md text-2xl text-primary font-serif">Our {BUSINESS.city} Studio.</h3>
+              <p className="font-body-sm text-body-sm text-secondary mt-4">Designed to let natural light reveal the true colors and textures of our silks. A sanctuary for designers.</p>
+            </div>
+            {/* Large Image */}
+            <div className="col-span-1 md:col-span-2 row-span-2 border-r border-[#1A1A1A] relative overflow-hidden group">
               <img
                 src="/images/about/showroom-1.jpg"
-                alt="In Design Luxury Fabrics showroom floor"
-                loading="lazy"
-                decoding="async"
-                className="aspect-[4/3] w-full rounded-[3px] object-cover"
+                alt="Showroom view"
+                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000 ease-out"
               />
-            </Reveal>
-            <Reveal delay={0.1}>
+              <div className="absolute bottom-4 right-4 bg-white/90 px-2 py-1 border border-[#1A1A1A] font-index-num text-index-num">IMG 01</div>
+            </div>
+            {/* Small Image Top */}
+            <div className="col-span-1 md:col-span-1 row-span-1 border-b border-[#1A1A1A] relative overflow-hidden group">
               <img
                 src="/images/about/showroom-2.jpg"
-                alt="Fabric bolts displayed in the showroom"
-                loading="lazy"
-                decoding="async"
-                className="aspect-[4/3] w-full rounded-[3px] object-cover"
+                alt="Bolts display"
+                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000 ease-out"
               />
-            </Reveal>
-          </div>
-
-          <Reveal className="mt-10 flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-center sm:gap-6">
-            <a href={WA_VISIT} target="_blank" rel="noopener noreferrer" className="btn btn-gold btn-sheen">
-              Plan a Visit
+              <div className="absolute bottom-4 right-4 bg-white/90 px-2 py-1 border border-[#1A1A1A] font-index-num text-index-num">IMG 02</div>
+            </div>
+            {/* Action Block Bottom Left */}
+            <a
+              href="https://maps.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="col-span-1 md:col-span-1 row-span-1 border-r border-[#1A1A1A] bg-surface-container flex items-center justify-center p-8 group cursor-pointer hover:bg-surface-variant transition-colors text-center"
+            >
+              <div>
+                <span className="material-symbols-outlined text-4xl text-brand-gold mb-4">pin_drop</span>
+                <h4 className="font-label-caps text-label-caps uppercase text-primary">Indiranagar</h4>
+                <p className="font-index-num text-secondary mt-2">VIEW ON MAP</p>
+              </div>
             </a>
-            <Link to="/#shop" className="btn btn-ghost-light">
-              Shop Online Instead
-            </Link>
-          </Reveal>
-        </div>
-      </section>
+            {/* Small Image Bottom Right */}
+            <div className="col-span-1 md:col-span-1 row-span-1 relative overflow-hidden group">
+              <img
+                src="/images/about/craft.jpg"
+                alt="Craftsmanship detail"
+                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000 ease-out"
+              />
+              <div className="absolute bottom-4 right-4 bg-white/90 px-2 py-1 border border-[#1A1A1A] font-index-num text-index-num">IMG 03</div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section (06) */}
+        <section className="relative w-full border-b border-[#1A1A1A] grid-line-b py-24 px-8 md:px-16 flex flex-col items-center text-center bg-surface">
+          <div className="absolute top-4 left-4 font-index-num text-index-num text-secondary">06</div>
+          <span className="material-symbols-outlined text-5xl text-brand-gold mb-6 font-light">calendar_month</span>
+          <h2 className="font-display-lg-mobile md:font-headline-md text-3xl text-primary mb-4 max-w-2xl font-serif">Experience the drape in person.</h2>
+          <p className="font-body-lg text-body-lg text-secondary max-w-xl mb-10">
+            We invite designers and connoisseurs to visit our atelier for a personalized curation session.
+          </p>
+          <a
+            href={WA_VISIT}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-[#1A1A1A] text-white px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest hover:bg-brand-gold hover:text-white transition-colors flex items-center gap-3 group"
+          >
+            BOOK AN IN-PERSON CONSULTATION
+          </a>
+          <p className="font-index-num text-index-num text-secondary mt-6 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">info</span> By appointment only.
+          </p>
+        </section>
+      </main>
     </div>
   );
 }

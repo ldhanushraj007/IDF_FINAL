@@ -1,78 +1,43 @@
-import { ArrowUp, Instagram, MapPin, Phone } from 'lucide-react';
-import { BUSINESS, NAV_LINKS } from '../lib/constants';
-import Wordmark from './Wordmark';
+import { Instagram, Lock, ShieldCheck } from 'lucide-react';
+import { BUSINESS } from '../lib/constants';
 
 export default function Footer() {
   return (
-    <footer className="bg-night pb-8 pt-14 text-ivory/70 sm:pt-16">
-      <div className="container-lux">
-        <div className="grid gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-3">
-          <div className="sm:col-span-2 lg:col-span-1">
-            <Wordmark tone="light" />
-            <p className="mt-5 max-w-xs text-[13.5px] leading-relaxed text-ivory/55">
-              {BUSINESS.tagline}. Heritage silks, bridal couture and designer fabrics — curated in{' '}
-              {BUSINESS.city} since 2009.
-            </p>
-          </div>
+    <footer className="grid-line-top grid grid-cols-1 md:grid-cols-4 w-full px-margin-page py-8 bg-surface text-primary border-t border-[#1a1a1a] relative">
+      <span className="index-badge">05</span>
+      
+      <div className="border-r border-[#1a1a1a] pr-8 pl-8 md:pl-0 flex flex-col justify-between min-h-[100px]">
+        <h4 className="font-label-caps text-label-caps text-secondary uppercase mb-2">NEED HELP?</h4>
+        <a href={`tel:${BUSINESS.phoneRaw}`} className="font-body-lg text-primary hover:text-brand-gold transition-colors">
+          {BUSINESS.phoneDisplay}
+        </a>
+      </div>
 
-          <nav aria-label="Footer">
-            <p className="kicker-light">Explore</p>
-            <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-1">
-              {NAV_LINKS.map((l) => (
-                <li key={l.href}>
-                  <a href={l.href} className="text-[13.5px] tracking-wide transition-colors hover:text-gold">
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+      <div className="border-r border-[#1a1a1a] px-8 flex flex-col justify-between min-h-[100px]">
+        <h4 className="font-label-caps text-label-caps text-secondary uppercase mb-2">SHOWROOM</h4>
+        <p className="font-body-lg text-primary">{BUSINESS.city}</p>
+      </div>
 
-          <div>
-            <p className="kicker-light">Contact</p>
-            <ul className="mt-5 space-y-4 text-[13.5px] leading-relaxed">
-              <li className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold" strokeWidth={1.6} />
-                <span>
-                  {BUSINESS.addressLine1},<br />
-                  {BUSINESS.addressLine2},<br />
-                  {BUSINESS.addressLine3}
-                </span>
-              </li>
-              <li>
-                <a href={`tel:${BUSINESS.phoneRaw}`} className="flex items-center gap-3 transition-colors hover:text-gold">
-                  <Phone className="h-4 w-4 shrink-0 text-gold" strokeWidth={1.6} />
-                  {BUSINESS.phoneDisplay}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={BUSINESS.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 break-all transition-colors hover:text-gold"
-                >
-                  <Instagram className="h-4 w-4 shrink-0 text-gold" strokeWidth={1.6} />
-                  {BUSINESS.instagramHandle}
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
+      <div className="border-r border-[#1a1a1a] px-8 flex flex-col justify-between min-h-[100px]">
+        <h4 className="font-label-caps text-label-caps text-secondary uppercase mb-2">HOURS</h4>
+        <p className="font-body-lg text-primary">Mon - Sat: 10am - 8pm</p>
+      </div>
 
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-ivory/10 pt-6">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-ivory/40 sm:text-[11px] sm:tracking-[0.22em]">
-            © {new Date().getFullYear()} {BUSINESS.legalName} · {BUSINESS.city}
-          </p>
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            aria-label="Back to top"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/40 text-gold transition-all duration-300 hover:border-gold hover:bg-gold hover:text-night"
+      <div className="px-8 flex flex-col justify-between items-start md:items-end min-h-[100px] relative">
+        <h4 className="font-label-caps text-label-caps text-secondary uppercase mb-2 md:w-full md:text-right">FOLLOW US</h4>
+        <div className="flex gap-4 md:w-full md:justify-end">
+          <a
+            href={BUSINESS.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:text-brand-gold transition-colors"
           >
-            <ArrowUp className="h-4 w-4" />
-          </button>
+            <Instagram className="h-5 w-5" />
+          </a>
         </div>
+        <p className="mt-4 font-label-caps text-[10px] text-secondary w-full text-left md:text-right uppercase tracking-widest">
+          © {new Date().getFullYear()} {BUSINESS.legalName}. ALL RIGHTS RESERVED.
+        </p>
       </div>
     </footer>
   );

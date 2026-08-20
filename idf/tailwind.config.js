@@ -7,14 +7,7 @@ export default {
         touch: { raw: '(hover: none)' },
       },
       colors: {
-        /**
-         * CLIENT BRAND PALETTE
-         * Main 4 colors:
-         *  - Walnut: #7a4e35
-         *  - Sand/Ivory: #dec3b4
-         *  - Night: #1c0505
-         *  - Gold: #d3aa32
-         */
+        /** Existing client brand palette **/
         ivory: '#dec3b4',
         cream: '#ece0d8',
         sand: '#dec3b4',
@@ -22,13 +15,82 @@ export default {
         chocolate: '#2d0a0a',
         ink: '#1c0505',
         maroon: { DEFAULT: '#7a2424', dark: '#4d0a0a' },
-        gold: { light: '#e5c55c', DEFAULT: '#d3aa32', dark: '#a8831f' },
         walnut: { light: '#966448', DEFAULT: '#7a4e35', dark: '#5c3924' },
         muted: '#6b5447',
+
+        /** New Redesign Palette **/
+        "inverse-surface": "#2f312e",
+        "secondary": "#5e5f5b",
+        "secondary-container": "#e3e3de",
+        "on-primary-container": "#858383",
+        "surface-container-highest": "#e3e3df",
+        "outline-variant": "#c4c7c7",
+        "on-primary-fixed": "#1c1b1b",
+        "on-error-container": "#93000a",
+        "on-tertiary-container": "#868382",
+        "on-secondary": "#ffffff",
+        "on-background": "#1a1c1a",
+        "surface-container-lowest": "#ffffff",
+        "secondary-fixed": "#e3e3de",
+        "surface": "#faf9f5",
+        "tertiary": "#000000",
+        "on-secondary-container": "#646561",
+        "on-surface": "#1a1c1a",
+        "on-tertiary": "#ffffff",
+        "secondary-fixed-dim": "#c7c7c2",
+        "surface-tint": "#5f5e5e",
+        "primary-fixed": "#e5e2e1",
+        "surface-container": "#eeeeea",
+        "surface-variant": "#e3e3df",
+        "primary": "#000000",
+        "error-container": "#ffdad6",
+        "surface-bright": "#faf9f5",
+        "primary-container": "#1c1b1b",
+        "on-error": "#ffffff",
+        "on-primary": "#ffffff",
+        "primary-fixed-dim": "#c8c6c5",
+        "tertiary-container": "#1c1b1a",
+        "inverse-on-surface": "#f1f1ed",
+        "error": "#ba1a1a",
+        "on-surface-variant": "#444748",
+        "on-tertiary-fixed": "#1c1b1a",
+        "surface-dim": "#dadad6",
+        "on-tertiary-fixed-variant": "#484645",
+        "surface-container-low": "#f4f4f0",
+        "outline": "#747878",
+        "on-secondary-fixed": "#1b1c19",
+        "inverse-primary": "#c8c6c5",
+        "surface-container-high": "#e8e8e4",
+        "on-secondary-fixed-variant": "#464744",
+        "tertiary-fixed-dim": "#cac6c4",
+        "tertiary-fixed": "#e6e2df",
+        "background": "#faf9f5",
+        "on-primary-fixed-variant": "#474746",
+        "brand-gold": "#B8860B",
+        "accent-gold": "#B8860B",
+        "gold": { DEFAULT: '#B8860B', light: '#e5c55c', dark: '#a8831f' },
+        "accent": "#B8860B",
+        "brand-accent": "#B8860B"
       },
       fontFamily: {
         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        "headline-md": ["Playfair Display", "serif"],
+        "body-lg": ["Hanken Grotesk", "sans-serif"],
+        "body-sm": ["Hanken Grotesk", "sans-serif"],
+        "label-caps": ["Hanken Grotesk", "sans-serif"],
+        "index-num": ["Hanken Grotesk", "sans-serif"],
+        "display-lg": ["Playfair Display", "serif"],
+        "display-lg-mobile": ["Playfair Display", "serif"]
+      },
+      fontSize: {
+        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+        "body-sm": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+        "index-num": ["11px", { "lineHeight": "12px", "fontWeight": "400" }],
+        "display-lg": ["84px", { "lineHeight": "92px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+        "display-lg-mobile": ["48px", { "lineHeight": "52px", "fontWeight": "400" }]
       },
       transitionTimingFunction: {
         lux: 'cubic-bezier(0.22, 1, 0.36, 1)',

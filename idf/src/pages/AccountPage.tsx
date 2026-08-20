@@ -102,123 +102,193 @@ export default function AccountPage() {
 
   /* -------- Signed in -------- */
   return (
-    <div className="min-h-screen bg-ivory pb-24 pt-24 sm:pt-28">
-      <div className="container-lux max-w-3xl">
-        <div className="flex items-center justify-between">
-          <h1 className="font-serif text-3xl text-ink">My Account</h1>
-          <button
-            type="button"
-            onClick={signOut}
-            className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-muted hover:text-maroon"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign Out
-          </button>
+    <div className="min-h-screen flex flex-col bg-background relative border-x border-[#1a1a1a] mx-margin-page">
+      {/* Header Section */}
+      <section className="border-b border-on-background grid-line flex w-full min-h-[200px]">
+        <div className="w-12 border-r border-on-background grid-line flex flex-col justify-between py-4 items-center bg-surface-container-lowest shrink-0">
+          <span className="font-index-num text-index-num text-secondary">02</span>
+          <span className="font-label-caps text-label-caps -rotate-90 tracking-widest whitespace-nowrap uppercase">ACCOUNT</span>
         </div>
+        <div className="flex-1 px-12 py-16 flex items-end bg-surface">
+          <h1 className="font-display-lg text-display-lg hidden md:block font-serif">My Account.</h1>
+          <h1 className="font-display-lg-mobile text-display-lg-mobile md:hidden font-serif">My Account.</h1>
+        </div>
+      </section>
 
-        {/* ---------- Profile ---------- */}
-        <section className="mt-8 rounded-[3px] border border-walnut/15 bg-cream p-5 sm:p-6">
-          <h2 className="flex items-center gap-2 font-serif text-xl text-ink">
-            <User className="h-4 w-4 text-gold-dark" />
-            Your Details
-          </h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Full name"
-              className="rounded-[2px] border border-walnut/20 bg-ivory px-3.5 py-3 text-[14px] text-ink placeholder-muted/60 outline-none focus:border-gold-dark"
-            />
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Phone number"
-              className="rounded-[2px] border border-walnut/20 bg-ivory px-3.5 py-3 text-[14px] text-ink placeholder-muted/60 outline-none focus:border-gold-dark"
-            />
-            <input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="City"
-              className="rounded-[2px] border border-walnut/20 bg-ivory px-3.5 py-3 text-[14px] text-ink placeholder-muted/60 outline-none focus:border-gold-dark sm:col-span-2"
-            />
-          </div>
-          <p className="mt-2 text-[12px] text-muted">{profile?.email || profile?.phone || ''}</p>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="btn btn-ghost-dark mt-4 !py-2.5 !text-[11px]"
-          >
-            {saved ? <Save className="h-3.5 w-3.5" /> : saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-            {saved ? 'Saved' : 'Save Details'}
-          </button>
-        </section>
+      {/* Content Grid */}
+      <section className="flex flex-1 w-full relative">
+        <div className="w-12 border-r border-on-background grid-line flex flex-col items-center py-4 bg-surface-container-lowest shrink-0 z-10 hidden md:flex">
+          <span className="font-index-num text-index-num text-secondary">03</span>
+        </div>
+        
+        {/* Left Sidebar Navigation */}
+        <aside className="w-full md:w-64 border-r border-on-background grid-line bg-surface shrink-0 hidden md:block">
+          <nav className="flex flex-col font-label-caps text-label-caps">
+            <a className="px-8 py-6 border-b grid-line-secondary flex items-center justify-between text-primary bg-surface-variant group uppercase" href="#profile">
+              PROFILE SETTINGS
+              <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </a>
+            <a className="px-8 py-6 border-b grid-line-secondary flex items-center justify-between text-secondary hover:text-primary hover:bg-surface-container transition-colors group uppercase" href="#orders">
+              ORDER HISTORY
+              <span className="material-symbols-outlined text-[16px] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">arrow_forward</span>
+            </a>
+            <a className="px-8 py-6 border-b grid-line-secondary flex items-center justify-between text-secondary hover:text-primary hover:bg-surface-container transition-colors group uppercase" href="#wishlist">
+              WISHLIST
+              <span className="material-symbols-outlined text-[16px] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">arrow_forward</span>
+            </a>
+            <button
+              onClick={signOut}
+              className="px-8 py-6 flex items-center justify-between text-secondary hover:text-error transition-colors mt-auto border-t grid-line-secondary w-full text-left uppercase"
+            >
+              LOGOUT
+              <span className="material-symbols-outlined text-[16px]">logout</span>
+            </button>
+          </nav>
+        </aside>
 
-        {/* ---------- Orders ---------- */}
-        <section className="mt-8">
-          <h2 className="flex items-center gap-2 font-serif text-xl text-ink">
-            <ListOrdered className="h-4 w-4 text-gold-dark" />
-            My Orders
-          </h2>
-
-          {ordersLoading ? (
-            <div className="mt-4 flex justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-gold-dark" />
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col bg-background relative z-0 min-w-0">
+          {/* Profile Settings Section */}
+          <div className="p-8 md:p-12 max-w-4xl" id="profile">
+            <div className="flex justify-between items-baseline mb-8 border-b border-[#1a1a1a] pb-4">
+              <h2 className="font-headline-md text-headline-md font-serif">Profile Details</h2>
+              <span className="font-label-caps text-label-caps text-secondary">03.1</span>
             </div>
-          ) : orders.length === 0 ? (
-            <p className="mt-4 rounded-[3px] border border-walnut/12 bg-cream p-5 text-center text-[13.5px] text-muted">
-              No orders yet — your order history will appear here once you check out.
-            </p>
-          ) : (
-            <div className="mt-4 space-y-2">
-              {orders.map((o) => (
-                <div
-                  key={o.id}
-                  className="flex items-center justify-between gap-3 rounded-[3px] border border-walnut/12 bg-cream p-4"
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+              <div className="flex flex-col gap-2">
+                <label className="font-label-caps text-label-caps text-secondary">FULL NAME</label>
+                <input
+                  className="w-full border border-[#1a1a1a] p-3 text-body-sm bg-transparent outline-none focus:border-brand-gold"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="font-label-caps text-label-caps text-secondary">EMAIL ADDRESS</label>
+                <input
+                  className="w-full border border-[#1a1a1a] p-3 text-body-sm bg-transparent outline-none text-secondary"
+                  disabled
+                  type="email"
+                  value={profile?.email || user?.email || ''}
+                />
+                <span className="text-[10px] text-secondary mt-1">Contact support to change email.</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="font-label-caps text-label-caps text-secondary">PHONE NUMBER</label>
+                <input
+                  className="w-full border border-[#1a1a1a] p-3 text-body-sm bg-transparent outline-none focus:border-brand-gold"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="font-label-caps text-label-caps text-secondary">CITY</label>
+                <input
+                  className="w-full border border-[#1a1a1a] p-3 text-body-sm bg-transparent outline-none focus:border-brand-gold"
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-2 mt-4 pt-8 border-t border-[#1a1a1a]/10 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="bg-primary text-on-primary font-label-caps text-label-caps px-8 py-4 hover:bg-brand-gold transition-colors"
                 >
-                  <div className="min-w-0">
-                    <p className="font-nums text-[13px] font-semibold text-ink">{o.orderCode}</p>
-                    <p className="mt-0.5 truncate text-[12.5px] text-muted">{o.itemNames}</p>
-                    <p className="mt-0.5 text-[11px] uppercase tracking-[0.12em] text-muted/70">{o.createdAt}</p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="font-nums text-[15px] font-semibold text-gold-dark">{inr(o.total)}</p>
-                    <p
-                      className={`text-[10px] font-semibold uppercase tracking-[0.1em] ${
-                        o.paid ? 'text-gold-dark' : 'text-muted'
-                      }`}
-                    >
-                      {o.paid ? 'Paid' : 'Pending'}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+                  {saved ? 'SAVED ✓' : saving ? 'SAVING...' : 'SAVE CHANGES'}
+                </button>
+              </div>
+            </form>
+          </div>
 
-        {/* ---------- Wishlist ---------- */}
-        <section id="wishlist" className="mt-10 scroll-mt-24">
-          <h2 className="flex items-center gap-2 font-serif text-xl text-ink">
-            <Heart className="h-4 w-4 text-gold-dark" />
-            Wishlist
-          </h2>
+          {/* Divider */}
+          <div className="w-full h-px border-b border-[#1a1a1a]"></div>
 
-          {wishlistItems.length === 0 ? (
-            <p className="mt-4 rounded-[3px] border border-walnut/12 bg-cream p-5 text-center text-[13.5px] text-muted">
-              Tap the heart on any fabric to save it here.
-            </p>
-          ) : (
-            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {wishlistItems.map((item) => (
-                <div key={item.id} className="rounded-[3px] bg-night">
-                  <ProductCard item={item} />
-                </div>
-              ))}
+          {/* Order History Section */}
+          <div className="p-8 md:p-12" id="orders">
+            <div className="flex justify-between items-baseline mb-8 border-b border-[#1a1a1a] pb-4">
+              <h2 className="font-headline-md text-headline-md font-serif">Order History</h2>
+              <span className="font-label-caps text-label-caps text-secondary">03.2</span>
             </div>
-          )}
-        </section>
-      </div>
+
+            {ordersLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="h-6 w-6 animate-spin border-2 border-secondary border-t-brand-gold rounded-full" />
+              </div>
+            ) : orders.length === 0 ? (
+              <p className="p-6 text-center text-secondary border border-[#1a1a1a]/10">
+                No orders yet — your order history will appear here once you check out.
+              </p>
+            ) : (
+              <div className="flex flex-col w-full border border-[#1a1a1a] overflow-x-auto">
+                <div className="grid grid-cols-4 bg-surface-container font-label-caps text-label-caps py-4 px-6 border-b border-[#1a1a1a] text-secondary min-w-[600px]">
+                  <div>ORDER CODE</div>
+                  <div>DATE</div>
+                  <div className="text-right">TOTAL</div>
+                  <div className="text-right">STATUS</div>
+                </div>
+                {orders.map((o) => (
+                  <div
+                    key={o.id}
+                    className="grid grid-cols-4 items-center py-6 px-6 border-b border-[#1a1a1a]/10 hover:bg-surface-container-lowest transition-colors min-w-[600px]"
+                  >
+                    <div className="font-body-lg text-primary">{o.orderCode}</div>
+                    <div className="font-body-sm text-secondary">{o.createdAt}</div>
+                    <div className="font-body-lg text-primary text-right">{inr(o.total)}</div>
+                    <div className="flex justify-end items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${o.paid ? 'bg-brand-gold' : 'bg-primary'}`}></span>
+                      <span className="font-label-caps text-label-caps">{o.paid ? 'PAID' : 'PENDING'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="w-full h-px border-b border-[#1a1a1a]"></div>
+
+          {/* Wishlist Section */}
+          <div className="p-8 md:p-12" id="wishlist">
+            <div className="flex justify-between items-baseline mb-8 border-b border-[#1a1a1a] pb-4">
+              <h2 className="font-headline-md text-headline-md font-serif">Wishlist</h2>
+              <span className="font-label-caps text-label-caps text-secondary">03.3</span>
+            </div>
+
+            {wishlistItems.length === 0 ? (
+              <p className="p-6 text-center text-secondary border border-[#1a1a1a]/10">
+                Tap the heart on any fabric to save it here.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border border-[#1a1a1a] divide-y sm:divide-y-0 sm:divide-x border-[#1a1a1a]/10">
+                {wishlistItems.map((item) => (
+                  <div key={item.id} className="flex flex-col bg-surface relative group">
+                    <div className="aspect-square w-full border-b border-[#1a1a1a] overflow-hidden relative">
+                      <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src={item.image} alt={item.name} />
+                      <div className="absolute top-4 left-4 bg-surface px-3 py-1 border border-[#1a1a1a] flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                        <span className="font-index-num text-index-num tracking-wider">IN STOCK</span>
+                      </div>
+                    </div>
+                    <div className="p-6 flex flex-col gap-2">
+                      <span className="font-label-caps text-label-caps text-brand-gold">{item.category}</span>
+                      <h3 className="font-headline-md text-[24px] leading-tight font-serif">{item.name}</h3>
+                      <div className="font-body-lg text-primary mt-2">{inr(item.pricePerMetre)} <span className="text-[12px] text-secondary">/ metre</span></div>
+                      <Link to={`/product/${item.id}`} className="mt-4 border border-[#1a1a1a] py-3 w-full font-label-caps text-label-caps hover:bg-primary hover:text-white transition-colors flex justify-center items-center gap-2 text-center">
+                        VIEW PRODUCT
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

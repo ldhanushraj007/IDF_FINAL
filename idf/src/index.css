@@ -10,17 +10,16 @@
   html,
   body {
     overflow-x: clip;
-    background-color: #dec3b4;
-    color: #1c0505;
+    background-color: #faf9f5;
+    color: #1a1c1a;
   }
   h1,
   h2,
   h3 {
     text-wrap: balance;
-    @apply font-serif;
   }
   body {
-    @apply bg-ivory font-sans text-night antialiased selection:bg-walnut selection:text-ivory;
+    @apply font-sans antialiased selection:bg-[#B8860B] selection:text-white;
   }
   :focus-visible {
     @apply outline-none ring-2 ring-gold ring-offset-2 ring-offset-ivory transition-all duration-300;
@@ -85,4 +84,50 @@
     font-variant-numeric: lining-nums tabular-nums;
     font-feature-settings: 'lnum' 1, 'tnum' 1;
   }
+
+  .grid-line {
+      border-bottom: 1px solid #1a1a1a;
+      border-right: 1px solid #1a1a1a;
+  }
+  .grid-line-top {
+      border-top: 1px solid #1a1a1a;
+  }
+  .grid-line-left {
+      border-left: 1px solid #1a1a1a;
+  }
+  .index-badge {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
+      font-family: 'Hanken Grotesk', sans-serif;
+      font-size: 11px;
+      color: #1a1a1a;
+  }
+  .page-wrapper {
+      border: 1px solid #1a1a1a;
+      margin: 1rem;
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+      background-color: #faf9f5;
+  }
+  .vertical-text {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+  }
+  .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+  }
+
+  .hairline-b { border-bottom: 1px solid #1A1A1A; }
+  .hairline-t { border-top: 1px solid #1A1A1A; }
+  .hairline-l { border-left: 1px solid #1A1A1A; }
+  .hairline-r { border-right: 1px solid #1A1A1A; }
+  .hairline-subtle { border-color: #E5E5E1; }
 }

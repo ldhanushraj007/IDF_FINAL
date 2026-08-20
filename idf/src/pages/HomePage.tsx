@@ -17,21 +17,31 @@ export default function HomePage() {
     <>
       <Hero />
       <Marquee />
-      <Collections />
-      <Shop />
-      <RecommendedForYou />
-      <TopPicks />
-      <div className="bg-night px-5 sm:px-8 pb-10">
-        <div className="container-lux">
-          <RecentlyViewed />
-        </div>
+      <div className="flex flex-1 w-full">
+        {/* Sidebar (Left) */}
+        <aside className="grid-line w-12 flex flex-col items-center py-8 relative hidden md:flex shrink-0 border-r border-[#1a1a1a]">
+          <div className="font-label-caps text-label-caps vertical-text text-secondary tracking-widest uppercase">THE SHOP</div>
+        </aside>
+
+        {/* Main Canvas */}
+        <main className="flex-grow flex flex-col min-w-0">
+          <Collections />
+          <Shop />
+          <RecommendedForYou />
+          <TopPicks />
+          <div className="bg-surface px-5 sm:px-8 pb-10 border-b border-[#1a1a1a]">
+            <div className="container-lux">
+              <RecentlyViewed />
+            </div>
+          </div>
+          <Atelier />
+          <StatsStrip />
+          <Gallery />
+          <Reviews />
+          <Testimonials />
+          <Visit />
+        </main>
       </div>
-      <Atelier />
-      <StatsStrip />
-      <Gallery />
-      <Reviews />
-      <Testimonials />
-      <Visit />
     </>
   );
 }

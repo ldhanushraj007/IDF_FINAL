@@ -1,27 +1,22 @@
 const ITEMS = [
-  'Banarasi Silks',
-  'Bridal Couture',
-  'Zardozi Handwork',
-  'Silk Organza',
-  'Duchess Satin',
-  'Kanjivaram',
-  'Raw Silk',
-  'Couture Velvets',
+  'NEW COLLECTIONS ARRIVING THIS WEEK',
+  'GLOBAL SHIPPING AVAILABLE',
+  'PREMIUM FABRICS CUT BY THE METRE',
+  'VISIT OUR BANGALORE SHOWROOM'
 ];
 
-/** Continuous gold-thread ribbon of the house specialities. */
 export default function Marquee() {
-  const row = [...ITEMS, ...ITEMS];
+  const row = [...ITEMS, ...ITEMS, ...ITEMS];
   return (
-    <div className="group overflow-hidden border-y border-gold/25 bg-night py-4 sm:py-5" aria-hidden="true">
+    <div className="grid-line bg-primary text-on-primary py-3 overflow-hidden whitespace-nowrap border-b border-[#1a1a1a]" aria-hidden="true">
       <div className="flex w-max animate-marquee gap-0 group-hover:[animation-play-state:paused] motion-reduce:animate-none">
         {row.map((item, i) => (
           <span
             key={`${item}-${i}`}
-            className="flex items-center gap-6 pr-6 text-[11px] uppercase tracking-[0.26em] text-ivory/70 sm:gap-8 sm:pr-8 sm:text-[13px] sm:tracking-[0.34em]"
+            className="flex items-center gap-6 pr-6 font-label-caps text-label-caps text-on-primary tracking-widest uppercase"
           >
             {item}
-            <span className="text-gold">✦</span>
+            <span className="text-brand-gold font-bold">|</span>
           </span>
         ))}
       </div>

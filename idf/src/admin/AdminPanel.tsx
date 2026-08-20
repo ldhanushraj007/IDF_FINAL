@@ -143,47 +143,62 @@ function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
   };
 
   return (
-    <div className="w-full max-w-xs text-center">
-      <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="mx-auto h-16 w-16 object-contain" />
-      <h1 className="mt-4 font-serif text-2xl text-ivory">Showroom Admin Portal</h1>
-      <p className="mt-2 text-[13px] text-ivory/50">Sign in with admin credentials</p>
-      <input
-        type="text"
-        name="username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-        autoFocus
-        autoCapitalize="none"
-        placeholder="Username"
-        className="mt-5 w-full rounded-[2px] border border-ivory/15 bg-chocolate px-4 py-3 text-center text-ivory outline-none focus:border-gold"
-      />
-      <div className="relative mt-3">
-        <input
-          type={showPassword ? 'text' : 'password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-          placeholder="Password"
-          className="w-full rounded-[2px] border border-ivory/15 bg-chocolate px-4 py-3 pr-11 text-center text-ivory outline-none focus:border-gold"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword((v) => !v)}
-          aria-label={showPassword ? 'Hide password' : 'Show password'}
-          className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-ivory/40 hover:text-ivory"
-        >
-          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
+    <div className="w-full max-w-sm">
+      {/* Header */}
+      <div className="border-b border-gold/20 pb-6 mb-6 flex items-center gap-4">
+        <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
+        <div>
+          <p className="text-[10px] tracking-[0.2em] text-gold uppercase font-semibold">Admin Portal</p>
+          <h1 className="font-serif text-xl text-ivory">In Design Luxury Fabrics</h1>
+        </div>
       </div>
-      <button type="button" onClick={handleLogin} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Login'}
+
+      <p className="mb-5 text-[12px] text-ivory/40 tracking-wide uppercase">Sign in with admin credentials</p>
+
+      <div className="space-y-3">
+        <div className="border border-ivory/10 focus-within:border-gold transition-colors">
+          <input
+            type="text"
+            name="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+            autoFocus
+            autoCapitalize="none"
+            placeholder="Username"
+            className="w-full bg-transparent px-4 py-3 text-[13px] text-ivory placeholder-ivory/30 outline-none"
+          />
+        </div>
+        <div className="border border-ivory/10 focus-within:border-gold transition-colors flex items-center">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+            placeholder="Password"
+            className="flex-1 bg-transparent px-4 py-3 text-[13px] text-ivory placeholder-ivory/30 outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            className="px-3 text-ivory/30 hover:text-ivory transition-colors"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+
+      <button type="button" onClick={handleLogin} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full py-3 text-[12px] tracking-widest uppercase">
+        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Authenticate'}
       </button>
 
-      {error && <p className="mt-3 text-[12px] text-maroon">{error}</p>}
-      <a href="/" className="mt-6 inline-block text-[12px] text-ivory/40 hover:text-gold">
-        ← Back to website
-      </a>
+      {error && <p className="mt-3 text-[12px] text-maroon border border-maroon/30 px-3 py-2">{error}</p>}
+      <div className="mt-8 border-t border-ivory/10 pt-4">
+        <a href="/" className="text-[11px] text-ivory/30 hover:text-gold tracking-widest uppercase transition-colors">
+          ← Back to website
+        </a>
+      </div>
     </div>
   );
 }
@@ -198,30 +213,43 @@ function PinLogin({ onUnlocked }: { onUnlocked: () => void }) {
   };
 
   return (
-    <div className="w-full max-w-xs text-center">
-      <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="mx-auto h-16 w-16 object-contain" />
-      <h1 className="mt-4 font-serif text-2xl text-ivory">Showroom Admin Portal</h1>
-      <p className="mt-2 text-[13px] text-ivory/50">Enter the shop PIN to continue (Static Mode)</p>
-      <input
-        type="password"
-        inputMode="numeric"
-        value={pin}
-        autoFocus
-        onChange={(e) => {
-          setPin(e.target.value);
-          setWrong(false);
-        }}
-        onKeyDown={(e) => e.key === 'Enter' && tryUnlock()}
-        placeholder="PIN"
-        className="mt-5 w-full rounded-[2px] border border-ivory/15 bg-chocolate px-4 py-3 text-center text-lg tracking-[0.4em] text-ivory outline-none focus:border-gold"
-      />
-      <button type="button" onClick={tryUnlock} className="btn btn-gold btn-sheen mt-4 w-full">
+    <div className="w-full max-w-sm">
+      <div className="border-b border-gold/20 pb-6 mb-6 flex items-center gap-4">
+        <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
+        <div>
+          <p className="text-[10px] tracking-[0.2em] text-gold uppercase font-semibold">Admin Portal · Static Mode</p>
+          <h1 className="font-serif text-xl text-ivory">In Design Luxury Fabrics</h1>
+        </div>
+      </div>
+
+      <p className="mb-5 text-[12px] text-ivory/40 tracking-wide uppercase">Enter shop PIN to continue</p>
+
+      <div className="border border-ivory/10 focus-within:border-gold transition-colors">
+        <input
+          type="password"
+          inputMode="numeric"
+          value={pin}
+          autoFocus
+          onChange={(e) => {
+            setPin(e.target.value);
+            setWrong(false);
+          }}
+          onKeyDown={(e) => e.key === 'Enter' && tryUnlock()}
+          placeholder="· · · · · ·"
+          className="w-full bg-transparent px-4 py-3 text-center text-lg tracking-[0.4em] text-ivory placeholder-ivory/20 outline-none"
+        />
+      </div>
+
+      <button type="button" onClick={tryUnlock} className="btn btn-gold btn-sheen mt-4 w-full py-3 text-[12px] tracking-widest uppercase">
         Unlock
       </button>
-      {wrong && <p className="mt-3 text-[12px] text-maroon">That PIN is incorrect</p>}
-      <a href="/" className="mt-6 inline-block text-[12px] text-ivory/40 hover:text-gold">
-        ← Back to website
-      </a>
+      {wrong && <p className="mt-3 text-[12px] text-maroon border border-maroon/30 px-3 py-2">Incorrect PIN — try again</p>}
+
+      <div className="mt-8 border-t border-ivory/10 pt-4">
+        <a href="/" className="text-[11px] text-ivory/30 hover:text-gold tracking-widest uppercase transition-colors">
+          ← Back to website
+        </a>
+      </div>
     </div>
   );
 }
@@ -397,12 +425,21 @@ export default function AdminPanel() {
 
   if (!unlocked) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#150a0a] px-4">
-        {isAdminConfigured ? (
-          <SupabaseLogin onUnlocked={() => setUnlocked(true)} />
-        ) : (
-          <PinLogin onUnlocked={() => setUnlocked(true)} />
-        )}
+      <div className="flex min-h-screen items-center justify-center bg-[#0d0806] px-4">
+        {/* Decorative grid lines */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-[0.04]">
+          <div className="absolute left-1/4 top-0 h-full w-px bg-ivory" />
+          <div className="absolute left-3/4 top-0 h-full w-px bg-ivory" />
+          <div className="absolute left-0 top-1/3 h-px w-full bg-ivory" />
+          <div className="absolute left-0 top-2/3 h-px w-full bg-ivory" />
+        </div>
+        <div className="relative">
+          {isAdminConfigured ? (
+            <SupabaseLogin onUnlocked={() => setUnlocked(true)} />
+          ) : (
+            <PinLogin onUnlocked={() => setUnlocked(true)} />
+          )}
+        </div>
       </div>
     );
   }
@@ -430,27 +467,32 @@ export default function AdminPanel() {
   }, [orders]);
 
   return (
-    <div className={`flex min-h-screen transition-colors duration-300 ${darkMode ? 'bg-[#150a0a] text-ivory' : 'bg-cream text-night'}`}>
+    <div className={`flex min-h-screen transition-colors duration-300 ${darkMode ? 'bg-[#0d0806] text-ivory' : 'bg-[#f7f4f0] text-night'}`}>
       {/* ================= SIDEBAR ================= */}
-      <aside className={`w-64 shrink-0 border-r border-gold/15 p-6 flex flex-col justify-between hidden md:flex ${darkMode ? 'bg-chocolate/40' : 'bg-walnut/10'}`}>
+      <aside className={`w-60 shrink-0 border-r flex flex-col justify-between hidden md:flex ${
+        darkMode ? 'border-gold/10 bg-[#150a0a]' : 'border-[#1a1a1a]/10 bg-white'
+      }`}>
+        {/* Logo area */}
         <div>
-          <div className="flex items-center gap-3 border-b border-gold/15 pb-5">
-            <img src="/images/logo/logo-mark.png" alt="" className="h-10 w-10 object-contain" />
+          <div className={`px-6 py-5 border-b flex items-center gap-3 ${
+            darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+          }`}>
+            <img src="/images/logo/logo-mark.png" alt="" className="h-9 w-9 object-contain" />
             <div>
-              <h2 className="font-serif text-lg text-ivory">In Design</h2>
-              <p className="text-[10px] tracking-widest text-gold uppercase">Admin Portal</p>
+              <p className="text-[9px] tracking-[0.22em] text-gold uppercase font-semibold">Admin Portal</p>
+              <h2 className="font-serif text-[15px] text-ivory leading-tight">In Design</h2>
             </div>
           </div>
 
-          <nav className="mt-6 space-y-1">
+          <nav className="mt-4 px-3">
             {[
-              { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-              { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: metrics.confirmedOrders },
-              { id: 'catalog', label: 'Catalog', icon: Package },
-              { id: 'reviews', label: 'Reviews', icon: Star, badge: metrics.pendingReviewsCount },
-              { id: 'customers', label: 'Customers', icon: Users },
-              { id: 'payments', label: 'Payments', icon: CreditCard },
-              { id: 'settings', label: 'Settings', icon: SettingsIcon },
+              { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, idx: '01' },
+              { id: 'orders', label: 'Orders', icon: ShoppingBag, idx: '02', badge: metrics.confirmedOrders },
+              { id: 'catalog', label: 'Catalog', icon: Package, idx: '03' },
+              { id: 'reviews', label: 'Reviews', icon: Star, idx: '04', badge: metrics.pendingReviewsCount },
+              { id: 'customers', label: 'Customers', icon: Users, idx: '05' },
+              { id: 'payments', label: 'Payments', icon: CreditCard, idx: '06' },
+              { id: 'settings', label: 'Settings', icon: SettingsIcon, idx: '07' },
             ].map((item) => {
               const Icon = item.icon;
               const active = tab === item.id;
@@ -461,19 +503,24 @@ export default function AdminPanel() {
                     setTab(item.id as TabId);
                     setQuery('');
                   }}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-[3px] text-[13px] transition-colors ${
-                    active 
-                      ? 'bg-gold/15 text-gold font-semibold border-l-2 border-gold' 
-                      : (darkMode ? 'text-ivory/60 hover:bg-night/40 hover:text-ivory' : 'text-night/70 hover:bg-walnut/10 hover:text-night')
+                  className={`w-full flex items-center justify-between px-3 py-2.5 mb-0.5 text-[12px] transition-all border-l-2 ${
+                    active
+                      ? 'border-gold text-gold bg-gold/8'
+                      : (darkMode
+                          ? 'border-transparent text-ivory/50 hover:text-ivory hover:border-gold/30'
+                          : 'border-transparent text-night/50 hover:text-night hover:border-gold/30')
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <span className={`text-[9px] font-mono tabular-nums ${
+                      active ? 'text-gold' : (darkMode ? 'text-ivory/20' : 'text-night/20')
+                    }`}>{item.idx}</span>
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="tracking-wide">{item.label}</span>
                   </div>
-                  {Boolean(item.badge) && (
-                    <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold text-gold">
-                      {item.badge}
+                  {Boolean((item as any).badge) && (
+                    <span className="rounded-sm bg-gold/20 px-1.5 py-0.5 text-[9px] font-bold text-gold tabular-nums">
+                      {(item as any).badge}
                     </span>
                   )}
                 </button>
@@ -482,15 +529,26 @@ export default function AdminPanel() {
           </nav>
         </div>
 
-        <div className="border-t border-gold/15 pt-4">
-          <div className="flex items-center justify-between text-[12px] text-ivory/50">
-            <span>Mode: {isAdminConfigured ? 'Connected' : 'Static'}</span>
+        {/* Footer */}
+        <div className={`px-6 py-4 border-t ${
+          darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className={`text-[9px] uppercase tracking-widest font-semibold ${
+                isAdminConfigured ? 'text-gold' : (darkMode ? 'text-ivory/30' : 'text-night/30')
+              }`}>
+                {isAdminConfigured ? '● Connected' : '● Static'}
+              </p>
+            </div>
             <button
               onClick={() => {
                 adminSignOut();
                 setUnlocked(false);
               }}
-              className="text-gold hover:underline"
+              className={`text-[11px] tracking-wide uppercase hover:text-gold transition-colors ${
+                darkMode ? 'text-ivory/30' : 'text-night/30'
+              }`}
             >
               Sign out
             </button>
@@ -501,12 +559,21 @@ export default function AdminPanel() {
       {/* ================= MAIN CONTENT ================= */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className={`border-b border-gold/15 px-6 py-4 flex items-center justify-between ${darkMode ? 'bg-chocolate/30' : 'bg-walnut/5'}`}>
+        <header className={`border-b px-6 py-4 flex items-center justify-between ${
+          darkMode ? 'border-gold/10 bg-[#150a0a]' : 'border-[#1a1a1a]/10 bg-white'
+        }`}>
           <div className="flex items-center gap-4">
-            <h1 className={`font-serif text-2xl capitalize ${darkMode ? 'text-ivory' : 'text-night'}`}>{tab}</h1>
+            <div>
+              <p className={`text-[9px] uppercase tracking-[0.2em] font-semibold mb-0.5 ${
+                darkMode ? 'text-ivory/30' : 'text-night/30'
+              }`}>In Design Admin</p>
+              <h1 className={`font-serif text-xl capitalize ${
+                darkMode ? 'text-ivory' : 'text-night'
+              }`}>{tab}</h1>
+            </div>
             {dirty && (
-              <span className="rounded bg-gold/10 px-2.5 py-1 text-[11px] text-gold border border-gold/30">
-                Unpublished changes
+              <span className="border border-gold/40 bg-gold/8 px-2.5 py-1 text-[10px] text-gold tracking-widest uppercase">
+                Unsaved Changes
               </span>
             )}
           </div>
@@ -516,20 +583,24 @@ export default function AdminPanel() {
               <button
                 onClick={handlePublish}
                 disabled={publishState === 'publishing'}
-                className="btn btn-gold btn-sheen text-[13px] px-4 py-2"
+                className="btn btn-gold btn-sheen text-[11px] px-4 py-2 tracking-widest uppercase"
               >
                 {publishState === 'publishing' ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : publishState === 'done' ? (
-                  'Published Live ✓'
+                  'Published ✓'
                 ) : (
                   'Publish Live'
                 )}
               </button>
             )}
-            <a href="/" target="_blank" className={`btn text-[12px] px-3 py-2 flex items-center gap-1.5 ${darkMode ? 'btn-ghost-light' : 'btn-ghost-dark'}`}>
-              <span>Visit Site</span>
-              <ExternalLink className="h-3.5 w-3.5" />
+            <a href="/" target="_blank" className={`flex items-center gap-1.5 text-[11px] uppercase tracking-widest border px-3 py-2 transition-colors ${
+              darkMode
+                ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
+                : 'border-night/15 text-night/50 hover:border-gold hover:text-gold'
+            }`}>
+              <span>View Site</span>
+              <ExternalLink className="h-3 w-3" />
             </a>
           </div>
         </header>
@@ -538,104 +609,152 @@ export default function AdminPanel() {
         <div className="flex-1 overflow-y-auto p-6">
           {dataLoading ? (
             <div className="flex min-h-[50vh] items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-gold" />
+              <Loader2 className="h-7 w-7 animate-spin text-gold" />
             </div>
           ) : (
             <>
               {/* ============ TAB 1: DASHBOARD ============ */}
               {tab === 'dashboard' && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div
-                      onClick={() => setTab('orders')}
-                      className={`cursor-pointer rounded-[4px] border border-gold/20 p-5 hover:border-gold/50 transition-colors ${darkMode ? 'bg-chocolate/40' : 'bg-white shadow-sm'}`}
-                    >
-                      <p className={`text-[12px] font-semibold uppercase tracking-wider ${darkMode ? 'text-ivory/50' : 'text-night/50'}`}>Orders Needing Action</p>
-                      <h3 className="mt-2 font-nums text-3xl font-bold text-gold">{metrics.confirmedOrders}</h3>
-                      <p className={`mt-1 text-[11px] ${darkMode ? 'text-ivory/40' : 'text-night/40'}`}>{metrics.pendingOrders} pending WhatsApp send</p>
-                    </div>
-
-                    <div className={`rounded-[4px] border border-gold/20 p-5 ${darkMode ? 'bg-chocolate/40' : 'bg-white shadow-sm'}`}>
-                      <p className={`text-[12px] font-semibold uppercase tracking-wider ${darkMode ? 'text-ivory/50' : 'text-night/50'}`}>Total Revenue</p>
-                      <h3 className={`mt-2 font-nums text-3xl font-bold ${darkMode ? 'text-ivory' : 'text-night'}`}>{inr(metrics.totalRevenue)}</h3>
-                      <p className={`mt-1 text-[11px] ${darkMode ? 'text-ivory/40' : 'text-night/40'}`}>From confirmed paid orders</p>
-                    </div>
-
-                    <div
-                      onClick={() => setTab('catalog')}
-                      className={`cursor-pointer rounded-[4px] border border-gold/20 p-5 hover:border-gold/50 transition-colors ${darkMode ? 'bg-chocolate/40' : 'bg-white shadow-sm'}`}
-                    >
-                      <p className={`text-[12px] font-semibold uppercase tracking-wider ${darkMode ? 'text-ivory/50' : 'text-night/50'}`}>Stock Alerts</p>
-                      <h3 className="mt-2 font-nums text-3xl font-bold text-maroon">{metrics.lowStockCount + metrics.outStockCount}</h3>
-                      <p className={`mt-1 text-[11px] ${darkMode ? 'text-ivory/40' : 'text-night/40'}`}>
-                        {metrics.outStockCount} out of stock · {metrics.lowStockCount} low stock
-                      </p>
-                    </div>
-
-                    <div
-                      onClick={() => setTab('reviews')}
-                      className={`cursor-pointer rounded-[4px] border border-gold/20 p-5 hover:border-gold/50 transition-colors ${darkMode ? 'bg-chocolate/40' : 'bg-white shadow-sm'}`}
-                    >
-                      <p className={`text-[12px] font-semibold uppercase tracking-wider ${darkMode ? 'text-ivory/50' : 'text-night/50'}`}>Pending Reviews</p>
-                      <h3 className="mt-2 font-nums text-3xl font-bold text-gold">{metrics.pendingReviewsCount}</h3>
-                      <p className={`mt-1 text-[11px] ${darkMode ? 'text-ivory/40' : 'text-night/40'}`}>Awaiting moderation</p>
-                    </div>
+                  {/* KPI Grid */}
+                  <div className={`grid grid-cols-1 gap-0 sm:grid-cols-2 lg:grid-cols-4 border ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    {[
+                      {
+                        label: 'Orders Needing Action', value: metrics.confirmedOrders,
+                        sub: `${metrics.pendingOrders} pending WhatsApp send`, accent: 'text-gold',
+                        onClick: () => setTab('orders'), idx: '01'
+                      },
+                      {
+                        label: 'Total Revenue', value: inr(metrics.totalRevenue),
+                        sub: 'From confirmed paid orders', accent: darkMode ? 'text-ivory' : 'text-night',
+                        idx: '02'
+                      },
+                      {
+                        label: 'Stock Alerts', value: metrics.lowStockCount + metrics.outStockCount,
+                        sub: `${metrics.outStockCount} out · ${metrics.lowStockCount} low`, accent: 'text-maroon',
+                        onClick: () => setTab('catalog'), idx: '03'
+                      },
+                      {
+                        label: 'Pending Reviews', value: metrics.pendingReviewsCount,
+                        sub: 'Awaiting moderation', accent: 'text-gold',
+                        onClick: () => setTab('reviews'), idx: '04'
+                      },
+                    ].map((card) => (
+                      <div
+                        key={card.idx}
+                        onClick={card.onClick}
+                        className={`relative p-5 border-b lg:border-b-0 border-r last:border-r-0 transition-colors ${
+                          card.onClick ? 'cursor-pointer' : ''
+                        } ${
+                          darkMode
+                            ? 'border-gold/10 hover:bg-gold/5'
+                            : 'border-[#1a1a1a]/10 hover:bg-gold/5'
+                        }`}
+                      >
+                        <p className={`text-[9px] font-mono absolute top-3 right-3 ${
+                          darkMode ? 'text-ivory/20' : 'text-night/20'
+                        }`}>{card.idx}</p>
+                        <p className={`text-[10px] uppercase tracking-widest font-semibold mb-2 ${
+                          darkMode ? 'text-ivory/40' : 'text-night/40'
+                        }`}>{card.label}</p>
+                        <h3 className={`font-nums text-3xl font-bold ${card.accent}`}>{card.value}</h3>
+                        <p className={`mt-1.5 text-[11px] ${
+                          darkMode ? 'text-ivory/30' : 'text-night/30'
+                        }`}>{card.sub}</p>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Recent Orders */}
-                    <div className={`rounded-[4px] border border-gold/15 p-5 ${darkMode ? 'bg-chocolate/30' : 'bg-white shadow-sm'}`}>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className={`font-serif text-lg ${darkMode ? 'text-ivory' : 'text-night'}`}>Recent Orders</h3>
-                        <button onClick={() => setTab('orders')} className="text-[12px] text-gold hover:underline">
-                          View all
+                    <div className={`border ${
+                      darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                    }`}>
+                      <div className={`flex items-center justify-between px-5 py-3 border-b ${
+                        darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                      }`}>
+                        <h3 className={`font-serif text-base ${
+                          darkMode ? 'text-ivory' : 'text-night'
+                        }`}>Recent Orders</h3>
+                        <button onClick={() => setTab('orders')} className="text-[10px] text-gold uppercase tracking-widest hover:underline">
+                          View all →
                         </button>
                       </div>
-                      <div className="space-y-3">
+                      <div className="divide-y divide-gold/8">
                         {orders.slice(0, 5).map((o) => (
                           <div
                             key={o.id}
                             onClick={() => setSelectedOrder(o)}
-                            className={`flex cursor-pointer items-center justify-between border-b pb-3 p-2 rounded ${darkMode ? 'border-ivory/10 hover:bg-night/30' : 'border-walnut/10 hover:bg-walnut/5'}`}
+                            className={`flex cursor-pointer items-center justify-between px-5 py-3 transition-colors ${
+                              darkMode ? 'hover:bg-gold/5' : 'hover:bg-gold/5'
+                            }`}
                           >
                             <div>
-                              <p className="font-mono text-[13px] text-gold">{o.order_code}</p>
-                              <p className={`text-[12px] ${darkMode ? 'text-ivory/60' : 'text-night/60'}`}>{o.customers?.name || 'Customer'}</p>
+                              <p className="font-mono text-[12px] text-gold">{o.order_code}</p>
+                              <p className={`text-[11px] ${
+                                darkMode ? 'text-ivory/50' : 'text-night/50'
+                              }`}>{o.customers?.name || 'Customer'}</p>
                             </div>
                             <div className="text-right">
-                              <p className={`font-nums text-[13px] ${darkMode ? 'text-ivory' : 'text-night'}`}>{inr(o.total)}</p>
-                              <span className={`text-[10px] uppercase ${darkMode ? 'text-ivory/40' : 'text-night/40'}`}>{o.order_status}</span>
+                              <p className={`font-nums text-[13px] font-semibold ${
+                                darkMode ? 'text-ivory' : 'text-night'
+                              }`}>{inr(o.total)}</p>
+                              <span className={`text-[9px] uppercase tracking-widest ${
+                                darkMode ? 'text-ivory/30' : 'text-night/30'
+                              }`}>{o.order_status.replace('_', ' ')}</span>
                             </div>
                           </div>
                         ))}
+                        {orders.length === 0 && (
+                          <p className={`px-5 py-6 text-[12px] text-center ${
+                            darkMode ? 'text-ivory/30' : 'text-night/30'
+                          }`}>No orders yet.</p>
+                        )}
                       </div>
                     </div>
 
                     {/* Pending Reviews */}
-                    <div className={`rounded-[4px] border border-gold/15 p-5 ${darkMode ? 'bg-chocolate/30' : 'bg-white shadow-sm'}`}>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className={`font-serif text-lg ${darkMode ? 'text-ivory' : 'text-night'}`}>Reviews to Moderate</h3>
-                        <button onClick={() => setTab('reviews')} className="text-[12px] text-gold hover:underline">
-                          View queue
+                    <div className={`border ${
+                      darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                    }`}>
+                      <div className={`flex items-center justify-between px-5 py-3 border-b ${
+                        darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                      }`}>
+                        <h3 className={`font-serif text-base ${
+                          darkMode ? 'text-ivory' : 'text-night'
+                        }`}>Reviews to Moderate</h3>
+                        <button onClick={() => setTab('reviews')} className="text-[10px] text-gold uppercase tracking-widest hover:underline">
+                          View queue →
                         </button>
                       </div>
-                      <div className="space-y-3">
+                      <div className="divide-y divide-gold/8">
                         {liveReviews
                           .filter((r) => r.status === 'pending')
                           .slice(0, 4)
                           .map((r) => (
-                            <div key={r.id} className={`border-b pb-3 ${darkMode ? 'border-ivory/10' : 'border-walnut/10'}`}>
-                              <div className="flex items-center justify-between">
-                                <span className={`text-[13px] font-semibold ${darkMode ? 'text-ivory' : 'text-night'}`}>{r.name}</span>
-                                <div className="flex text-gold">
+                            <div key={r.id} className={`px-5 py-3`}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className={`text-[12px] font-semibold ${
+                                  darkMode ? 'text-ivory' : 'text-night'
+                                }`}>{r.name}</span>
+                                <div className="flex text-gold gap-0.5">
                                   {Array.from({ length: r.rating }).map((_, i) => (
-                                    <Star key={i} className="h-3 w-3 fill-current" />
+                                    <Star key={i} className="h-2.5 w-2.5 fill-current" />
                                   ))}
                                 </div>
                               </div>
-                              <p className={`mt-1 text-[12px] line-clamp-2 ${darkMode ? 'text-ivory/60' : 'text-night/60'}`}>{r.text}</p>
+                              <p className={`text-[11px] line-clamp-2 ${
+                                darkMode ? 'text-ivory/50' : 'text-night/50'
+                              }`}>{r.text}</p>
                             </div>
                           ))}
+                        {liveReviews.filter((r) => r.status === 'pending').length === 0 && (
+                          <p className={`px-5 py-6 text-[12px] text-center ${
+                            darkMode ? 'text-ivory/30' : 'text-night/30'
+                          }`}>No pending reviews.</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -645,14 +764,21 @@ export default function AdminPanel() {
               {/* ============ TAB 2: ORDERS ============ */}
               {tab === 'orders' && (
                 <div className="space-y-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="relative flex-1 max-w-sm">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ivory/40" />
+                  {/* Toolbar */}
+                  <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-4 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <div className={`relative flex-1 max-w-sm border focus-within:border-gold transition-colors ${
+                      darkMode ? 'border-ivory/10' : 'border-[#1a1a1a]/15'
+                    }`}>
+                      <Search className={`absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${
+                        darkMode ? 'text-ivory/30' : 'text-night/30'
+                      }`} />
                       <input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search by Order ID, Name, or Phone..."
-                        className="w-full rounded-[2px] border border-ivory/15 bg-night/50 py-2 pl-9 pr-4 text-[13px] text-ivory outline-none focus:border-gold"
+                        placeholder="Search order ID, name, phone…"
+                        className="w-full bg-transparent py-2 pl-9 pr-4 text-[12px] outline-none"
                       />
                     </div>
 
@@ -660,7 +786,9 @@ export default function AdminPanel() {
                       <select
                         value={orderFilter}
                         onChange={(e) => setOrderFilter(e.target.value as any)}
-                        className="rounded-[2px] border border-ivory/15 bg-night/50 px-3 py-2 text-[12px] text-ivory outline-none"
+                        className={`border text-[11px] px-3 py-2 outline-none ${
+                          darkMode ? 'border-ivory/10 bg-transparent text-ivory/70' : 'border-[#1a1a1a]/15 bg-transparent text-night/70'
+                        }`}
                       >
                         <option value="all">All Statuses</option>
                         <option value="pending_whatsapp">Pending WhatsApp</option>
@@ -670,9 +798,9 @@ export default function AdminPanel() {
 
                       <button
                         onClick={() => setShowAddOrderModal(true)}
-                        className="btn btn-gold text-[12px] px-3 py-2 flex items-center gap-1.5"
+                        className="btn btn-gold text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <Plus className="h-3 w-3" />
                         <span>Add Order</span>
                       </button>
 
@@ -691,61 +819,80 @@ export default function AdminPanel() {
                             })),
                           )
                         }
-                        className="btn btn-ghost-light text-[12px] px-3 py-2 flex items-center gap-1.5"
+                        className={`border text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest transition-colors ${
+                          darkMode
+                            ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
+                            : 'border-[#1a1a1a]/15 text-night/50 hover:border-gold hover:text-gold'
+                        }`}
                       >
-                        <Download className="h-3.5 w-3.5" />
-                        <span>Export CSV</span>
+                        <Download className="h-3 w-3" />
+                        <span>CSV</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Orders Table */}
-                  <div className="overflow-x-auto rounded-[4px] border border-gold/15 bg-chocolate/30">
-                    <table className="w-full text-left text-[13px]">
-                      <thead className="border-b border-gold/15 bg-night/40 text-[11px] text-ivory/50 uppercase tracking-wider">
+                  <div className={`overflow-x-auto border ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <table className="w-full text-left text-[12px]">
+                      <thead className={`border-b text-[9px] uppercase tracking-widest font-semibold ${
+                        darkMode ? 'border-gold/10 text-ivory/30 bg-[#1a0e0a]' : 'border-[#1a1a1a]/10 text-night/40 bg-[#f0ece8]'
+                      }`}>
                         <tr>
-                          <th className="p-3">Order ID</th>
-                          <th className="p-3">Customer</th>
-                          <th className="p-3">Date</th>
-                          <th className="p-3">Amount</th>
-                          <th className="p-3">Payment</th>
-                          <th className="p-3">Status</th>
-                          <th className="p-3 text-right">Actions</th>
+                          <th className="px-4 py-3">Order ID</th>
+                          <th className="px-4 py-3">Customer</th>
+                          <th className="px-4 py-3">Date</th>
+                          <th className="px-4 py-3">Amount</th>
+                          <th className="px-4 py-3">Payment</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3 text-right">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-ivory/10">
+                      <tbody className={`divide-y ${
+                        darkMode ? 'divide-gold/8' : 'divide-[#1a1a1a]/8'
+                      }`}>
                         {filteredOrders.map((o) => (
-                          <tr key={o.id} className="hover:bg-night/30 transition-colors">
-                            <td className="p-3 font-mono text-gold">{o.order_code}</td>
-                            <td className="p-3">{o.customers?.name || 'Walk-in'}</td>
-                            <td className="p-3 text-ivory/50">
+                          <tr key={o.id} className={`transition-colors ${
+                            darkMode ? 'hover:bg-gold/5' : 'hover:bg-gold/5'
+                          }`}>
+                            <td className="px-4 py-3 font-mono text-gold">{o.order_code}</td>
+                            <td className={`px-4 py-3 ${
+                              darkMode ? 'text-ivory' : 'text-night'
+                            }`}>{o.customers?.name || 'Walk-in'}</td>
+                            <td className={`px-4 py-3 ${
+                              darkMode ? 'text-ivory/40' : 'text-night/40'
+                            }`}>
                               {new Date(o.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
                             </td>
-                            <td className="p-3 font-nums text-gold">{inr(o.total)}</td>
-                            <td className="p-3">
-                              <span
-                                className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                  o.paid || o.payment_status === 'paid'
-                                    ? 'bg-green-900/40 text-green-400'
-                                    : 'bg-yellow-900/40 text-yellow-400'
-                                }`}
-                              >
+                            <td className="px-4 py-3 font-nums font-semibold text-gold">{inr(o.total)}</td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                                o.paid || o.payment_status === 'paid'
+                                  ? 'bg-green-900/30 text-green-400 border border-green-500/20'
+                                  : 'bg-yellow-900/30 text-yellow-400 border border-yellow-500/20'
+                              }`}>
                                 {o.paid ? 'Paid' : o.payment_status}
                               </span>
                             </td>
-                            <td className="p-3">
-                              <span className="text-[11px] text-ivory/70 capitalize">{o.order_status.replace('_', ' ')}</span>
-                            </td>
-                            <td className="p-3 text-right">
+                            <td className={`px-4 py-3 text-[11px] capitalize ${
+                              darkMode ? 'text-ivory/60' : 'text-night/60'
+                            }`}>{o.order_status.replace('_', ' ')}</td>
+                            <td className="px-4 py-3 text-right">
                               <button
                                 onClick={() => setSelectedOrder(o)}
-                                className="text-[12px] text-gold hover:underline"
+                                className="text-[10px] text-gold uppercase tracking-widest hover:underline"
                               >
                                 Details
                               </button>
                             </td>
                           </tr>
                         ))}
+                        {filteredOrders.length === 0 && (
+                          <tr><td colSpan={7} className={`px-4 py-8 text-center text-[12px] ${
+                            darkMode ? 'text-ivory/30' : 'text-night/30'
+                          }`}>No orders found.</td></tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -754,50 +901,74 @@ export default function AdminPanel() {
 
               {/* ============ TAB 3: CATALOG ============ */}
               {tab === 'catalog' && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {/* Offer Banner Control */}
-                  <div className="rounded-[4px] border border-gold/25 bg-chocolate/40 p-4">
-                    <h3 className="font-serif text-lg text-ivory">Sitewide Offer Banner</h3>
-                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                      <input
-                        value={offer.headline}
-                        onChange={(e) => {
-                          setOffer((o) => ({ ...o, headline: e.target.value }));
-                          setDirty(true);
-                        }}
-                        placeholder="Offer Headline (e.g. FESTIVAL SPECIAL)"
-                        className="rounded border border-ivory/15 bg-night/50 px-3 py-2 text-[13px] text-ivory"
-                      />
-                      <input
-                        value={offer.detail}
-                        onChange={(e) => {
-                          setOffer((o) => ({ ...o, detail: e.target.value }));
-                          setDirty(true);
-                        }}
-                        placeholder="Offer Details (e.g. 15% off on 20+ metres)"
-                        className="rounded border border-ivory/15 bg-night/50 px-3 py-2 text-[13px] text-ivory"
-                      />
+                  <div className={`border p-5 ${
+                    darkMode ? 'border-gold/15' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <p className={`text-[9px] uppercase tracking-widest font-semibold mb-1 ${
+                      darkMode ? 'text-ivory/30' : 'text-night/30'
+                    }`}>Sitewide Offer Banner</p>
+                    <h3 className={`font-serif text-base mb-4 ${
+                      darkMode ? 'text-ivory' : 'text-night'
+                    }`}>Promotional Message Control</h3>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      <div className={`border focus-within:border-gold transition-colors ${
+                        darkMode ? 'border-ivory/10' : 'border-[#1a1a1a]/15'
+                      }`}>
+                        <input
+                          value={offer.headline}
+                          onChange={(e) => {
+                            setOffer((o) => ({ ...o, headline: e.target.value }));
+                            setDirty(true);
+                          }}
+                          placeholder="Headline (e.g. FESTIVAL SPECIAL)"
+                          className="w-full bg-transparent px-3 py-2.5 text-[12px] outline-none"
+                        />
+                      </div>
+                      <div className={`border focus-within:border-gold transition-colors ${
+                        darkMode ? 'border-ivory/10' : 'border-[#1a1a1a]/15'
+                      }`}>
+                        <input
+                          value={offer.detail}
+                          onChange={(e) => {
+                            setOffer((o) => ({ ...o, detail: e.target.value }));
+                            setDirty(true);
+                          }}
+                          placeholder="Details (e.g. 15% off on 20+ metres)"
+                          className="w-full bg-transparent px-3 py-2.5 text-[12px] outline-none"
+                        />
+                      </div>
                       <button
                         onClick={() => {
                           setOffer((o) => ({ ...o, active: !o.active }));
                           setDirty(true);
                         }}
-                        className={`rounded font-semibold text-[12px] uppercase ${
-                          offer.active ? 'bg-gold text-night' : 'bg-night/60 text-ivory/50 border border-ivory/20'
+                        className={`text-[10px] uppercase tracking-widest font-semibold border transition-colors ${
+                          offer.active
+                            ? 'border-gold bg-gold/15 text-gold'
+                            : (darkMode ? 'border-ivory/15 text-ivory/40' : 'border-[#1a1a1a]/20 text-night/40')
                         }`}
                       >
-                        {offer.active ? 'Active' : 'Disabled'}
+                        {offer.active ? '● Banner Active' : '○ Banner Off'}
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <input
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Search fabrics..."
-                      className="rounded border border-ivory/15 bg-night/50 px-3 py-2 text-[13px] text-ivory w-64"
-                    />
+                  {/* Toolbar */}
+                  <div className={`flex items-center justify-between border-b pb-4 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <div className={`border focus-within:border-gold transition-colors w-64 ${
+                      darkMode ? 'border-ivory/10' : 'border-[#1a1a1a]/15'
+                    }`}>
+                      <input
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search fabrics…"
+                        className="w-full bg-transparent px-3 py-2 text-[12px] outline-none"
+                      />
+                    </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() =>
@@ -818,67 +989,89 @@ export default function AdminPanel() {
                             }))
                           )
                         }
-                        className="btn btn-ghost-light text-[12px] px-3 py-2 flex items-center gap-1.5"
+                        className={`border text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest transition-colors ${
+                          darkMode
+                            ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
+                            : 'border-[#1a1a1a]/15 text-night/50 hover:border-gold hover:text-gold'
+                        }`}
                       >
-                        <Download className="h-3.5 w-3.5" />
-                        <span>Export CSV</span>
+                        <Download className="h-3 w-3" />
+                        <span>CSV</span>
                       </button>
 
                       <button
                         onClick={() => setShowAddModal(true)}
-                        className="btn btn-gold btn-sheen text-[12px] px-3 py-2 flex items-center gap-1.5"
+                        className="btn btn-gold btn-sheen text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-3.5 w-3.5" />
                         <span>Add Fabric</span>
                       </button>
                     </div>
                   </div>
 
-                  {/* Fabrics List */}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Fabrics Grid */}
+                  <div className={`grid grid-cols-1 gap-0 md:grid-cols-2 lg:grid-cols-3 border ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
                     {filteredProducts.map((item) => (
-                      <div key={item.id} className="rounded border border-gold/15 bg-chocolate/30 p-4 space-y-3">
+                      <div key={item.id} className={`p-4 border-b border-r space-y-3 ${
+                        darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                      }`}>
                         <div className="flex items-center gap-3">
-                          <img src={item.image} alt="" className="h-16 w-16 rounded object-cover border border-gold/20" />
+                          <img src={item.image} alt="" className="h-14 w-14 object-cover border border-gold/15" />
                           <div className="flex-1 min-w-0">
                             <input
                               value={item.name}
                               onChange={(e) => patchFabric(item.id, { name: e.target.value })}
-                              className="w-full bg-transparent font-serif text-base text-ivory font-semibold outline-none focus:border-b focus:border-gold"
+                              className={`w-full bg-transparent font-serif text-sm font-semibold outline-none border-b border-transparent focus:border-gold transition-colors ${
+                                darkMode ? 'text-ivory' : 'text-night'
+                              }`}
                             />
-                            <p className="text-[11px] text-gold">{item.category}</p>
+                            <p className="text-[10px] text-gold uppercase tracking-wider mt-0.5">{item.category}</p>
                           </div>
                           <button
                             type="button"
                             title="Delete fabric"
                             onClick={() => {
-                              if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+                              if (confirm(`Delete "${item.name}"?`)) {
                                 setItems((prev) => prev.filter((i) => i.id !== item.id));
                                 setDirty(true);
                               }
                             }}
-                            className="p-1.5 text-ivory/40 hover:text-maroon transition-colors"
+                            className={`p-1.5 transition-colors ${
+                              darkMode ? 'text-ivory/20 hover:text-maroon' : 'text-night/20 hover:text-maroon'
+                            }`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 text-[12px]">
+                        <div className={`grid grid-cols-2 gap-3 text-[11px] pt-2 border-t ${
+                          darkMode ? 'border-gold/8' : 'border-[#1a1a1a]/8'
+                        }`}>
                           <div>
-                            <span className="text-ivory/40">Price/m: </span>
+                            <p className={`text-[9px] uppercase tracking-widest mb-1 ${
+                              darkMode ? 'text-ivory/30' : 'text-night/30'
+                            }`}>Price/m</p>
                             <input
                               type="number"
                               value={item.pricePerMetre}
                               onChange={(e) => patchFabric(item.id, { pricePerMetre: Number(e.target.value) })}
-                              className="w-20 rounded border border-ivory/15 bg-night/50 px-2 py-1 text-ivory"
+                              className={`w-full border bg-transparent px-2 py-1 outline-none focus:border-gold transition-colors ${
+                                darkMode ? 'border-ivory/10 text-ivory' : 'border-[#1a1a1a]/15 text-night'
+                              }`}
                             />
                           </div>
                           <div>
-                            <span className="text-ivory/40">Stock: </span>
+                            <p className={`text-[9px] uppercase tracking-widest mb-1 ${
+                              darkMode ? 'text-ivory/30' : 'text-night/30'
+                            }`}>Stock</p>
                             <select
                               value={item.stock}
                               onChange={(e) => patchFabric(item.id, { stock: e.target.value as Stock })}
-                              className="rounded border border-ivory/15 bg-night/50 px-2 py-1 text-ivory"
+                              className={`w-full border bg-transparent px-2 py-1 text-[11px] outline-none focus:border-gold transition-colors ${
+                                darkMode ? 'border-ivory/10 text-ivory' : 'border-[#1a1a1a]/15 text-night'
+                              }`}
                             >
                               <option value="in">In Stock</option>
                               <option value="low">Low Stock</option>
@@ -888,15 +1081,29 @@ export default function AdminPanel() {
                         </div>
                       </div>
                     ))}
+                    {filteredProducts.length === 0 && (
+                      <div className={`col-span-3 py-12 text-center text-[12px] ${
+                        darkMode ? 'text-ivory/30' : 'text-night/30'
+                      }`}>No fabrics found.</div>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* ============ TAB 4: REVIEWS ============ */}
               {tab === 'reviews' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-serif text-lg text-ivory">Customer Reviews Queue</h3>
+                <div className="space-y-5">
+                  <div className={`flex items-center justify-between border-b pb-4 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <div>
+                      <p className={`text-[9px] uppercase tracking-widest font-semibold mb-0.5 ${
+                        darkMode ? 'text-ivory/30' : 'text-night/30'
+                      }`}>Moderation Queue</p>
+                      <h3 className={`font-serif text-base ${
+                        darkMode ? 'text-ivory' : 'text-night'
+                      }`}>Customer Reviews</h3>
+                    </div>
                     <button
                       onClick={() =>
                         exportCsv(
@@ -913,33 +1120,55 @@ export default function AdminPanel() {
                           }))
                         )
                       }
-                      className="btn btn-ghost-light text-[12px] px-3 py-2 flex items-center gap-1.5"
+                      className={`border text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest transition-colors ${
+                        darkMode
+                          ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
+                          : 'border-[#1a1a1a]/15 text-night/50 hover:border-gold hover:text-gold'
+                      }`}
                     >
-                      <Download className="h-3.5 w-3.5" />
-                      <span>Export CSV</span>
+                      <Download className="h-3 w-3" />
+                      <span>CSV</span>
                     </button>
                   </div>
-                  <div className="space-y-3">
+
+                  <div className={`border divide-y ${
+                    darkMode ? 'border-gold/10 divide-gold/8' : 'border-[#1a1a1a]/10 divide-[#1a1a1a]/8'
+                  }`}>
                     {liveReviews.map((rev) => (
-                      <div key={rev.id} className="flex items-center justify-between rounded border border-gold/15 bg-chocolate/30 p-4">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-ivory">{rev.name}</span>
-                            <span className="text-[11px] text-ivory/40">({rev.city})</span>
-                            <span className="text-gold flex">
+                      <div key={rev.id} className={`flex items-start justify-between p-4 transition-colors ${
+                        darkMode ? 'hover:bg-gold/5' : 'hover:bg-gold/5'
+                      }`}>
+                        <div className="flex-1 min-w-0 mr-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-[12px] font-semibold ${
+                              darkMode ? 'text-ivory' : 'text-night'
+                            }`}>{rev.name}</span>
+                            <span className={`text-[10px] ${
+                              darkMode ? 'text-ivory/30' : 'text-night/30'
+                            }`}>{rev.city}</span>
+                            <span className={`text-[9px] px-1.5 py-0.5 uppercase tracking-wider font-semibold ${
+                              rev.status === 'published'
+                                ? 'bg-green-900/30 text-green-400'
+                                : rev.status === 'pending'
+                                  ? 'bg-yellow-900/30 text-yellow-400'
+                                  : (darkMode ? 'bg-ivory/10 text-ivory/40' : 'bg-night/10 text-night/40')
+                            }`}>{rev.status}</span>
+                            <span className="text-gold flex gap-0.5">
                               {Array.from({ length: rev.rating }).map((_, i) => (
-                                <Star key={i} className="h-3 w-3 fill-current" />
+                                <Star key={i} className="h-2.5 w-2.5 fill-current" />
                               ))}
                             </span>
                           </div>
-                          <p className="mt-1 text-[13px] text-ivory/70">{rev.text}</p>
+                          <p className={`text-[12px] line-clamp-2 ${
+                            darkMode ? 'text-ivory/60' : 'text-night/60'
+                          }`}>{rev.text}</p>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           {rev.status !== 'published' && (
                             <button
                               onClick={() => handleToggleReview(rev.id, 'published')}
-                              className="btn btn-gold text-[11px] px-3 py-1"
+                              className="btn btn-gold text-[9px] px-3 py-1.5 uppercase tracking-widest"
                             >
                               Publish
                             </button>
@@ -947,35 +1176,50 @@ export default function AdminPanel() {
                           {rev.status !== 'private' && (
                             <button
                               onClick={() => handleToggleReview(rev.id, 'private')}
-                              className="btn btn-ghost-light text-[11px] px-3 py-1"
+                              className={`border text-[9px] px-3 py-1.5 uppercase tracking-widest transition-colors ${
+                                darkMode
+                                  ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
+                                  : 'border-[#1a1a1a]/15 text-night/50 hover:border-gold hover:text-gold'
+                              }`}
                             >
-                              Keep Private
+                              Private
                             </button>
                           )}
-                          <button onClick={() => handleDeleteReviewRow(rev.id)} className="text-maroon p-1">
-                            <Trash2 className="h-4 w-4" />
+                          <button onClick={() => handleDeleteReviewRow(rev.id)} className="p-1.5 text-maroon/60 hover:text-maroon transition-colors">
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
                     ))}
+                    {liveReviews.length === 0 && (
+                      <p className={`px-4 py-8 text-[12px] text-center ${
+                        darkMode ? 'text-ivory/30' : 'text-night/30'
+                      }`}>No reviews in queue.</p>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* ============ TAB 5: CUSTOMERS ============ */}
               {tab === 'customers' && (
-                <div className="space-y-4">
-                  <h3 className="font-serif text-lg text-ivory">Customer Registry</h3>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="text-[12px] text-ivory/50">
-                      View and manually register customer directory profiles.
+                <div className="space-y-5">
+                  <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-4 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <div>
+                      <p className={`text-[9px] uppercase tracking-widest font-semibold mb-0.5 ${
+                        darkMode ? 'text-ivory/30' : 'text-night/30'
+                      }`}>Directory</p>
+                      <h3 className={`font-serif text-base ${
+                        darkMode ? 'text-ivory' : 'text-night'
+                      }`}>Customer Registry</h3>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setShowAddCustomerModal(true)}
-                        className="btn btn-gold text-[12px] px-3 py-2 flex items-center gap-1.5"
+                        className="btn btn-gold text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest"
                       >
-                        <Plus className="h-3.5 w-3.5" />
+                        <Plus className="h-3 w-3" />
                         <span>Add Customer</span>
                       </button>
 
@@ -992,38 +1236,60 @@ export default function AdminPanel() {
                             }))
                           )
                         }
-                        className="btn btn-ghost-light text-[12px] px-3 py-2 flex items-center gap-1.5"
+                        className={`border text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest transition-colors ${
+                          darkMode
+                            ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
+                            : 'border-[#1a1a1a]/15 text-night/50 hover:border-gold hover:text-gold'
+                        }`}
                       >
-                        <Download className="h-3.5 w-3.5" />
-                        <span>Export CSV</span>
+                        <Download className="h-3 w-3" />
+                        <span>CSV</span>
                       </button>
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto rounded-[4px] border border-gold/15 bg-chocolate/30">
-                    <table className="w-full text-left text-[13px]">
-                      <thead className="border-b border-gold/15 bg-night/40 text-[11px] text-ivory/50 uppercase tracking-wider">
+                  <div className={`overflow-x-auto border ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <table className="w-full text-left text-[12px]">
+                      <thead className={`border-b text-[9px] uppercase tracking-widest font-semibold ${
+                        darkMode ? 'border-gold/10 text-ivory/30 bg-[#1a0e0a]' : 'border-[#1a1a1a]/10 text-night/40 bg-[#f0ece8]'
+                      }`}>
                         <tr>
-                          <th className="p-3">Name</th>
-                          <th className="p-3">Phone</th>
-                          <th className="p-3">Email</th>
-                          <th className="p-3">City</th>
-                          <th className="p-3">Source</th>
+                          <th className="px-4 py-3">Name</th>
+                          <th className="px-4 py-3">Phone</th>
+                          <th className="px-4 py-3">Email</th>
+                          <th className="px-4 py-3">City</th>
+                          <th className="px-4 py-3">Source</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-ivory/10">
+                      <tbody className={`divide-y ${
+                        darkMode ? 'divide-gold/8' : 'divide-[#1a1a1a]/8'
+                      }`}>
                         {customerList.map((c, idx) => (
-                          <tr key={idx} className="hover:bg-night/30 transition-colors">
-                            <td className="p-3 font-semibold">{c.name}</td>
-                            <td className="p-3">{c.phone}</td>
-                            <td className="p-3 text-ivory/60">{c.email}</td>
-                            <td className="p-3 capitalize">{c.city}</td>
-                            <td className="p-3 text-[11px] text-gold">{c.signup_method}</td>
+                          <tr key={idx} className={`transition-colors ${
+                            darkMode ? 'hover:bg-gold/5' : 'hover:bg-gold/5'
+                          }`}>
+                            <td className={`px-4 py-3 font-semibold ${
+                              darkMode ? 'text-ivory' : 'text-night'
+                            }`}>{c.name}</td>
+                            <td className={`px-4 py-3 ${
+                              darkMode ? 'text-ivory/70' : 'text-night/70'
+                            }`}>{c.phone}</td>
+                            <td className={`px-4 py-3 ${
+                              darkMode ? 'text-ivory/40' : 'text-night/40'
+                            }`}>{c.email}</td>
+                            <td className={`px-4 py-3 capitalize ${
+                              darkMode ? 'text-ivory/60' : 'text-night/60'
+                            }`}>{c.city}</td>
+                            <td className="px-4 py-3 text-[10px] text-gold uppercase tracking-wider">{c.signup_method}</td>
                           </tr>
                         ))}
                         {customerList.length === 0 && (
                           <tr>
-                            <td colSpan={5} className="p-4 text-center text-ivory/40 italic">
+                            <td colSpan={5} className={`px-4 py-8 text-center text-[12px] ${
+                              darkMode ? 'text-ivory/30' : 'text-night/30'
+                            }`}>
                               No customer profiles registered yet.
                             </td>
                           </tr>
@@ -1036,12 +1302,21 @@ export default function AdminPanel() {
 
               {/* ============ TAB 6: PAYMENTS ============ */}
               {tab === 'payments' && (
-                <div className="space-y-4">
-                  <h3 className="font-serif text-lg text-ivory">Payment Log</h3>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-[13px] text-ivory/70">
-                      Manual ledger details for confirmed UPI, cash, and showroom cards.
-                    </p>
+                <div className="space-y-5">
+                  <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-4 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <div>
+                      <p className={`text-[9px] uppercase tracking-widest font-semibold mb-0.5 ${
+                        darkMode ? 'text-ivory/30' : 'text-night/30'
+                      }`}>Ledger</p>
+                      <h3 className={`font-serif text-base ${
+                        darkMode ? 'text-ivory' : 'text-night'
+                      }`}>Payment Log</h3>
+                      <p className={`text-[11px] mt-0.5 ${
+                        darkMode ? 'text-ivory/40' : 'text-night/40'
+                      }`}>UPI · Cash · Showroom Card</p>
+                    </div>
                     <button
                       onClick={() =>
                         exportCsv(
@@ -1057,42 +1332,67 @@ export default function AdminPanel() {
                           }))
                         )
                       }
-                      className="btn btn-ghost-light text-[12px] px-3 py-2 flex items-center gap-1.5"
+                      className={`border text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest transition-colors ${
+                        darkMode
+                          ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
+                          : 'border-[#1a1a1a]/15 text-night/50 hover:border-gold hover:text-gold'
+                      }`}
                     >
-                      <Download className="h-3.5 w-3.5" />
-                      <span>Export CSV</span>
+                      <Download className="h-3 w-3" />
+                      <span>CSV</span>
                     </button>
                   </div>
 
-                  <div className="overflow-x-auto rounded-[4px] border border-gold/15 bg-chocolate/30">
-                    <table className="w-full text-left text-[13px]">
-                      <thead className="border-b border-gold/15 bg-night/40 text-[11px] text-ivory/50 uppercase tracking-wider">
+                  <div className={`overflow-x-auto border ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <table className="w-full text-left text-[12px]">
+                      <thead className={`border-b text-[9px] uppercase tracking-widest font-semibold ${
+                        darkMode ? 'border-gold/10 text-ivory/30 bg-[#1a0e0a]' : 'border-[#1a1a1a]/10 text-night/40 bg-[#f0ece8]'
+                      }`}>
                         <tr>
-                          <th className="p-3">Order Code</th>
-                          <th className="p-3">Customer</th>
-                          <th className="p-3">Amount</th>
-                          <th className="p-3">Method</th>
-                          <th className="p-3">Ref ID</th>
-                          <th className="p-3">Status</th>
+                          <th className="px-4 py-3">Order Code</th>
+                          <th className="px-4 py-3">Customer</th>
+                          <th className="px-4 py-3">Amount</th>
+                          <th className="px-4 py-3">Method</th>
+                          <th className="px-4 py-3">Ref ID</th>
+                          <th className="px-4 py-3">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-ivory/10">
+                      <tbody className={`divide-y ${
+                        darkMode ? 'divide-gold/8' : 'divide-[#1a1a1a]/8'
+                      }`}>
                         {orders.map((o) => (
-                          <tr key={o.id} className="hover:bg-night/30 transition-colors">
-                            <td className="p-3 font-mono text-gold">{o.order_code}</td>
-                            <td className="p-3">{o.customers?.name || 'Walk-in'}</td>
-                            <td className="p-3 font-nums">{inr(o.total)}</td>
-                            <td className="p-3 uppercase text-[11px]">{o.payment_method}</td>
-                            <td className="p-3 font-mono text-[11.5px] text-ivory/50">{o.payment_reference || '—'}</td>
-                            <td className="p-3">
-                              <span className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                o.paid || o.payment_status === 'paid' ? 'bg-green-900/40 text-green-400' : 'bg-yellow-900/40 text-yellow-400'
+                          <tr key={o.id} className={`transition-colors ${
+                            darkMode ? 'hover:bg-gold/5' : 'hover:bg-gold/5'
+                          }`}>
+                            <td className="px-4 py-3 font-mono text-gold">{o.order_code}</td>
+                            <td className={`px-4 py-3 ${
+                              darkMode ? 'text-ivory' : 'text-night'
+                            }`}>{o.customers?.name || 'Walk-in'}</td>
+                            <td className="px-4 py-3 font-nums font-semibold text-gold">{inr(o.total)}</td>
+                            <td className={`px-4 py-3 uppercase text-[10px] tracking-wider ${
+                              darkMode ? 'text-ivory/60' : 'text-night/60'
+                            }`}>{o.payment_method}</td>
+                            <td className={`px-4 py-3 font-mono text-[11px] ${
+                              darkMode ? 'text-ivory/40' : 'text-night/40'
+                            }`}>{o.payment_reference || '—'}</td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                                o.paid || o.payment_status === 'paid'
+                                  ? 'bg-green-900/30 text-green-400 border border-green-500/20'
+                                  : 'bg-yellow-900/30 text-yellow-400 border border-yellow-500/20'
                               }`}>
                                 {o.payment_status}
                               </span>
                             </td>
                           </tr>
                         ))}
+                        {orders.length === 0 && (
+                          <tr><td colSpan={6} className={`px-4 py-8 text-center text-[12px] ${
+                            darkMode ? 'text-ivory/30' : 'text-night/30'
+                          }`}>No payment records yet.</td></tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1101,61 +1401,92 @@ export default function AdminPanel() {
 
               {/* ============ TAB 7: SETTINGS ============ */}
               {tab === 'settings' && (
-                <div className="space-y-6">
-                  <div className="rounded border border-gold/15 bg-chocolate/30 p-5 space-y-4">
-                    <h3 className="font-serif text-lg text-ivory">Shipping & Wholesale Rules</h3>
-                    <div className="grid grid-cols-2 gap-4 text-[13px]">
-                      <div>
-                        <span className="text-ivory/50">Free Shipping Threshold:</span>
-                        <p className="font-bold text-gold">{inr(ORDER.freeShippingAbove)}</p>
-                      </div>
-                      <div>
-                        <span className="text-ivory/50">Flat Shipping Fee:</span>
-                        <p className="font-bold text-ivory">{inr(ORDER.shippingFlat)}</p>
-                      </div>
-                      <div>
-                        <span className="text-ivory/50">Wholesale Min Quantity:</span>
-                        <p className="font-bold text-gold">{ORDER.wholesaleMinMetres} metres</p>
-                      </div>
-                      <div>
-                        <span className="text-ivory/50">Wholesale Discount:</span>
-                        <p className="font-bold text-gold">{ORDER.wholesaleDiscount * 100}% off</p>
-                      </div>
+                <div className="space-y-5">
+                  {/* Shipping Rules */}
+                  <div className={`border p-5 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <p className={`text-[9px] uppercase tracking-widest font-semibold mb-1 ${
+                      darkMode ? 'text-ivory/30' : 'text-night/30'
+                    }`}>Configuration</p>
+                    <h3 className={`font-serif text-base mb-4 ${
+                      darkMode ? 'text-ivory' : 'text-night'
+                    }`}>Shipping & Wholesale Rules</h3>
+                    <div className={`grid grid-cols-2 gap-0 border ${
+                      darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                    }`}>
+                      {[
+                        { label: 'Free Shipping Above', value: inr(ORDER.freeShippingAbove), accent: 'text-gold' },
+                        { label: 'Flat Shipping Fee', value: inr(ORDER.shippingFlat), accent: darkMode ? 'text-ivory' : 'text-night' },
+                        { label: 'Wholesale Min Qty', value: `${ORDER.wholesaleMinMetres} metres`, accent: 'text-gold' },
+                        { label: 'Wholesale Discount', value: `${ORDER.wholesaleDiscount * 100}% off`, accent: 'text-gold' },
+                      ].map((row) => (
+                        <div key={row.label} className={`p-4 border-b border-r last:border-r-0 ${
+                          darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                        }`}>
+                          <p className={`text-[9px] uppercase tracking-widest font-semibold mb-1.5 ${
+                            darkMode ? 'text-ivory/30' : 'text-night/30'
+                          }`}>{row.label}</p>
+                          <p className={`font-nums text-lg font-bold ${row.accent}`}>{row.value}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Theme Switcher Widget */}
-                  <div className="rounded border border-gold/15 bg-chocolate/30 p-5 space-y-3">
-                    <h3 className="font-serif text-lg text-ivory">Portal Appearance Theme</h3>
-                    <p className="text-[12px] text-ivory/50">
-                      Toggle the visual theme style layout of the administrator dashboard workspace.
-                    </p>
+                  {/* Theme Switcher */}
+                  <div className={`border p-5 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <p className={`text-[9px] uppercase tracking-widest font-semibold mb-1 ${
+                      darkMode ? 'text-ivory/30' : 'text-night/30'
+                    }`}>Appearance</p>
+                    <h3 className={`font-serif text-base mb-1 ${
+                      darkMode ? 'text-ivory' : 'text-night'
+                    }`}>Portal Theme</h3>
+                    <p className={`text-[11px] mb-4 ${
+                      darkMode ? 'text-ivory/40' : 'text-night/40'
+                    }`}>Select the visual theme for this admin dashboard.</p>
                     <div className="flex gap-3">
                       <button
                         type="button"
                         onClick={() => handleThemeToggle(false)}
-                        className={`rounded px-4 py-2 text-[12px] font-semibold uppercase tracking-wider border transition-colors ${
-                          !darkMode ? 'border-gold bg-gold/15 text-gold' : 'border-ivory/10 text-ivory/40 hover:text-ivory'
+                        className={`text-[10px] uppercase tracking-widest font-semibold px-5 py-2.5 border transition-colors ${
+                          !darkMode ? 'border-gold bg-gold/12 text-gold' : (darkMode ? 'border-ivory/10 text-ivory/30 hover:border-ivory/30 hover:text-ivory/60' : 'border-[#1a1a1a]/15 text-night/30')
                         }`}
                       >
-                        Light Mode
+                        ○ Light Mode
                       </button>
                       <button
                         type="button"
                         onClick={() => handleThemeToggle(true)}
-                        className={`rounded px-4 py-2 text-[12px] font-semibold uppercase tracking-wider border transition-colors ${
-                          darkMode ? 'border-gold bg-gold/15 text-gold' : 'border-ivory/10 text-ivory/40 hover:text-ivory'
+                        className={`text-[10px] uppercase tracking-widest font-semibold px-5 py-2.5 border transition-colors ${
+                          darkMode ? 'border-gold bg-gold/12 text-gold' : 'border-[#1a1a1a]/15 text-night/30 hover:border-[#1a1a1a]/40 hover:text-night/60'
                         }`}
                       >
-                        Dark Mode
+                        ● Dark Mode
                       </button>
                     </div>
                   </div>
 
-                  <div className="rounded border border-gold/15 bg-chocolate/30 p-5 space-y-4">
-                    <h3 className="font-serif text-lg text-ivory">Showroom Business Details</h3>
-                    <p className="text-[13px] text-ivory/70">{BUSINESS.name} · {BUSINESS.city}</p>
-                    <p className="text-[12px] text-ivory/50">{BUSINESS.addressLine1}, {BUSINESS.addressLine2}</p>
+                  {/* Business Info */}
+                  <div className={`border p-5 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <p className={`text-[9px] uppercase tracking-widest font-semibold mb-1 ${
+                      darkMode ? 'text-ivory/30' : 'text-night/30'
+                    }`}>Identity</p>
+                    <h3 className={`font-serif text-base mb-3 ${
+                      darkMode ? 'text-ivory' : 'text-night'
+                    }`}>Showroom Business Details</h3>
+                    <p className={`text-[13px] font-semibold ${
+                      darkMode ? 'text-ivory' : 'text-night'
+                    }`}>{BUSINESS.name}</p>
+                    <p className={`text-[12px] mt-0.5 ${
+                      darkMode ? 'text-ivory/50' : 'text-night/50'
+                    }`}>{BUSINESS.city}</p>
+                    <p className={`text-[11px] mt-1 ${
+                      darkMode ? 'text-ivory/30' : 'text-night/30'
+                    }`}>{BUSINESS.addressLine1}, {BUSINESS.addressLine2}</p>
                   </div>
                 </div>
               )}
@@ -1166,28 +1497,72 @@ export default function AdminPanel() {
 
       {/* Order Detail Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-night/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded border border-gold/20 bg-chocolate p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-              <h3 className="font-serif text-xl text-ivory">Order {selectedOrder.order_code}</h3>
-              <button onClick={() => setSelectedOrder(null)} className="text-ivory/50 hover:text-ivory">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d0806]/85 p-4 backdrop-blur-sm">
+          <div className={`w-full max-w-lg border p-0 ${
+            darkMode ? 'border-gold/15 bg-[#150a0a]' : 'border-[#1a1a1a]/15 bg-white'
+          }`}>
+            {/* Modal Header */}
+            <div className={`flex items-center justify-between px-6 py-4 border-b ${
+              darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+            }`}>
+              <div>
+                <p className={`text-[9px] uppercase tracking-widest font-semibold mb-0.5 ${
+                  darkMode ? 'text-ivory/30' : 'text-night/30'
+                }`}>Order Detail</p>
+                <h3 className={`font-serif text-lg ${
+                  darkMode ? 'text-ivory' : 'text-night'
+                }`}>{selectedOrder.order_code}</h3>
+              </div>
+              <button onClick={() => setSelectedOrder(null)} className={`text-[18px] leading-none transition-colors ${
+                darkMode ? 'text-ivory/30 hover:text-ivory' : 'text-night/30 hover:text-night'
+              }}`}>
                 ✕
               </button>
             </div>
 
-            <div className="space-y-2 text-[13px]">
-              <p><strong>Customer:</strong> {selectedOrder.customers?.name || 'Walk-in'}</p>
-              <p><strong>Phone:</strong> {selectedOrder.customers?.phone}</p>
-              <p><strong>Address:</strong> {selectedOrder.address}, {selectedOrder.city} - {selectedOrder.pincode}</p>
-              <p><strong>Total:</strong> <span className="text-gold font-bold">{inr(selectedOrder.total)}</span></p>
-              <p><strong>Status:</strong> <span className="capitalize">{selectedOrder.order_status}</span></p>
+            {/* Modal Body */}
+            <div className={`grid grid-cols-2 gap-0 border-b ${
+              darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+            }`}>
+              {[
+                { label: 'Customer', value: selectedOrder.customers?.name || 'Walk-in' },
+                { label: 'Phone', value: selectedOrder.customers?.phone || '—' },
+                { label: 'City', value: selectedOrder.city },
+                { label: 'Pincode', value: selectedOrder.pincode },
+                { label: 'Total', value: inr(selectedOrder.total), accent: 'text-gold font-semibold' },
+                { label: 'Status', value: selectedOrder.order_status.replace('_', ' '), className: 'capitalize' },
+              ].map((row) => (
+                <div key={row.label} className={`px-5 py-3.5 border-b border-r ${
+                  darkMode ? 'border-gold/8' : 'border-[#1a1a1a]/8'
+                }`}>
+                  <p className={`text-[9px] uppercase tracking-widest font-semibold mb-1 ${
+                    darkMode ? 'text-ivory/30' : 'text-night/30'
+                  }`}>{row.label}</p>
+                  <p className={`text-[13px] ${row.accent || ''} ${row.className || ''} ${
+                    !row.accent ? (darkMode ? 'text-ivory' : 'text-night') : ''
+                  }`}>{row.value}</p>
+                </div>
+              ))}
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-gold/15">
+            {selectedOrder.address && (
+              <div className={`px-5 py-3.5 border-b ${
+                darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+              }`}>
+                <p className={`text-[9px] uppercase tracking-widest font-semibold mb-1 ${
+                  darkMode ? 'text-ivory/30' : 'text-night/30'
+                }`}>Address</p>
+                <p className={`text-[12px] ${
+                  darkMode ? 'text-ivory/70' : 'text-night/70'
+                }`}>{selectedOrder.address}</p>
+              </div>
+            )}
+
+            <div className="flex gap-0 p-4">
               {selectedOrder.order_status !== 'confirmed' && (
                 <button
                   onClick={() => handleUpdateOrderStatus(selectedOrder.id, 'confirmed')}
-                  className="btn btn-gold text-[12px] flex-1 py-2"
+                  className="btn btn-gold text-[10px] flex-1 py-2.5 uppercase tracking-widest mr-2"
                 >
                   Mark Confirmed
                 </button>
@@ -1195,7 +1570,7 @@ export default function AdminPanel() {
               {selectedOrder.order_status !== 'fulfilled' && (
                 <button
                   onClick={() => handleUpdateOrderStatus(selectedOrder.id, 'fulfilled')}
-                  className="btn btn-gold text-[12px] flex-1 py-2"
+                  className="btn btn-gold text-[10px] flex-1 py-2.5 uppercase tracking-widest"
                 >
                   Mark Fulfilled
                 </button>

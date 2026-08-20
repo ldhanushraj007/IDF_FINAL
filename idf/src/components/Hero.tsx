@@ -1,98 +1,46 @@
-import { motion } from 'framer-motion';
-import { BUSINESS, WA_DEFAULT } from '../lib/constants';
-
-const lineReveal = (delay: number) => ({
-  initial: { y: '112%' },
-  animate: { y: '0%' },
-  transition: { delay, duration: 1, ease: [0.22, 1, 0.36, 1] as const },
-});
+import { BUSINESS } from '../lib/constants';
 
 export default function Hero() {
   return (
-    <section id="top" className="relative flex h-[100svh] min-h-[560px] items-end overflow-hidden">
-      {/* Backdrop */}
-      <img
-        src="/images/hero.jpg"
-        alt="Cascading luxury silks in warm golden light"
-        className="absolute inset-0 h-full w-full object-cover animate-kenburns motion-reduce:animate-none"
-      />
-      <div
-        className="absolute inset-0 bg-gradient-to-t from-night via-night/45 to-night/25"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-night/55 via-transparent to-transparent"
-        aria-hidden="true"
-      />
+    <section id="top" className="grid-line relative border-b border-[#1a1a1a] bg-[#F2F1EC]">
+      <span className="index-badge">02</span>
 
-      {/* Copy */}
-      <div className="container-lux relative pb-20 pt-32 sm:pb-32 sm:pt-40">
-        <motion.p
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.85, duration: 0.7 }}
-          className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold sm:text-[11px] sm:tracking-[0.34em]"
-        >
-          Commercial Street · Bengaluru
-          <span className="hidden sm:inline"> — Est. 2009</span>
-        </motion.p>
+      {/* 3-column hero grid */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-0 min-h-[340px] md:min-h-[280px]">
+        {/* Col 1 — Big headline */}
+        <div className="flex items-end px-6 md:px-12 py-12 md:py-16">
+          <h1 className="font-serif text-[54px] md:text-[84px] lg:text-[100px] text-primary leading-[0.9] tracking-tight">
+            Order by<br />the metre.
+          </h1>
+        </div>
 
-        <h1 className="mt-5 max-w-3xl font-serif text-[clamp(2.25rem,9vw,5.6rem)] leading-[1.05] text-ivory sm:mt-6 sm:leading-[1.03]">
-          <span className="block overflow-hidden pb-1">
-            <motion.span className="block" {...lineReveal(1.0)}>
-              Fabric for the days
-            </motion.span>
-          </span>
-          <span className="block overflow-hidden pb-2">
-            <motion.span className="block" {...lineReveal(1.16)}>
-              you&rsquo;ll <em className="text-gold-light">never forget.</em>
-            </motion.span>
-          </span>
-        </h1>
+        {/* Col 2 — Numbered features */}
+        <div className="border-t md:border-t-0 md:border-l border-[#1a1a1a] px-8 py-12 flex items-center min-w-[260px]">
+          <ul className="space-y-0 w-full">
+            {[
+              { n: '01', label: 'PREMIUM FABRICS' },
+              { n: '02', label: 'CUT TO YOUR REQUIREMENT' },
+              { n: '03', label: 'SHIPPED ACROSS INDIA' },
+              { n: '04', label: 'PAY SECURELY BY UPI' },
+            ].map((f) => (
+              <li key={f.n} className="flex items-center gap-4 py-3 border-b border-[#1a1a1a]/15 last:border-b-0">
+                <span className="font-mono text-[10px] text-secondary w-5 shrink-0">{f.n}</span>
+                <span className="font-label-caps text-[10px] tracking-[0.15em] text-secondary">{f.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.45, duration: 0.75 }}
-          className="mt-5 max-w-xl text-sm leading-relaxed text-ivory/75 sm:mt-6 sm:text-[15px]"
-        >
-          Banarasi silks, bridal couture and designer textiles — hand-picked at the loom and
-          curated in the heart of {BUSINESS.city}.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.6, duration: 0.75 }}
-          className="mt-8 flex w-full max-w-sm flex-col gap-3 sm:mt-9 sm:w-auto sm:max-w-none sm:flex-row sm:gap-4"
-        >
-          <a href="#collections" className="btn btn-gold btn-sheen w-full sm:w-auto">
-            Explore Collections
-          </a>
-          <a
-            href={WA_DEFAULT}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-ghost-light w-full sm:w-auto"
-          >
-            WhatsApp the Showroom
-          </a>
-        </motion.div>
+        {/* Col 3 — Tagline */}
+        <div className="border-t md:border-t-0 md:border-l border-[#1a1a1a] px-8 py-12 flex items-center min-w-[220px]">
+          <div>
+            <div className="w-8 h-px bg-[#1a1a1a]/30 mb-4" />
+            <p className="font-serif text-[18px] text-primary leading-snug max-w-[200px]">
+              Luxury couture and bridal fabrics, curated in {BUSINESS.city}.
+            </p>
+          </div>
+        </div>
       </div>
-
-      {/* Scroll thread */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2.1, duration: 0.8 }}
-        className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-3 sm:flex"
-        aria-hidden="true"
-      >
-        <span className="text-[9px] uppercase tracking-[0.42em] text-ivory/50">Scroll</span>
-        <span className="relative block h-12 w-px overflow-hidden bg-ivory/20">
-          <span className="absolute left-0 top-0 h-5 w-px bg-gold animate-thread-drop motion-reduce:animate-none" />
-        </span>
-      </motion.div>
     </section>
   );
 }

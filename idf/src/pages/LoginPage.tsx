@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, User, Mail, Lock, Phone, ArrowLeft, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Loader2, X, ArrowLeft, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { isGoogleAuthConfigured, renderGoogleButton } from '../lib/googleAuth';
 import {
@@ -162,326 +162,283 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-night">
-        <Loader2 className="h-6 w-6 animate-spin text-gold" />
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <Loader2 className="h-6 w-6 animate-spin text-brand-gold" />
       </div>
     );
   }
 
   return (
-    <div className="relative flex min-h-screen overflow-hidden bg-night">
-      {/* ── Decorative background ── */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-32 -top-32 h-[500px] w-[500px] rounded-full bg-gold/5 blur-[120px]" />
-        <div className="absolute -bottom-32 -right-32 h-[400px] w-[400px] rounded-full bg-maroon/20 blur-[100px]" />
+    <div className="grid-container w-full mx-auto max-w-[1600px] relative bg-surface border-x border-[#1a1a1a] min-h-screen flex flex-row">
+      {/* Left Sidebar */}
+      <div className="hairline-r relative flex flex-col items-center py-4 w-12 border-r border-[#1a1a1a] shrink-0">
+        <div className="font-index-num text-index-num mb-auto">01</div>
+        <div className="font-label-caps text-label-caps tracking-widest text-secondary rotate-[-90deg] whitespace-nowrap mb-32 uppercase">ACCOUNT</div>
       </div>
 
-      {/* ── Left panel — branding (desktop only) ── */}
-      <div className="relative hidden flex-1 flex-col justify-between bg-chocolate/40 p-12 lg:flex">
-        <Link to="/" className="flex items-center gap-3">
-          <img src="/images/logo/logo-mark.png" alt="" className="h-10 w-10 object-contain" />
-          <div>
-            <p className="font-serif text-lg text-ivory">In Design</p>
-            <p className="text-[10px] tracking-[0.22em] text-gold uppercase">Luxury Fabrics</p>
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col min-h-screen">
+        {/* TopAppBar (Transactional - Hidden Navigation Links for focus) */}
+        <header className="flex items-center w-full px-margin-page py-6 border-b border-[#1a1a1a] bg-surface">
+          <div className="flex-1" />
+          <Link to="/" className="font-headline-md text-headline-md tracking-widest text-primary text-center font-serif uppercase">
+            IN DESIGN<br/><span className="text-sm tracking-[0.3em] text-brand-gold block font-sans">LUXURY FABRICS</span>
+          </Link>
+          <div className="flex-1 flex justify-end">
+            <Link to="/" className="font-label-caps text-label-caps flex items-center gap-1.5 hover:text-primary text-secondary transition-colors duration-200">
+              <X className="h-4 w-4" />
+              <span>CLOSE</span>
+            </Link>
           </div>
-        </Link>
+        </header>
 
-        <div>
-          <motion.blockquote
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="font-serif text-3xl leading-snug text-ivory"
-          >
-            "Fabric for the days<br />you'll <span className="text-gold italic">never forget.</span>"
-          </motion.blockquote>
-          <p className="mt-4 text-[13px] text-ivory/40">
-            Banarasi silks, bridal couture and designer textiles — Bengaluru's finest since 2009.
-          </p>
-        </div>
+        {/* Authentication Panel */}
+        <main className="flex-grow flex items-center justify-center p-4 sm:p-8 bg-surface-bright">
+          <div className="w-full max-w-md relative p-8 border border-on-background bg-surface">
+            <div className="index-marker absolute top-2 left-2 font-index-num text-index-num text-secondary">02</div>
+            <h1 className="font-headline-md text-headline-md text-center mb-8 mt-4 font-serif">Welcome Back</h1>
+            
+            {/* Tabs */}
+            {tab !== 'otp' && (
+              <div className="flex border-b border-outline mb-8">
+                <button
+                  onClick={() => { setTab('login'); setError(''); setSuccessMsg(''); }}
+                  className={`flex-1 pb-3 text-center font-label-caps text-label-caps transition-colors ${
+                    tab === 'login' ? 'border-b-2 border-brand-gold text-primary' : 'text-secondary'
+                  }`}
+                >
+                  SIGN IN
+                </button>
+                <button
+                  onClick={() => { setTab('signup'); setError(''); setSuccessMsg(''); }}
+                  className={`flex-1 pb-3 text-center font-label-caps text-label-caps transition-colors ${
+                    tab === 'signup' ? 'border-b-2 border-brand-gold text-primary' : 'text-secondary'
+                  }`}
+                >
+                  SIGN UP
+                </button>
+              </div>
+            )}
 
-        <p className="text-[11px] text-ivory/25">
-          {BUSINESS.addressLine1}, {BUSINESS.addressLine3}
-        </p>
-      </div>
+            {/* Notifications */}
+            {error && (
+              <div className="mb-4 p-3 border border-error bg-error/5 text-[12px] text-error">
+                {error}
+              </div>
+            )}
+            {successMsg && (
+              <div className="mb-4 flex items-center gap-2 p-3 border border-brand-gold bg-brand-gold/5 text-[12px] text-brand-gold">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                {successMsg}
+              </div>
+            )}
 
-      {/* ── Right panel — forms ── */}
-      <div className="relative flex w-full flex-col items-center justify-center px-6 py-16 lg:w-[480px] lg:shrink-0">
-        {/* Mobile logo */}
-        <Link to="/" className="mb-8 flex items-center gap-3 lg:hidden">
-          <img src="/images/logo/logo-mark.png" alt="" className="h-9 w-9 object-contain" />
-          <div>
-            <p className="font-serif text-base text-ivory">In Design</p>
-            <p className="text-[9px] tracking-[0.22em] text-gold uppercase">Luxury Fabrics</p>
-          </div>
-        </Link>
-
-        <div className="w-full max-w-sm">
-          {/* Tabs */}
-          {tab !== 'otp' && (
-            <div className="mb-8 flex border-b border-ivory/10">
-              <button
-                onClick={() => { setTab('login'); setError(''); setSuccessMsg(''); }}
-                className={`flex-1 pb-3 text-center text-[14px] font-semibold transition-colors ${
-                  tab === 'login' ? 'border-b-2 border-gold text-gold' : 'text-ivory/40 hover:text-ivory'
-                }`}
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => { setTab('signup'); setError(''); setSuccessMsg(''); }}
-                className={`flex-1 pb-3 text-center text-[14px] font-semibold transition-colors ${
-                  tab === 'signup' ? 'border-b-2 border-gold text-gold' : 'text-ivory/40 hover:text-ivory'
-                }`}
-              >
-                Register
-              </button>
-            </div>
-          )}
-
-          {/* Errors/Success Notifications */}
-          {error && (
-            <div className="mb-4 rounded-[3px] border border-maroon/20 bg-maroon/5 px-4 py-3 text-[12px] text-maroon">
-              {error}
-            </div>
-          )}
-          {successMsg && (
-            <div className="mb-4 flex items-center gap-2 rounded-[3px] border border-gold/20 bg-gold/5 px-4 py-3 text-[12px] text-gold">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              {successMsg}
-            </div>
-          )}
-
-          <AnimatePresence mode="wait">
-            {tab === 'login' && (
-              <motion.div
-                key="login"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {/* Heading */}
-                <div className="mb-6 text-center lg:text-left">
-                  <h2 className="font-serif text-2xl text-ivory">Welcome back</h2>
-                  <p className="mt-1 text-[13px] text-ivory/50">Sign in to access your orders.</p>
-                </div>
-
-                {/* Email Login Form */}
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3.5 h-4 w-4 text-ivory/30" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email Address"
-                      className="w-full rounded-[3px] border border-ivory/10 bg-ivory/5 py-3 pl-10 pr-4 text-[13px] text-ivory outline-none focus:border-gold/50"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3.5 h-4 w-4 text-ivory/30" />
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
-                      className="w-full rounded-[3px] border border-ivory/10 bg-ivory/5 py-3 pl-10 pr-4 text-[13px] text-ivory outline-none focus:border-gold/50"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className="btn btn-gold btn-sheen flex w-full justify-center items-center gap-2 py-3"
-                  >
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign In'}
-                  </button>
-                </form>
-
-                {/* Google Auth Option */}
-                {isGoogleAuthConfigured && (
-                  <>
-                    <div className="my-6 flex items-center gap-3">
-                      <div className="flex-1 border-t border-ivory/10" />
-                      <span className="text-[10px] uppercase tracking-widest text-ivory/30">or</span>
-                      <div className="flex-1 border-t border-ivory/10" />
-                    </div>
-
-                    <div className="space-y-3">
-                      {/* Native GSI button */}
-                      <div
-                        ref={btnRef}
-                        className={useNativeButton ? 'flex justify-center' : 'hidden'}
+            <AnimatePresence mode="wait">
+              {tab === 'login' && (
+                <motion.div
+                  key="login"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className="space-y-6"
+                >
+                  <form onSubmit={handleLogin} className="space-y-6">
+                    <div>
+                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">EMAIL ADDRESS</label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
                       />
+                    </div>
+                    <div>
+                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">PASSWORD</label>
+                      <input
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                      />
+                    </div>
+                    <button type="submit" disabled={busy} className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors">
+                      {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'SIGN IN'}
+                    </button>
+                  </form>
 
-                      {/* Fallback button */}
+                  {isGoogleAuthConfigured && (
+                    <>
+                      <div className="relative flex items-center justify-center my-6">
+                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-outline-variant"></div></div>
+                        <span className="relative bg-surface px-4 font-label-caps text-label-caps text-secondary">OR</span>
+                      </div>
+
+                      <div ref={btnRef} className={useNativeButton ? 'flex justify-center' : 'hidden'} />
+                      
                       {!useNativeButton && (
                         <button
                           type="button"
                           onClick={gsiLoaded ? signInWithGoogle : undefined}
                           disabled={!gsiLoaded}
-                          className="flex w-full items-center justify-center gap-3 rounded-[3px] border border-ivory/20 bg-ivory/5 py-3.5 text-[13.5px] font-semibold text-ivory transition-all hover:border-gold/60 hover:bg-ivory/10 disabled:opacity-50"
+                          className="btn-outline w-full p-4 border border-primary text-primary font-label-caps text-label-caps flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
                         >
                           {gsiLoaded ? (
                             <>
                               <GoogleMark />
-                              Continue with Google
+                              CONTINUE WITH GOOGLE
                             </>
                           ) : (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin" />
-                              Loading Google...
+                              LOADING GOOGLE...
                             </>
                           )}
                         </button>
                       )}
+                    </>
+                  )}
+                </motion.div>
+              )}
+
+              {tab === 'signup' && (
+                <motion.div
+                  key="signup"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="space-y-6"
+                >
+                  <form onSubmit={handleSignup} className="space-y-6">
+                    <div>
+                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">FULL NAME</label>
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your full name"
+                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                      />
                     </div>
-                  </>
-                )}
-              </motion.div>
-            )}
+                    <div>
+                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">PHONE NUMBER</label>
+                      <input
+                        type="tel"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Enter phone number"
+                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">EMAIL ADDRESS</label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">PASSWORD</label>
+                      <input
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Create a password"
+                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                      />
+                    </div>
+                    <button type="submit" disabled={busy} className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors">
+                      {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'CREATE ACCOUNT'}
+                    </button>
+                  </form>
+                </motion.div>
+              )}
 
-            {tab === 'signup' && (
-              <motion.div
-                key="signup"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                {/* Heading */}
-                <div className="mb-6 text-center lg:text-left">
-                  <h2 className="font-serif text-2xl text-ivory">Create account</h2>
-                  <p className="mt-1 text-[13px] text-ivory/50">Register to get custom showroom services.</p>
-                </div>
+              {tab === 'otp' && (
+                <motion.div
+                  key="otp"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="space-y-6"
+                >
+                  <button
+                    onClick={() => { setTab('signup'); setError(''); setSuccessMsg(''); }}
+                    className="flex items-center gap-1.5 text-[12px] text-secondary hover:text-primary transition-colors"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" /> Back to Sign Up
+                  </button>
 
-                {/* Email Registration Form */}
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="relative">
-                    <User className="absolute left-3 top-3.5 h-4 w-4 text-ivory/30" />
+                  <div className="mb-6 text-center">
+                    <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-gold/10 text-brand-gold">
+                      <ShieldCheck className="h-5 w-5" />
+                    </div>
+                    <h2 className="font-serif text-2xl text-primary">Verify your email</h2>
+                    <p className="mt-1 text-[13px] text-secondary">
+                      We sent a 6-digit code to <span className="text-brand-gold font-medium">{email}</span>. Enter it below to activate your account.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleVerifyOtp} className="space-y-6">
                     <input
                       type="text"
                       required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Full Name"
-                      className="w-full rounded-[3px] border border-ivory/10 bg-ivory/5 py-3 pl-10 pr-4 text-[13px] text-ivory outline-none focus:border-gold/50"
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Enter 6-digit Code"
+                      className="w-full border border-outline p-3 text-center tracking-[0.3em] font-bold text-lg bg-transparent outline-none focus:border-primary"
                     />
-                  </div>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3.5 h-4 w-4 text-ivory/30" />
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Phone Number (WhatsApp)"
-                      className="w-full rounded-[3px] border border-ivory/10 bg-ivory/5 py-3 pl-10 pr-4 text-[13px] text-ivory outline-none focus:border-gold/50"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3.5 h-4 w-4 text-ivory/30" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email Address"
-                      className="w-full rounded-[3px] border border-ivory/10 bg-ivory/5 py-3 pl-10 pr-4 text-[13px] text-ivory outline-none focus:border-gold/50"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3.5 h-4 w-4 text-ivory/30" />
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Create Password (min. 6 chars)"
-                      className="w-full rounded-[3px] border border-ivory/10 bg-ivory/5 py-3 pl-10 pr-4 text-[13px] text-ivory outline-none focus:border-gold/50"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className="btn btn-gold btn-sheen flex w-full justify-center items-center gap-2 py-3"
-                  >
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Register & Send OTP'}
-                  </button>
-                </form>
-              </motion.div>
-            )}
+                    <button type="submit" disabled={busy} className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors">
+                      {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'VERIFY & SIGN IN'}
+                    </button>
+                  </form>
 
-            {tab === 'otp' && (
-              <motion.div
-                key="otp"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              >
-                {/* Back button */}
-                <button
-                  onClick={() => { setTab('signup'); setError(''); setSuccessMsg(''); }}
-                  className="mb-6 flex items-center gap-1.5 text-[12px] text-ivory/40 hover:text-gold"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" /> Back to Sign Up
-                </button>
-
-                {/* Heading */}
-                <div className="mb-6 text-center lg:text-left">
-                  <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gold/10 text-gold">
-                    <ShieldCheck className="h-5 w-5" />
+                  <div className="text-center text-[12px] text-secondary">
+                    Didn't receive the email?{' '}
+                    <button
+                      onClick={resendOtp}
+                      disabled={busy}
+                      className="text-brand-gold hover:underline disabled:opacity-50"
+                    >
+                      Resend Code
+                    </button>
                   </div>
-                  <h2 className="font-serif text-2xl text-ivory">Verify your email</h2>
-                  <p className="mt-1 text-[13px] text-ivory/50">
-                    We sent a 6-digit code to <span className="text-gold font-medium">{email}</span>. Enter it below to activate your account.
-                  </p>
-                </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                {/* OTP Form */}
-                <form onSubmit={handleVerifyOtp} className="space-y-4">
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Enter 6-digit Code"
-                    className="w-full text-center tracking-[0.3em] font-bold text-lg rounded-[3px] border border-ivory/10 bg-ivory/5 py-3.5 text-ivory outline-none focus:border-gold/50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className="btn btn-gold btn-sheen flex w-full justify-center items-center gap-2 py-3"
-                  >
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify & Sign In'}
-                  </button>
-                </form>
-
-                <div className="mt-6 text-center text-[12px] text-ivory/40">
-                  Didn't receive the email?{' '}
-                  <button
-                    onClick={resendOtp}
-                    disabled={busy}
-                    className="text-gold hover:underline disabled:opacity-50"
-                  >
-                    Resend Code
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Guest routing */}
-          <div className="mt-8 border-t border-ivory/5 pt-6 text-center">
-            <Link to="/" className="text-[12px] text-ivory/30 hover:text-gold transition-colors">
-              ← Continue browsing as guest
-            </Link>
+            <div className="mt-8 border-t border-primary/5 pt-6 text-center">
+              <Link to="/" className="text-[12px] text-secondary hover:text-primary transition-colors">
+                ← Continue browsing as guest
+              </Link>
+            </div>
           </div>
-        </div>
+        </main>
+
+        {/* Footer (Minimal for Auth) */}
+        <footer className="w-full px-margin-page py-6 border-t border-[#1a1a1a] bg-surface flex justify-between items-center text-secondary font-label-caps text-label-caps">
+          <span>© {new Date().getFullYear()} {BUSINESS.legalName}. ALL RIGHTS RESERVED.</span>
+          <div className="flex gap-4">
+            <a className="hover:text-primary" href="#">PRIVACY</a>
+            <a className="hover:text-primary" href="#">TERMS</a>
+          </div>
+        </footer>
+      </div>
+
+      {/* Right Sidebar */}
+      <div className="relative flex flex-col items-center py-4 w-12 border-l border-[#1a1a1a] shrink-0">
+        <div className="font-index-num text-index-num mb-auto">02</div>
       </div>
     </div>
   );

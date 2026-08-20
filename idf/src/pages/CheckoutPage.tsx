@@ -28,7 +28,7 @@ import {
 import { clearPending, writePending } from '../lib/pendingOrder';
 import { saveOrder } from '../lib/customerApi';
 import { trackInteraction } from '../lib/useTrackInteraction';
-import { UPI, inr } from '../lib/constants';
+import { ORDER, UPI, inr } from '../lib/constants';
 import AuthGate from '../components/AuthGate';
 
 const EMPTY: Customer = {
@@ -181,15 +181,13 @@ export default function CheckoutPage() {
 
   if (items.length === 0 && step !== 4) {
     return (
-      <div className="min-h-screen bg-night pt-28 pb-20 text-center flex items-center justify-center">
-        <div className="container-lux max-w-md">
-          <ShoppingBag className="mx-auto h-16 w-16 text-gold/40" strokeWidth={1} />
-          <h1 className="mt-4 font-serif text-3xl text-ivory">Your cart is empty</h1>
-          <p className="mt-2 text-[14px] text-ivory/60">
-            Browse our haute couture & bridal fabrics to add items to your cart.
-          </p>
-          <Link to="/#shop" className="btn btn-gold btn-sheen mt-6 inline-flex">
-            Explore Collection
+      <div className="min-h-screen flex items-center justify-center bg-surface border-x border-[#1a1a1a] mx-margin-page">
+        <div className="text-center p-8 border border-[#1a1a1a]/10 max-w-sm">
+          <span className="material-symbols-outlined text-5xl text-brand-gold mb-4">shopping_bag</span>
+          <h1 className="font-headline-md text-2xl mb-4 font-serif">Your cart is empty</h1>
+          <p className="font-body-sm text-secondary mb-6">Add fabrics from the shop to start checkout.</p>
+          <Link to="/" className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps block hover:bg-opacity-95 transition-colors uppercase">
+            RETURN TO SHOP
           </Link>
         </div>
       </div>
@@ -197,52 +195,53 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-night pt-24 pb-20 text-ivory">
-      {/* Checkout Navigation Bar */}
-      <div className="border-b border-gold/15 bg-chocolate/30 py-4">
-        <div className="container-lux flex flex-wrap items-center justify-between gap-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-[13px] text-ivory/60 hover:text-gold transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Return to Store</span>
-          </Link>
-
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
-            <ShieldCheck className="h-4 w-4" />
-            <span>Secure Direct Checkout · Order {orderId}</span>
-          </div>
-        </div>
+    <div className="grid-container w-full mx-auto max-w-[1600px] relative bg-surface border-x border-[#1a1a1a] min-h-screen flex flex-row">
+      {/* Left Sidebar */}
+      <div className="hairline-r relative flex flex-col items-center py-4 w-12 border-r border-[#1a1a1a] shrink-0">
+        <div className="font-index-num text-index-num mb-auto">01</div>
+        <div className="font-label-caps text-label-caps tracking-widest text-secondary rotate-[-90deg] whitespace-nowrap mb-32 uppercase">CHECKOUT</div>
       </div>
 
-      {/* Stepper Header */}
-      <div className="border-b border-gold/10 bg-night/80 py-6">
-        <div className="container-lux max-w-4xl">
-          <div className="flex items-center justify-between relative">
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 -translate-y-1/2 bg-gold/15 -z-0" />
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col min-h-screen">
+        {/* TopAppBar (Transactional) */}
+        <header className="flex justify-between items-center w-full px-margin-page py-6 border-b border-[#1a1a1a] relative bg-surface">
+          <Link to="/" className="font-headline-md text-headline-md tracking-widest text-primary text-center font-serif uppercase mx-auto">
+            IN DESIGN<br/><span className="text-sm tracking-[0.3em] text-brand-gold block font-sans">LUXURY FABRICS</span>
+          </Link>
+          <Link to="/" className="absolute right-margin-page font-label-caps text-label-caps flex items-center gap-2 hover:text-primary text-secondary transition-colors duration-200">
+            <span className="material-symbols-outlined text-[18px]">close</span> CANCEL
+          </Link>
+        </header>
 
+        {/* Stepper Steps Header */}
+        <div className="border-b border-[#1a1a1a] bg-surface-bright py-6 px-margin-page">
+          <div className="flex items-center justify-between relative max-w-xl mx-auto">
+            <div className="absolute top-1/2 left-0 right-0 h-[1px] -translate-y-1/2 bg-[#1a1a1a]/20 -z-0" />
             {[
               { num: 1, label: 'Details' },
               { num: 2, label: 'Payment' },
               { num: 3, label: 'WhatsApp Send' },
-              { num: 4, label: 'Order Complete' },
+              { num: 4, label: 'Complete' },
             ].map((s) => {
               const active = step === s.num;
               const completed = step > s.num;
               return (
-                <div key={s.num} className="relative z-10 flex flex-col items-center gap-2 bg-night px-3">
+                <div key={s.num} className="relative z-10 flex flex-col items-center gap-2 bg-surface px-4">
                   <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-full font-nums text-[13px] font-bold transition-all ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-full font-index-num text-[12px] font-bold border transition-all ${
                       completed
-                        ? 'bg-gold text-night'
+                        ? 'bg-primary border-primary text-on-primary'
                         : active
-                          ? 'border-2 border-gold bg-night text-gold shadow-[0_0_15px_rgba(211,170,50,0.5)]'
-                          : 'border border-ivory/20 bg-chocolate text-ivory/40'
+                          ? 'border-brand-gold bg-surface text-brand-gold font-bold ring-4 ring-brand-gold/10'
+                          : 'border-[#1a1a1a]/20 bg-surface-container text-secondary'
                     }`}
                   >
                     {completed ? <Check className="h-4 w-4" /> : s.num}
                   </div>
                   <span
-                    className={`text-[11px] font-semibold uppercase tracking-[0.14em] hidden sm:block ${
-                      active ? 'text-gold' : completed ? 'text-ivory/80' : 'text-ivory/40'
+                    className={`text-[10px] font-label-caps tracking-widest uppercase hidden sm:block ${
+                      active ? 'text-primary font-bold' : completed ? 'text-secondary' : 'text-secondary/55'
                     }`}
                   >
                     {s.label}
@@ -252,355 +251,383 @@ export default function CheckoutPage() {
             })}
           </div>
         </div>
-      </div>
 
-      {/* Main Page Layout */}
-      <div className="container-lux mt-10">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-          {/* Left Column: Interactive Form Steps (8 Cols) */}
-          <div className="lg:col-span-7">
-            <div className="rounded-[4px] border border-gold/20 bg-chocolate/40 p-6 sm:p-8 shadow-xl">
-              {/* STEP 1: Details */}
-              {step === 1 && (
-                <div>
-                  {needsAuth ? (
+        {/* Checkout Panel */}
+        <main className="flex-grow flex flex-col lg:flex-row w-full bg-surface-bright divide-y lg:divide-y-0 lg:divide-x divide-[#1a1a1a]">
+          {/* Left Column: Interactive Form Steps (60% Width) */}
+          <div className="w-full lg:w-3/5 p-8 sm:p-12 space-y-12">
+            {/* STEP 1: Details */}
+            {step === 1 && (
+              <div className="space-y-8">
+                {needsAuth ? (
+                  <div className="border border-[#1a1a1a] p-8 bg-surface">
+                    <h2 className="font-serif text-2xl text-primary mb-2">Sign in to checkout</h2>
+                    <p className="font-body-sm text-secondary mb-6">
+                      Sign in to save your order history, access your customer profile, and track your purchase.
+                    </p>
+                    <AuthGate compact />
+                  </div>
+                ) : (
+                  <div className="space-y-8">
                     <div>
-                      <h2 className="font-serif text-2xl text-ivory">Sign in to checkout</h2>
-                      <p className="mt-2 mb-6 text-[13px] text-ivory/60">
-                        Sign in to save your order history, access your customer profile, and track your purchase.
-                      </p>
-                      <AuthGate compact />
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      <div>
-                        <h2 className="font-serif text-2xl text-ivory">Fulfillment Preference</h2>
-                        <p className="mt-1 text-[13px] text-ivory/60">Choose how you wish to receive your luxury fabrics.</p>
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                          {[
-                            { id: 'delivery', label: 'Ship to Address', icon: Truck },
-                            { id: 'pickup', label: 'Store Pickup', icon: Store },
-                          ].map((f) => {
-                            const Icon = f.icon;
-                            const active = customer.fulfilment === f.id;
-                            return (
-                              <button
-                                key={f.id}
-                                type="button"
-                                onClick={() => setCustomer((c) => ({ ...c, fulfilment: f.id as any }))}
-                                className={`flex items-center justify-center gap-2.5 rounded-[3px] border p-4 text-[12px] font-semibold uppercase tracking-[0.14em] transition-all ${
-                                  active
-                                    ? 'border-gold bg-gold/15 text-gold shadow-md'
-                                    : 'border-gold/20 text-ivory/60 hover:border-gold/40'
-                                }`}
-                              >
-                                <Icon className="h-4 w-4" />
-                                <span>{f.label}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
+                      <div className="flex justify-between items-baseline mb-6 border-b border-[#1a1a1a] pb-2">
+                        <h2 className="font-headline-md text-[20px] font-serif uppercase">Fulfillment Preference</h2>
+                        <span className="font-label-caps text-label-caps text-secondary">02.1</span>
                       </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        {[
+                          { id: 'delivery', label: 'Ship to Address', icon: 'local_shipping' },
+                          { id: 'pickup', label: 'Store Pickup', icon: 'storefront' },
+                        ].map((f) => {
+                          const active = customer.fulfilment === f.id;
+                          return (
+                            <button
+                              key={f.id}
+                              type="button"
+                              onClick={() => setCustomer((c) => ({ ...c, fulfilment: f.id as any }))}
+                              className={`border p-6 flex flex-col gap-2 text-left transition-all ${
+                                active ? 'border-[#1a1a1a] bg-surface-variant' : 'border-outline hover:border-primary bg-transparent'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[24px] text-brand-gold">{f.icon}</span>
+                              <span className="font-label-caps text-label-caps text-primary font-bold">{f.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
-                      <div className="space-y-4 pt-2">
-                        <h2 className="font-serif text-2xl text-ivory">Customer Information</h2>
-                        <div>
-                          <input {...field('name')} placeholder="Full name *" className={inputClass('name')} />
-                          {errors.name && <p className="mt-1 text-[11px] text-maroon">{errors.name}</p>}
+                    <div className="space-y-6 pt-4">
+                      <div className="flex justify-between items-baseline mb-6 border-b border-[#1a1a1a] pb-2">
+                        <h2 className="font-headline-md text-[20px] font-serif uppercase">Customer Information</h2>
+                        <span className="font-label-caps text-label-caps text-secondary">02.2</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="sm:col-span-2">
+                          <label className="block font-label-caps text-label-caps mb-2 text-secondary">FULL NAME</label>
+                          <input
+                            {...field('name')}
+                            placeholder="Enter full name"
+                            className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                          />
+                          {errors.name && <p className="mt-1 text-[11px] text-error">{errors.name}</p>}
                         </div>
 
-                        <div>
+                        <div className="sm:col-span-2">
+                          <label className="block font-label-caps text-label-caps mb-2 text-secondary">WHATSAPP PHONE NUMBER</label>
                           <input
                             {...field('phone')}
                             inputMode="numeric"
-                            placeholder="WhatsApp mobile number (10 digits) *"
-                            className={inputClass('phone')}
+                            placeholder="10-digit number"
+                            className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
                           />
-                          {errors.phone && <p className="mt-1 text-[11px] text-maroon">{errors.phone}</p>}
+                          {errors.phone && <p className="mt-1 text-[11px] text-error">{errors.phone}</p>}
                         </div>
 
                         {customer.fulfilment === 'delivery' && (
-                          <div className="space-y-4 pt-2">
-                            <h3 className="font-serif text-lg text-ivory">Shipping Address</h3>
-                            <div>
+                          <>
+                            <div className="sm:col-span-2">
+                              <label className="block font-label-caps text-label-caps mb-2 text-secondary">STREET ADDRESS</label>
                               <textarea
                                 {...field('address')}
                                 rows={2}
-                                placeholder="Street address, building, apartment *"
-                                className={inputClass('address')}
+                                placeholder="House/Apartment, Street name"
+                                className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
                               />
-                              {errors.address && <p className="mt-1 text-[11px] text-maroon">{errors.address}</p>}
+                              {errors.address && <p className="mt-1 text-[11px] text-error">{errors.address}</p>}
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <input {...field('city')} placeholder="City *" className={inputClass('city')} />
-                                {errors.city && <p className="mt-1 text-[11px] text-maroon">{errors.city}</p>}
-                              </div>
-                              <div>
-                                <input
-                                  {...field('pincode')}
-                                  inputMode="numeric"
-                                  placeholder="6-digit PIN code *"
-                                  className={inputClass('pincode')}
-                                />
-                                {errors.pincode && <p className="mt-1 text-[11px] text-maroon">{errors.pincode}</p>}
-                              </div>
+                            <div>
+                              <label className="block font-label-caps text-label-caps mb-2 text-secondary">CITY</label>
+                              <input
+                                {...field('city')}
+                                placeholder="e.g. Bangalore"
+                                className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                              />
+                              {errors.city && <p className="mt-1 text-[11px] text-error">{errors.city}</p>}
                             </div>
-                          </div>
+                            <div>
+                              <label className="block font-label-caps text-label-caps mb-2 text-secondary">PINCODE</label>
+                              <input
+                                {...field('pincode')}
+                                inputMode="numeric"
+                                placeholder="6-digit PIN"
+                                className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                              />
+                              {errors.pincode && <p className="mt-1 text-[11px] text-error">{errors.pincode}</p>}
+                            </div>
+                          </>
                         )}
 
-                        <div className="pt-2">
+                        <div className="sm:col-span-2">
+                          <label className="block font-label-caps text-label-caps mb-2 text-secondary">ORDER NOTES (OPTIONAL)</label>
                           <textarea
                             {...field('notes')}
                             rows={2}
-                            placeholder="Order notes — color preference, tailoring requirement, urgency (optional)"
-                            className={inputClass('notes')}
+                            placeholder="Color preference, tailoring requirement, urgency..."
+                            className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
                           />
                         </div>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => validate() && setStep(2)}
-                        className="btn btn-gold btn-sheen w-full text-[13px] py-4"
-                      >
-                        Continue to Payment & Review →
-                      </button>
                     </div>
-                  )}
+
+                    <button
+                      type="button"
+                      onClick={() => validate() && setStep(2)}
+                      className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors text-center"
+                    >
+                      CONTINUE TO PAYMENT & REVIEW →
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 2: Payment */}
+            {step === 2 && (
+              <div className="space-y-8">
+                <div>
+                  <div className="flex justify-between items-baseline mb-6 border-b border-[#1a1a1a] pb-2">
+                    <h2 className="font-headline-md text-[20px] font-serif uppercase">Payment Method</h2>
+                    <span className="font-label-caps text-label-caps text-secondary">02.2</span>
+                  </div>
+                  <p className="font-body-sm text-secondary mb-6">
+                    Scan the dynamic QR code encoding exact order total of <span className="font-semibold text-brand-gold">{inr(total)}</span>.
+                  </p>
                 </div>
-              )}
 
-              {/* STEP 2: Payment */}
-              {step === 2 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="font-serif text-2xl text-ivory">Payment Method</h2>
-                    <p className="mt-1 text-[13px] text-ivory/60">
-                      Scan the dynamic QR code encoding exact order total of <span className="font-semibold text-gold">{inr(total)}</span>.
-                    </p>
-                  </div>
-
-                  <div className="text-center rounded-[4px] border border-gold/20 bg-night/50 p-6">
-                    <img
-                      src={UPI.staticQrImage || qr}
-                      alt="UPI payment QR code"
-                      className="mx-auto h-64 w-64 rounded-[4px] border border-gold/30 bg-ivory object-contain p-3 shadow-lg"
-                    />
-                    <p className="mt-3 text-[12px] text-ivory/60">
-                      Scan with Google Pay, PhonePe, Paytm, or any UPI App
-                    </p>
-
-                    <a href={upiLink(order)} className="btn btn-gold btn-sheen mt-4 w-full sm:hidden">
-                      Open UPI App to Pay
-                    </a>
-
-                    <div className="mt-4 flex items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard?.writeText(UPI.vpa);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 1800);
-                        }}
-                        className="inline-flex items-center gap-2 rounded border border-gold/30 px-3 py-1.5 text-[12px] text-ivory/80 hover:text-gold transition-colors"
-                      >
-                        {copied ? <Check className="h-3.5 w-3.5 text-gold" /> : <Copy className="h-3.5 w-3.5" />}
-                        <span>UPI VPA: {UPI.vpa}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 pt-2">
-                    <label className="flex cursor-pointer items-start gap-3 rounded-[3px] border border-gold/20 bg-night/30 p-4">
-                      <input
-                        type="checkbox"
-                        checked={paid}
-                        onChange={(e) => setPaid(e.target.checked)}
-                        className="mt-1 h-4 w-4 shrink-0 accent-[#d3aa32]"
-                      />
-                      <span className="text-[13px] leading-relaxed text-ivory/80">
-                        I have completed the UPI payment of <strong className="text-gold">{inr(total)}</strong>.
-                      </span>
-                    </label>
-
-                    {paid && (
-                      <input
-                        value={reference}
-                        onChange={(e) => setReference(e.target.value)}
-                        placeholder="UPI Transaction ID / Ref No. (optional)"
-                        className="w-full rounded-[3px] border border-gold/20 bg-night/50 px-4 py-3 text-[14px] text-ivory placeholder-ivory/35 outline-none focus:border-gold"
-                      />
-                    )}
-                  </div>
+                <div className="text-center border border-[#1a1a1a] p-8 bg-surface max-w-sm mx-auto">
+                  <img
+                    src={UPI.staticQrImage || qr}
+                    alt="UPI QR Code"
+                    className="mx-auto h-64 w-64 border border-[#1a1a1a]/20 bg-white object-contain p-2 shadow-sm"
+                  />
+                  <p className="mt-4 font-body-sm text-secondary">Scan with Google Pay, PhonePe, Paytm or any UPI App</p>
+                  
+                  <a href={upiLink(order)} className="btn-primary mt-4 w-full p-3 bg-brand-gold text-white font-label-caps text-label-caps block sm:hidden">
+                    OPEN UPI APP TO PAY
+                  </a>
 
                   <button
                     type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(UPI.vpa);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1800);
+                    }}
+                    className="mt-4 inline-flex items-center gap-2 border border-outline px-4 py-2 font-label-caps text-label-caps hover:bg-surface-variant transition-colors"
+                  >
+                    {copied ? <Check className="h-3.5 w-3.5 text-brand-gold" /> : <Copy className="h-3.5 w-3.5" />}
+                    <span>UPI VPA: {UPI.vpa}</span>
+                  </button>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-[#1a1a1a]/10">
+                  <label className="flex items-start gap-3 border border-outline p-4 bg-surface cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={paid}
+                      onChange={(e) => setPaid(e.target.checked)}
+                      className="mt-1 h-4 w-4 shrink-0 rounded border-outline text-primary focus:ring-primary accent-[#B8860B]"
+                    />
+                    <span className="font-body-sm text-primary">
+                      I have completed the UPI payment of <strong className="text-brand-gold">{inr(total)}</strong>.
+                    </span>
+                  </label>
+
+                  {paid && (
+                    <div>
+                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">UPI TRANSACTION REFERENCE ID</label>
+                      <input
+                        value={reference}
+                        onChange={(e) => setReference(e.target.value)}
+                        placeholder="Enter transaction reference ID"
+                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary font-mono"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <button
+                    type="button"
                     onClick={openWhatsApp}
-                    className="btn btn-gold btn-sheen w-full text-[13px] py-4"
+                    className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors flex items-center justify-center gap-2"
                   >
                     <MessageCircle className="h-5 w-5" />
-                    {paid ? 'Send Order via WhatsApp' : 'Place Order — Pay at Showroom'}
+                    {paid ? 'SEND ORDER VIA WHATSAPP' : 'PLACE ORDER — PAY AT SHOWROOM'}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="w-full py-2 text-[12px] text-ivory/50 hover:text-gold transition-colors"
+                    className="w-full text-center font-label-caps text-label-caps text-secondary hover:text-primary py-2"
                   >
-                    ← Edit Details
+                    ← EDIT ADDRESS & DETAILS
                   </button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* STEP 3: Confirm WhatsApp Send */}
-              {step === 3 && (
-                <div className="space-y-6">
-                  <div className="rounded-[4px] border border-gold/40 bg-gold/10 p-5">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-6 w-6 text-gold shrink-0 mt-0.5" />
-                      <div>
-                        <h3 className="font-serif text-xl text-ivory">One final action required</h3>
-                        <p className="mt-2 text-[13px] leading-relaxed text-ivory/80">
-                          WhatsApp has opened with your order requirement pre-typed. Please press <strong>Send</strong> in WhatsApp to dispatch your order directly to our Commercial Street showroom staff.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button type="button" onClick={confirmSent} className="btn btn-gold btn-sheen w-full text-[13px] py-4">
-                    <Check className="h-5 w-5" />
-                    Yes — I Pressed Send in WhatsApp
-                  </button>
-
-                  <div className="rounded-[4px] border border-gold/15 bg-night/40 p-4 space-y-3">
-                    <p className="text-[12px] uppercase tracking-[0.14em] text-gold">Didn't open automatically?</p>
-                    <button type="button" onClick={retryWhatsApp} className="btn btn-ghost-light w-full">
-                      <MessageCircle className="h-4 w-4" /> Re-open WhatsApp
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard?.writeText(ownerMessage(order));
-                        setMsgCopied(true);
-                        setTimeout(() => setMsgCopied(false), 2200);
-                      }}
-                      className="w-full text-center text-[12px] text-ivory/60 hover:text-gold py-1"
-                    >
-                      {msgCopied ? '✓ Copy successful — paste in WhatsApp' : 'Copy order message manually'}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 4: Success */}
-              {step === 4 && (
-                <div className="py-8 text-center space-y-6">
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-gold bg-gold/15 shadow-[0_0_25px_rgba(211,170,50,0.4)]">
-                    <Check className="h-10 w-10 text-gold" />
-                  </div>
-
+            {/* STEP 3: Confirm WhatsApp Send */}
+            {step === 3 && (
+              <div className="space-y-8">
+                <div className="border border-brand-gold bg-brand-gold/5 p-6 flex gap-4">
+                  <span className="material-symbols-outlined text-4xl text-brand-gold shrink-0">alert_warning</span>
                   <div>
-                    <h2 className="font-serif text-3xl text-ivory">Order Placed Successfully</h2>
-                    <p className="mt-2 text-gold font-mono text-lg">Order ID: {orderId}</p>
-                    <p className="mx-auto mt-4 max-w-md text-[14px] leading-relaxed text-ivory/70">
-                      Our showroom staff at Commercial Street have received your order details and will confirm stock cutting and dispatch instructions.
+                    <h3 className="font-serif text-xl text-primary font-bold">One final action required</h3>
+                    <p className="font-body-sm text-secondary mt-2">
+                      WhatsApp has opened with your order requirement pre-typed. Please press <strong>Send</strong> in WhatsApp to dispatch your order directly to our Commercial Street showroom staff.
                     </p>
                   </div>
+                </div>
 
-                  <button type="button" onClick={finish} className="btn btn-gold btn-sheen w-full text-[13px] py-4">
-                    Return to Storefront
+                <button
+                  type="button"
+                  onClick={confirmSent}
+                  className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Check className="h-5 w-5" />
+                  YES — I PRESSED SEND IN WHATSAPP
+                </button>
+
+                <div className="border border-[#1a1a1a]/10 p-6 space-y-4 bg-surface">
+                  <p className="font-label-caps text-label-caps text-brand-gold font-bold">DIDN'T OPEN AUTOMATICALLY?</p>
+                  <button
+                    type="button"
+                    onClick={retryWhatsApp}
+                    className="w-full border border-primary p-3 font-label-caps text-label-caps hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" /> RE-OPEN WHATSAPP
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(ownerMessage(order));
+                      setMsgCopied(true);
+                      setTimeout(() => setMsgCopied(false), 2200);
+                    }}
+                    className="w-full text-center font-label-caps text-label-caps text-secondary hover:text-primary py-2 block"
+                  >
+                    {msgCopied ? '✓ COPY SUCCESSFUL — PASTE IN WHATSAPP' : 'COPY ORDER MESSAGE MANUALLY'}
                   </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* STEP 4: Success */}
+            {step === 4 && (
+              <div className="py-12 text-center space-y-8 max-w-md mx-auto">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-gold/10 border-2 border-brand-gold">
+                  <Check className="h-10 w-10 text-brand-gold" />
+                </div>
+
+                <div>
+                  <h2 className="font-serif text-3xl text-primary font-bold">Order Placed Successfully</h2>
+                  <p className="mt-2 text-brand-gold font-index-num text-lg">Order ID: {orderId}</p>
+                  <p className="font-body-sm text-secondary mt-4">
+                    Our showroom staff at Commercial Street have received your order details and will confirm stock cutting and dispatch instructions.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={finish}
+                  className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors"
+                >
+                  RETURN TO STOREFRONT
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Right Column: Order Summary Sidebar (5 Cols) */}
-          <div className="lg:col-span-5">
-            <div className="sticky top-28 rounded-[4px] border border-gold/20 bg-chocolate/30 p-6 space-y-5 shadow-xl">
-              <div className="flex items-center justify-between border-b border-gold/15 pb-4">
-                <h3 className="font-serif text-xl text-ivory">Order Summary</h3>
-                <span className="text-[12px] font-mono text-gold">{items.length} items</span>
-              </div>
+          {/* Right Column: Order Summary (40% Width) */}
+          <div className="w-full lg:w-2/5 p-8 sm:p-12 bg-surface flex flex-col gap-8">
+            <div className="flex justify-between items-baseline border-b border-[#1a1a1a] pb-2">
+              <h2 className="font-headline-md text-[20px] font-serif uppercase">Order Summary</h2>
+              <span className="font-label-caps text-label-caps text-secondary">{items.length} items</span>
+            </div>
 
-              {/* Items List */}
-              <div className="max-h-72 overflow-y-auto space-y-3 pr-1">
-                {items.map(({ item, metres, lineTotal }) => (
-                  <div key={item.id} className="flex gap-3 border-b border-ivory/10 pb-3">
-                    <img src={item.image} alt={item.name} className="h-16 w-14 shrink-0 rounded object-cover border border-gold/20" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-serif text-[14px] text-ivory leading-tight truncate">{item.name}</p>
-                      <p className="mt-1 text-[11px] text-ivory/50">{inr(item.pricePerMetre)} / m</p>
-
-                      <div className="mt-2 flex items-center justify-between">
-                        <div className="flex items-center rounded border border-ivory/15 bg-night/40">
+            {/* Cart Items List */}
+            <div className="flex flex-col gap-4 divide-y divide-[#1a1a1a]/10 max-h-[300px] overflow-y-auto pr-2">
+              {items.map(({ item, metres, lineTotal }) => (
+                <div key={item.id} className="flex gap-4 py-4 first:pt-0">
+                  <img src={item.image} alt="" className="w-16 h-16 object-cover border border-[#1a1a1a]/20" />
+                  <div className="flex-grow min-w-0">
+                    <h3 className="font-headline-md text-[16px] font-serif truncate text-primary">{item.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      {step === 1 && (
+                        <div className="flex border border-primary bg-white h-7 items-center">
                           <button
                             onClick={() => setMetres(item.id, Math.max(item.minMetres, metres - 1))}
-                            className="h-6 w-6 flex items-center justify-center text-ivory/60 hover:text-gold"
+                            className="w-6 h-full flex items-center justify-center hover:bg-surface-variant"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
-                          <span className="px-2 text-[11px] text-ivory font-nums">{metres} m</span>
+                          <span className="px-2 font-index-num text-[11px]">{metres} m</span>
                           <button
                             onClick={() => setMetres(item.id, metres + 1)}
-                            className="h-6 w-6 flex items-center justify-center text-ivory/60 hover:text-gold"
+                            className="w-6 h-full flex items-center justify-center hover:bg-surface-variant border-l border-primary"
                           >
-                            <Plus className="h-3.5 w-3.5" />
+                            <Plus className="h-3 w-3" />
                           </button>
                         </div>
-                        <button onClick={() => remove(item.id)} className="text-ivory/40 hover:text-maroon p-1">
-                          <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                      {step > 1 && (
+                        <span className="font-index-num text-[12px] text-secondary">{metres} m</span>
+                      )}
+                      {step === 1 && (
+                        <button onClick={() => remove(item.id)} className="text-secondary hover:text-error ml-auto">
+                          <Trash2 className="h-4 w-4" />
                         </button>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-nums text-[13px] text-gold">{inr(lineTotal)}</span>
+                      )}
                     </div>
                   </div>
-                ))}
+                  <div className="font-headline-md text-[16px] font-serif text-primary">
+                    {inr(lineTotal)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Price Calculations */}
+            <div className="flex flex-col gap-3 py-6 border-y border-[#1a1a1a] text-body-sm text-secondary">
+              <div className="flex justify-between">
+                <span>Subtotal ({items.reduce((acc, c) => acc + c.metres, 0)} metres)</span>
+                <span className="font-index-num text-primary">{inr(subtotal)}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-700">
+                  <span>Wholesale Discount ({Math.round(ORDER.wholesaleDiscount * 100)}% off)</span>
+                  <span className="font-index-num">- {inr(discount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span>Delivery Charge</span>
+                <span className="font-index-num text-primary">{shipping === 0 ? 'FREE' : inr(shipping)}</span>
+              </div>
+              <div className="flex justify-between font-headline-md text-[20px] text-primary border-t border-[#1a1a1a]/10 pt-4 font-serif">
+                <span>Total Amount</span>
+                <span>{inr(total)}</span>
+              </div>
+            </div>
 
-              {/* Cost Totals */}
-              <dl className="space-y-2 border-t border-gold/15 pt-4 text-[13px]">
-                <div className="flex justify-between text-ivory/60">
-                  <dt>Subtotal</dt>
-                  <dd className="font-nums">{inr(subtotal)}</dd>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-emerald-400">
-                    <dt>Wholesale Discount (15%)</dt>
-                    <dd className="font-nums">−{inr(discount)}</dd>
-                  </div>
-                )}
-                <div className="flex justify-between text-ivory/60">
-                  <dt>Shipping</dt>
-                  <dd>{shipping === 0 ? <span className="text-gold font-semibold">FREE</span> : inr(shipping)}</dd>
-                </div>
-                <div className="flex justify-between border-t border-gold/15 pt-3 font-serif text-xl text-ivory">
-                  <dt>Total Amount</dt>
-                  <dd className="font-nums text-gold font-bold">{inr(total)}</dd>
-                </div>
-              </dl>
-
-              {/* Trust Badges */}
-              <div className="rounded border border-gold/15 bg-night/40 p-4 space-y-2 text-[11px] text-ivory/60">
-                <div className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-gold shrink-0" />
-                  <span>Haute Couture Quality Guarantee</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-gold shrink-0" />
-                  <span>Direct Showroom Dispatch from Bengaluru</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-gold shrink-0" />
-                  <span>GST Invoice & Swatch Samples Included</span>
-                </div>
+            {/* Trust Badges */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3 font-body-sm text-secondary">
+                <span className="material-symbols-outlined text-[20px]">local_shipping</span> Direct Showroom Dispatch from Bengaluru
+              </div>
+              <div className="flex items-center gap-3 font-body-sm text-secondary">
+                <span className="material-symbols-outlined text-[20px]">verified_user</span> Secure UPI direct transfer to business VPA
               </div>
             </div>
           </div>
-        </div>
+        </main>
+      </div>
+
+      {/* Right Sidebar */}
+      <div className="hairline-l relative flex flex-col items-center py-4 w-12 border-l border-[#1a1a1a] shrink-0">
+        <div className="font-index-num text-index-num mb-auto">A/12</div>
       </div>
     </div>
   );
