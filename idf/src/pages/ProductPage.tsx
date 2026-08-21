@@ -1,13 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Minus, Plus, Truck, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, Minus, Plus, Truck, ShieldCheck, ShoppingCart, Package, Tag } from 'lucide-react';
 import { useCatalog } from '../context/CatalogContext';
 import { useCart } from '../context/CartContext';
 import { inr, waLink } from '../lib/constants';
-import ProductCard from '../components/ProductCard';
 import FrequentlyViewedTogether from '../components/recommendations/FrequentlyViewedTogether';
 import RecentlyViewed from '../components/recommendations/RecentlyViewed';
 import { useTrackProductView } from '../lib/useTrackInteraction';
+
+// --- Bundle add-ons (always appear in the "Complete the Look" panel) --------
+const FIXED_ADDONS = [
+  { key: 'lining',  label: 'Lining',             metres: 2.5, pricePerMetre: 600, image: '/images/fabrics/f02.jpg' },
+  { key: 'border',  label: 'Embroidered Border',  metres: 2.5, pricePerMetre: 800, image: '/images/fabrics/f03.jpg' },
+  { key: 'tassels', label: 'Tassels',             metres: 1,   pricePerMetre: 500, image: '/images/fabrics/f04.jpg' },
+] as const;
+
+// --- Bulk order tiers -------------------------------------------------------
+const BULK_TIERS = [
+  { label: 'Sample',    metres: 1,  desc: 'Single metre sample',  badge: '' },
+  { label: 'Outfit',    metres: 5,  desc: 'Full outfit (5 m)',    badge: '' },
+  { label: 'Wholesale', metres: 20, desc: '20 m+ → 15% off',     badge: 'BEST VALUE' },
+  { label: 'Boutique',  metres: 50, desc: '50 m+ → 15% off',     badge: '' },
+] as const;
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,18 +34,37 @@ export default function ProductPage() {
   const [metres, setMetres] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'details' | 'care' | 'shipping'>('description');
 
+  // Bundle item selection (true = included in bundle)
+  const [bundleSelected, setBundleSelected] = useState<Record<string, boolean>>({
+    main: true, lining: true, border: true, tassels: false,
+  });
+
   useTrackProductView(item?.id);
 
   useEffect(() => {
     setActiveImage(0);
     if (item) setMetres(item.minMetres);
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    setBundleSelected({ main: true, lining: true, border: true, tassels: false });
   }, [item]);
 
   const gallery = useMemo(() => {
     if (!item) return [];
     return item.gallery && item.gallery.length ? item.gallery : [item.image];
   }, [item]);
+
+  // Bundle pricing
+  const bundlePricing = useMemo(() => {
+    if (!item) return null;
+    const mainCost = bundleSelected.main ? item.pricePerMetre * 2.5 : 0;
+    const addonCost = FIXED_ADDONS.reduce((sum, a) =>
+      sum + (bundleSelected[a.key] ? a.pricePerMetre * a.metres : 0), 0);
+    const individualTotal = mainCost + addonCost;
+    if (individualTotal === 0) return null;
+    const discount = 0.15;
+    const bundleTotal = Math.round(individualTotal * (1 - discount));
+    return { individualTotal, bundleTotal, savings: individualTotal - bundleTotal };
+  }, [item, bundleSelected]);
 
   if (loading && !item) {
     return (
@@ -58,6 +91,11 @@ export default function ProductPage() {
 
   const buyNow = () => {
     add(item.id, metres);
+    setOpen(true);
+  };
+
+  const handleAddBundle = () => {
+    if (bundleSelected.main) add(item.id, 2.5);
     setOpen(true);
   };
 
@@ -272,50 +310,171 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {/* Row 04+05: Bottom cross-sell */}
+        {/* ======================================================
+            Row 04 — Complete the Look | Bulk Orders | You May Also Like | Recently Viewed
+            ====================================================== */}
         <div className="flex flex-col xl:flex-row w-full border-b border-[#1a1a1a]">
-          {/* Complete The Look */}
-          <div className="w-full xl:w-1/3 flex flex-col p-6 border-r border-[#1a1a1a] relative">
+
+          {/* ---- COMPLETE THE LOOK (Curated Bundle) ---- */}
+          <div className="w-full xl:w-[36%] flex flex-col p-6 border-r border-[#1a1a1a] relative">
             <span className="absolute top-4 left-4 font-mono text-[10px] text-secondary/50">04</span>
-            <div className="mt-8 flex justify-between items-center mb-4">
+
+            <div className="mt-8 flex justify-between items-center mb-1">
               <h3 className="font-label-caps text-[11px] tracking-widest text-primary">COMPLETE THE LOOK</h3>
               <span className="border border-[#1a1a1a]/20 px-2 py-0.5 text-[9px] font-label-caps tracking-widest text-secondary uppercase">CURATED BUNDLE</span>
             </div>
-            <h4 className="font-serif text-[20px] mb-1">{item.name.split(' ').slice(0, 2).join(' ')} Set</h4>
-            <p className="text-[12px] text-secondary mb-5">Perfectly paired for a timeless look.</p>
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-16 flex flex-col gap-1.5">
-                <img className="w-full aspect-square object-cover border border-[#1a1a1a]/15" src={item.image} alt="" />
-                <span className="font-label-caps text-[9px] text-secondary">Main Fabric</span>
-              </div>
-              <span className="text-secondary text-lg">+</span>
-              <div className="w-16 flex flex-col gap-1.5">
-                <img className="w-full aspect-square object-cover border border-[#1a1a1a]/15" src="/images/fabrics/f02.jpg" alt="" />
-                <span className="font-label-caps text-[9px] text-secondary">Lining</span>
-              </div>
+            <h4 className="font-serif text-[20px] mb-1">{item.name.split(' ').slice(0, 2).join(' ')} Elegance Set</h4>
+            <p className="text-[12px] text-secondary mb-5">Perfectly paired for a timeless evening look.</p>
+
+            {/* Bundle items with checkboxes */}
+            <div className="flex items-start gap-2 mb-5 flex-wrap">
+              {/* Main Fabric */}
+              <label className="flex flex-col items-center gap-1.5 w-[64px] cursor-pointer">
+                <div className="relative w-full">
+                  <input
+                    type="checkbox"
+                    checked={bundleSelected.main}
+                    onChange={(e) => setBundleSelected((s) => ({ ...s, main: e.target.checked }))}
+                    className="absolute top-1 right-1 z-10 accent-brand-gold w-3 h-3"
+                  />
+                  <img
+                    className={`w-full aspect-square object-cover border transition-all ${bundleSelected.main ? 'border-[#1a1a1a]' : 'border-[#1a1a1a]/15 opacity-40'}`}
+                    src={item.image}
+                    alt=""
+                  />
+                </div>
+                <span className="font-label-caps text-[9px] text-secondary text-center leading-tight">Main Fabric<br/>2.5 m</span>
+              </label>
+
+              <span className="text-secondary text-base mt-4">+</span>
+
+              {FIXED_ADDONS.map((addon, idx) => (
+                <div key={addon.key} className="flex items-start gap-1">
+                  {idx > 0 && <span className="text-secondary text-base mt-4">+</span>}
+                  <label className="flex flex-col items-center gap-1.5 w-[64px] cursor-pointer">
+                    <div className="relative w-full">
+                      <input
+                        type="checkbox"
+                        checked={bundleSelected[addon.key] ?? false}
+                        onChange={(e) => setBundleSelected((s) => ({ ...s, [addon.key]: e.target.checked }))}
+                        className="absolute top-1 right-1 z-10 accent-brand-gold w-3 h-3"
+                      />
+                      <img
+                        className={`w-full aspect-square object-cover border transition-all ${bundleSelected[addon.key] ? 'border-[#1a1a1a]' : 'border-[#1a1a1a]/15 opacity-40'}`}
+                        src={addon.image}
+                        alt=""
+                      />
+                    </div>
+                    <span className="font-label-caps text-[9px] text-secondary text-center leading-tight">
+                      {addon.label}<br/>{addon.key === 'tassels' ? '1 set' : `${addon.metres} m`}
+                    </span>
+                  </label>
+                </div>
+              ))}
             </div>
-            <div className="bg-[#F7F5F0] p-4 flex flex-col gap-1.5 mt-auto mb-4">
-              <div className="flex justify-between text-[12px] text-secondary line-through">
-                <span>Individual Total</span>
-                <span>{inr(item.pricePerMetre * 2 + 1500)}</span>
+
+            {/* Pricing summary */}
+            {bundlePricing ? (
+              <div className="bg-[#F7F5F0] p-4 flex flex-col gap-2 mb-4">
+                <div className="flex justify-between text-[12px] text-secondary">
+                  <span>INDIVIDUAL TOTAL</span>
+                  <span className="line-through">{inr(bundlePricing.individualTotal)}</span>
+                </div>
+                <div className="flex justify-between font-serif text-[20px] text-primary">
+                  <span>BUNDLE TOTAL</span>
+                  <span>{inr(bundlePricing.bundleTotal)}</span>
+                </div>
+                <div className="flex items-start gap-2 mt-1">
+                  <div className="w-4 h-4 rounded-full bg-brand-gold/20 flex items-center justify-center shrink-0 mt-0.5">
+                    <Tag className="h-2.5 w-2.5 text-brand-gold" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-green-700 font-semibold">
+                      You save {inr(bundlePricing.savings)} (15%)
+                    </p>
+                    <p className="text-[10px] text-secondary/70 mt-0.5">
+                      Bundle discount applies only when all items are selected.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between font-serif text-[18px] text-primary">
-                <span>Bundle Total</span>
-                <span>{inr(Math.round((item.pricePerMetre * 2 + 1500) * 0.85))}</span>
+            ) : (
+              <div className="bg-[#F7F5F0] p-4 mb-4 text-[12px] text-secondary text-center">
+                Select items above to see bundle pricing.
               </div>
-              <p className="text-[11px] text-green-700 mt-1">You save 15%</p>
-            </div>
+            )}
+
             <button
               type="button"
-              onClick={() => { add(item.id, 2); add('fabric-f02', 2); }}
+              onClick={handleAddBundle}
               className="w-full border border-[#1a1a1a] py-2.5 flex items-center justify-center gap-2 font-label-caps text-[11px] tracking-widest text-primary hover:bg-primary hover:text-white transition-colors uppercase"
             >
-              ADD ALL TO CART
+              <ShoppingCart className="h-3.5 w-3.5" />
+              ADD ALL TO CART (2.5 M EACH)
             </button>
           </div>
 
-          {/* You May Also Like */}
-          <div className="w-full xl:w-[40%] flex flex-col p-6 border-r border-[#1a1a1a] relative">
+          {/* ---- BULK ORDER OPTIONS ---- */}
+          <div className="w-full xl:w-[22%] flex flex-col p-6 border-r border-[#1a1a1a] relative">
+            <span className="absolute top-4 left-4 font-mono text-[10px] text-secondary/50">04</span>
+
+            <div className="mt-8 mb-5">
+              <h3 className="font-label-caps text-[11px] tracking-widest text-primary mb-1">BULK ORDER OPTIONS</h3>
+              <p className="text-[12px] text-secondary">Order more, save more — auto-applied at checkout.</p>
+            </div>
+
+            <div className="flex flex-col gap-2 flex-1">
+              {BULK_TIERS.map((tier) => {
+                const tierTotal = item.pricePerMetre * tier.metres;
+                const isWholesale = tier.metres >= 20;
+                const discountedTotal = isWholesale ? Math.round(tierTotal * 0.85) : tierTotal;
+                return (
+                  <button
+                    key={tier.label}
+                    type="button"
+                    onClick={() => { setMetres(tier.metres); add(item.id, tier.metres); setOpen(true); }}
+                    className="relative w-full border border-[#1a1a1a]/20 px-4 py-3 text-left hover:border-brand-gold hover:bg-brand-gold/5 transition-all group"
+                  >
+                    {tier.badge && (
+                      <span className="absolute -top-2 right-3 bg-brand-gold text-white text-[9px] font-label-caps tracking-widest px-2 py-0.5">
+                        {tier.badge}
+                      </span>
+                    )}
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-label-caps text-[11px] tracking-widest text-primary group-hover:text-brand-gold transition-colors">{tier.label.toUpperCase()}</p>
+                        <p className="text-[11px] text-secondary mt-0.5">{tier.desc}</p>
+                      </div>
+                      <div className="text-right shrink-0 ml-2">
+                        {isWholesale ? (
+                          <>
+                            <p className="font-mono text-[11px] text-secondary line-through">{inr(tierTotal)}</p>
+                            <p className="font-mono text-[13px] text-green-700 font-semibold">{inr(discountedTotal)}</p>
+                          </>
+                        ) : (
+                          <p className="font-mono text-[13px] text-primary">{inr(tierTotal)}</p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Wholesale note */}
+            <div className="mt-4 border border-brand-gold/20 bg-brand-gold/5 p-3">
+              <div className="flex items-start gap-2">
+                <Package className="h-4 w-4 text-brand-gold shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-label-caps text-[10px] tracking-widest text-brand-gold mb-1">WHOLESALE TERMS</p>
+                  <p className="text-[11px] text-secondary leading-relaxed">15% off on 20 m+ orders. No code needed — applied automatically at checkout.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ---- YOU MAY ALSO LIKE ---- */}
+          <div className="w-full xl:flex-1 flex flex-col p-6 border-r border-[#1a1a1a] relative">
             <span className="absolute top-4 left-4 font-mono text-[10px] text-secondary/50">04</span>
             <div className="mt-8 mb-5 flex justify-between items-center">
               <h3 className="font-label-caps text-[11px] tracking-widest text-primary">YOU MAY ALSO LIKE</h3>
@@ -324,8 +483,8 @@ export default function ProductPage() {
             <FrequentlyViewedTogether currentProduct={item} />
           </div>
 
-          {/* Recently Viewed */}
-          <div className="w-full xl:flex-1 flex flex-col p-6 relative">
+          {/* ---- RECENTLY VIEWED ---- */}
+          <div className="w-full xl:w-[18%] flex flex-col p-6 relative">
             <span className="absolute top-4 left-4 font-mono text-[10px] text-secondary/50">05</span>
             <div className="mt-8 mb-5">
               <h3 className="font-label-caps text-[11px] tracking-widest text-primary">RECENTLY VIEWED</h3>

@@ -186,9 +186,9 @@ export default function AboutPage() {
         </section>
 
         {/* CTA Section (06) */}
-        <section className="relative w-full border-b border-[#1A1A1A] grid-line-b py-24 px-8 md:px-16 flex flex-col items-center text-center bg-surface">
+        <section className="relative w-full border-b border-[#1A1A1A] grid-line-b py-24 px-8 md:px-16 flex flex-col items-center justify-center text-center bg-surface">
           <div className="absolute top-4 left-4 font-index-num text-index-num text-secondary">06</div>
-          <span className="material-symbols-outlined text-5xl text-brand-gold mb-6 font-light">calendar_month</span>
+          <span className="material-symbols-outlined text-5xl text-brand-gold mb-6 font-light block" style={{ fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 48" }}>calendar_month</span>
           <h2 className="font-display-lg-mobile md:font-headline-md text-3xl text-primary mb-4 max-w-2xl font-serif">Experience the drape in person.</h2>
           <p className="font-body-lg text-body-lg text-secondary max-w-xl mb-10">
             We invite designers and connoisseurs to visit our atelier for a personalized curation session.
@@ -197,12 +197,12 @@ export default function AboutPage() {
             href={WA_VISIT}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-[#1A1A1A] text-white px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest hover:bg-brand-gold hover:text-white transition-colors flex items-center gap-3 group"
+            className="bg-[#1A1A1A] text-white px-8 py-4 font-label-caps text-label-caps uppercase tracking-widest hover:bg-brand-gold hover:text-white transition-colors inline-flex items-center gap-3 group"
           >
             BOOK AN IN-PERSON CONSULTATION
           </a>
-          <p className="font-index-num text-index-num text-secondary mt-6 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">info</span> By appointment only.
+          <p className="font-index-num text-index-num text-secondary mt-6 flex items-center gap-1 justify-center">
+            <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20" }}>info</span> By appointment only.
           </p>
         </section>
       </main>
