@@ -54,11 +54,17 @@ function useIsAdminRoute() {
   return isAdmin;
 }
 
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
 /** Scrolls to top on every real page change (not on in-page hash jumps). */
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 150);
+    return () => clearTimeout(timer);
   }, [pathname]);
   return null;
 }

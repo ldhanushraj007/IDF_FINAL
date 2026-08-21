@@ -22,7 +22,7 @@ export default function ProductCard({ item }: { item: Item }) {
   };
 
   return (
-    <article className={`border-r border-[#1a1a1a] flex flex-col h-full last:border-r-0 bg-surface group ${soldOut ? 'opacity-80' : ''}`}>
+    <article className={`product-card border-r border-[#1a1a1a] flex flex-col h-full last:border-r-0 bg-surface group ${soldOut ? 'opacity-80' : ''}`}>
       {/* Image area */}
       <div className="relative aspect-square overflow-hidden bg-[#DEDAD5]">
         <Link to={`/product/${item.id}`} className="block w-full h-full">

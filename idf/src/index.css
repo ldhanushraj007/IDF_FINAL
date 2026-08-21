@@ -130,4 +130,22 @@
   .hairline-l { border-left: 1px solid #1A1A1A; }
   .hairline-r { border-right: 1px solid #1A1A1A; }
   .hairline-subtle { border-color: #E5E5E1; }
+
+  /* Animation starting states (Prevents FOUC) */
+  .product-row .product-card {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  /* Global Page Margins Padding Utility */
+  .px-margin-page {
+    padding-left: 1.5rem;   /* px-6 on mobile */
+    padding-right: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .px-margin-page {
+      padding-left: 3rem;   /* px-12 (aligns with left sidebars) */
+      padding-right: 3rem;
+    }
+  }
 }

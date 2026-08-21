@@ -1,9 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { TAG_LABELS, type Tag } from '../data/catalog';
 import { useCatalog } from '../context/CatalogContext';
 import { ORDER } from '../lib/constants';
 import ProductCard from './ProductCard';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 type Filter = 'all' | Tag;
 type SortKey = 'newest' | 'price-asc' | 'price-desc';
@@ -28,6 +32,7 @@ export default function Shop() {
   const [filter, setFilter] = useState<Filter>('all');
   const [sort, setSort] = useState<SortKey>('newest');
   const [sortOpen, setSortOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
     let list = filter === 'all' ? catalog : catalog.filter((i) => i.tags.includes(filter));
@@ -36,10 +41,66 @@ export default function Shop() {
     return list;
   }, [filter, sort, catalog]);
 
+  // Group items into rows of 4
+  const rows = useMemo(() => {
+    const res = [];
+    for (let i = 0; i < items.length; i += 4) {
+      res.push(items.slice(i, i + 4));
+    }
+    return res;
+  }, [items]);
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      // Fallback: make all product cards immediately visible
+      gsap.set('.product-card', { opacity: 1, y: 0 });
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      // 1. Pinned filter bar (desktop only)
+      ScrollTrigger.matchMedia({
+        '(min-width: 768px)': function () {
+          ScrollTrigger.create({
+            trigger: '.shop-filter-bar',
+            start: 'top top+=64', // sticky header is 64px
+            endTrigger: '#shop',
+            end: 'bottom bottom-=80',
+            pin: true,
+            pinSpacing: false,
+            onEnter: () => gsap.to('.shop-filter-bar', { boxShadow: '0 4px 20px rgba(0,0,0,0.06)', borderBottomColor: 'transparent', duration: 0.3 }),
+            onLeaveBack: () => gsap.to('.shop-filter-bar', { boxShadow: 'none', borderBottomColor: '#1a1a1a', duration: 0.3 }),
+          });
+        },
+      });
+
+      // 2. Staggered card entry per row
+      gsap.utils.toArray('.product-row').forEach((row: any) => {
+        gsap.to(row.querySelectorAll('.product-card'), {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          stagger: 0.1,
+          scrollTrigger: {
+            trigger: row,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+          },
+        });
+      });
+    }, containerRef);
+
+    // Refresh ScrollTrigger since items layout changes
+    ScrollTrigger.refresh();
+
+    return () => ctx.revert();
+  }, [items]);
+
   return (
-    <div id="shop" className="w-full">
+    <div id="shop" ref={containerRef} className="w-full">
       {/* Filters & Sorting Row (03) */}
-      <section className="grid-line relative px-6 md:px-12 py-5 flex flex-wrap justify-between items-center bg-surface border-b border-[#1a1a1a] gap-y-3">
+      <section className="shop-filter-bar grid-line relative px-6 md:px-12 py-5 flex flex-wrap justify-between items-center bg-surface border-b border-[#1a1a1a] gap-y-3 z-20">
         <span className="index-badge">03</span>
 
         {/* Filter tabs */}
@@ -117,11 +178,23 @@ export default function Shop() {
       )}
 
       {/* Products Grid (04) */}
-      <section className="grid-line relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-surface border-b border-[#1a1a1a]">
+      <section className="grid-line relative bg-surface flex flex-col">
         <span className="index-badge z-10">04</span>
-        {items.map((item) => (
-          <ProductCard key={item.id} item={item} />
+        {rows.map((rowItems, rowIndex) => (
+          <div
+            key={rowIndex}
+            className="product-row grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-b border-[#1a1a1a] last:border-b-0"
+          >
+            {rowItems.map((item) => (
+              <ProductCard key={item.id} item={item} />
+            ))}
+          </div>
         ))}
+        {items.length === 0 && (
+          <div className="py-24 text-center text-secondary text-[14px]">
+            No fabrics found matching this filter.
+          </div>
+        )}
       </section>
     </div>
   );
