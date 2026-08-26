@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { suggestGarmentIds } from '../lib/suggestGarments';
+import { GARMENT_YARDAGE } from '../data/garmentYardage';
 import { X, Plus, Trash2, ImagePlus, ChevronDown } from 'lucide-react';
 import {
   CATEGORY_VALUES,
@@ -10,6 +12,8 @@ import {
   type Tag,
   type Category,
 } from '../data/catalog';
+
+import { DEFAULT_CATEGORIES } from '../lib/categories';
 
 interface Props {
   onSave: (item: Item) => void;
@@ -28,12 +32,12 @@ function generateId(name: string): string {
 
 export default function AddProductModal({ onSave, onClose }: Props) {
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<Category>('Contemporary');
+  const [categoryId, setCategoryId] = useState(DEFAULT_CATEGORIES[0].slug);
   const [composition, setComposition] = useState('');
   const [width, setWidth] = useState('44 in');
   const [pricePerMetre, setPricePerMetre] = useState<number | ''>('');
   const [mrp, setMrp] = useState<number | ''>('');
-  const [minMetres, setMinMetres] = useState<number | ''>(1);
+  const [minMetres, setMinMetres] = useState<number | ''>(0.5);
   const [stock, setStock] = useState<Stock>('in');
   const [tags, setTags] = useState<Tag[]>(['new-arrival']);
   const [image, setImage] = useState('');
@@ -41,6 +45,23 @@ export default function AddProductModal({ onSave, onClose }: Props) {
   const [blurb, setBlurb] = useState('');
   const [details, setDetails] = useState('');
   const [error, setError] = useState('');
+  const [suggestedGarments, setSuggestedGarments] = useState<string[]>([]);
+  const [hasManuallyEditedGarments, setHasManuallyEditedGarments] = useState(false);
+
+  // Trigger auto-suggestion whenever name or categoryId changes (until manual override)
+  useEffect(() => {
+    if (!hasManuallyEditedGarments) {
+      const suggestions = suggestGarmentIds({ categoryId, name, description: blurb });
+      setSuggestedGarments(suggestions);
+    }
+  }, [name, categoryId, blurb, hasManuallyEditedGarments]);
+
+  const toggleGarment = (id: string) => {
+    setHasManuallyEditedGarments(true);
+    setSuggestedGarments((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+  };
 
   const toggleTag = (tag: Tag) => {
     setTags((prev) =>
@@ -64,15 +85,18 @@ export default function AddProductModal({ onSave, onClose }: Props) {
 
     setError('');
 
+    const matchedCat = DEFAULT_CATEGORIES.find(c => c.slug === categoryId);
+
     const newItem: Item = {
       id: generateId(name),
       name: name.trim(),
-      category,
+      category: (matchedCat ? matchedCat.name : 'Contemporary') as Category,
+      categoryId,
       composition: composition.trim(),
       width: width.trim() || '44 in',
       pricePerMetre: Number(pricePerMetre),
       ...(mrp && Number(mrp) > 0 ? { mrp: Number(mrp) } : {}),
-      minMetres: Number(minMetres) || 1,
+      minMetres: Number(minMetres) || 0.5,
       stock,
       tags,
       image: image.trim(),
@@ -81,6 +105,7 @@ export default function AddProductModal({ onSave, onClose }: Props) {
         ? { gallery: gallery.filter((g) => g.trim()) }
         : {}),
       ...(details.trim() ? { details: details.trim() } : {}),
+      suggestedGarmentIds: suggestedGarments,
     };
 
     onSave(newItem);
@@ -134,13 +159,13 @@ export default function AddProductModal({ onSave, onClose }: Props) {
                 <label className="mb-1 block text-[11px] text-ivory/50">Category *</label>
                 <div className="relative">
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as Category)}
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
                     className="w-full appearance-none rounded border border-ivory/15 bg-night/50 px-3 py-2.5 text-[13px] text-ivory outline-none focus:border-gold"
                   >
-                    {CATEGORY_VALUES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                    {DEFAULT_CATEGORIES.map((c) => (
+                      <option key={c.slug} value={c.slug}>
+                        {c.name}
                       </option>
                     ))}
                   </select>
@@ -235,6 +260,39 @@ export default function AddProductModal({ onSave, onClose }: Props) {
                   className="w-full rounded border border-ivory/15 bg-night/50 px-3 py-2.5 text-[13px] text-ivory outline-none focus:border-gold"
                 />
               </div>
+            </div>
+          </section>
+
+          {/* Garment Suggestions Checklist */}
+          <section className="space-y-3">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-gold">
+              Suggested Garment Types (How Much Fabric Do I Need?)
+            </h3>
+            <p className="text-[10px] text-ivory/50">Select garments that apply to this fabric. Pre-filled based on description keywords.</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {GARMENT_YARDAGE.map((g) => {
+                const active = suggestedGarments.includes(g.id);
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => toggleGarment(g.id)}
+                    className={`flex items-center gap-2 rounded border p-2 text-left text-[11px] transition-colors ${
+                      active
+                        ? 'border-gold bg-gold/10 text-gold'
+                        : 'border-ivory/10 text-ivory/65 hover:border-ivory/20'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      readOnly
+                      className="accent-brand-gold h-3.5 w-3.5"
+                    />
+                    <span>{g.label} ({g.minMetres}–{g.maxMetres}m)</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 

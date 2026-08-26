@@ -20,26 +20,36 @@ export default function Preloader() {
       } catch {
         /* storage unavailable */
       }
-    }, 1350);
+    }, 850);
     return () => clearTimeout(t);
   }, [show]);
 
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   return (
     <AnimatePresence>
-      {show && (
+      {show && !prefersReduced && (
         <motion.div
-          exit={{ opacity: 0, transition: { duration: 0.55, ease: 'easeInOut' } }}
+          exit={{ opacity: 0, transition: { duration: 0.4, ease: 'easeInOut' } }}
           className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-night px-8"
           aria-hidden="true"
         >
           <motion.img
             src="/images/logo/logo-full-dark.png"
             alt=""
-            initial={{ opacity: 0, scale: 0.94 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="h-auto max-h-[38vh] w-auto max-w-[280px] object-contain sm:max-w-[360px]"
           />
+          <div className="w-48 h-0.5 bg-ivory/10 mt-6 relative overflow-hidden">
+            <motion.div
+              initial={{ left: '-100%' }}
+              animate={{ left: '0%' }}
+              transition={{ duration: 0.7, ease: 'easeInOut' }}
+              className="absolute top-0 bottom-0 right-0 w-full bg-brand-gold"
+            />
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

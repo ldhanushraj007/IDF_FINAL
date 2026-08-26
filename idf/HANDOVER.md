@@ -5,7 +5,7 @@
 | What | Where | Why it matters |
 |---|---|---|
 | **UPI ID** | `src/lib/constants.ts` → `UPI.vpa` | Until it's real, payments go nowhere |
-| **Editor PIN** | `src/lib/constants.ts` → `ADMIN_PIN` | Change from the default `3216` — only matters if you skip the Supabase setup in section 6 |
+| **Editor PIN** | `src/lib/constants.ts` → `ADMIN_STATIC_PIN` | Change from the default `3216` via `VITE_ADMIN_PIN` environment variable — only matters if you skip the Supabase setup in section 6 |
 | WhatsApp / phone number | `src/lib/constants.ts` → `BUSINESS` | Where orders arrive |
 | Free-shipping threshold, wholesale % | `src/lib/constants.ts` → `ORDER` | |
 | Real photos | `public/images/…` | Every image is a placeholder |
@@ -198,7 +198,10 @@ Without Supabase, the same idea works over WhatsApp instead: good reviews arrive
 
 ### Why the PIN isn't "real" security, and the new login is
 
-The PIN lives inside the website's own JavaScript, which means anyone can open the browser's dev tools and read it — true of any secret placed in frontend code, not a flaw specific to this site. It's an acceptable speed bump for a low-stakes editor with nothing real behind it, which was the situation before section 6. The admin password is different because it's checked on Supabase's servers, inside a function the browser never sees the source of — that's what makes it an actual secret rather than an obscured one.
+The PIN lives inside the website's own JavaScript, which means anyone can open the browser's dev tools and read it — true of any secret placed in frontend code, not a flaw specific to this site. It's an acceptable speed bump for a low-stakes editor with nothing real behind it, which was the situation before section 6.
+
+> [!WARNING]
+> This static PIN is a casual deterrent only. It must never gate anything that touches real money, customer PII, or order data in production. Sensitive operations should require Supabase Connected Mode authentication. The admin password is different because it's checked on Supabase's servers, inside a function the browser never sees the source of — that's what makes it an actual secure secret.
 
 ---
 

@@ -34,6 +34,8 @@ import {
   ChevronRight,
   ChevronDown,
   DollarSign,
+  FolderOpen, // For Categories tab
+  Percent, // For Combos tab
 } from 'lucide-react';
 import {
   CATALOG,
@@ -68,9 +70,10 @@ import {
   type AdminReviewRow,
   type AdminOrderRow,
 } from '../lib/adminApi';
-import { ADMIN_PIN, BUSINESS, ORDER, UPI, inr } from '../lib/constants';
+import { ADMIN_STATIC_PIN, BUSINESS, ORDER, UPI, inr } from '../lib/constants';
+import { DEFAULT_CATEGORIES, type CategoryConfig } from '../lib/categories';
 
-type TabId = 'dashboard' | 'orders' | 'catalog' | 'reviews' | 'customers' | 'payments' | 'settings';
+type TabId = 'dashboard' | 'orders' | 'catalog' | 'reviews' | 'customers' | 'categories' | 'combos' | 'payments' | 'settings';
 
 const blankItem = (): Item => ({
   id: `fabric-${Math.random().toString(36).slice(2, 7)}`,
@@ -79,7 +82,7 @@ const blankItem = (): Item => ({
   composition: '100% Pure Silk',
   width: '44 in',
   pricePerMetre: 2500,
-  minMetres: 1,
+  minMetres: 0.5,
   stock: 'in',
   tags: ['new-arrival'],
   image: '/images/fabrics/f01.jpg',
@@ -208,7 +211,7 @@ function PinLogin({ onUnlocked }: { onUnlocked: () => void }) {
   const [wrong, setWrong] = useState(false);
 
   const tryUnlock = () => {
-    if (pin === ADMIN_PIN) onUnlocked();
+    if (pin === ADMIN_STATIC_PIN) onUnlocked();
     else setWrong(true);
   };
 
@@ -270,6 +273,7 @@ export default function AdminPanel() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [liveReviews, setLiveReviews] = useState<AdminReviewRow[]>([]);
   const [orders, setOrders] = useState<AdminOrderRow[]>([]);
+  const [categories, setCategories] = useState<CategoryConfig[]>(DEFAULT_CATEGORIES);
 
   // UI state
   const [query, setQuery] = useState('');
@@ -489,10 +493,12 @@ export default function AdminPanel() {
               { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, idx: '01' },
               { id: 'orders', label: 'Orders', icon: ShoppingBag, idx: '02', badge: metrics.confirmedOrders },
               { id: 'catalog', label: 'Catalog', icon: Package, idx: '03' },
-              { id: 'reviews', label: 'Reviews', icon: Star, idx: '04', badge: metrics.pendingReviewsCount },
-              { id: 'customers', label: 'Customers', icon: Users, idx: '05' },
-              { id: 'payments', label: 'Payments', icon: CreditCard, idx: '06' },
-              { id: 'settings', label: 'Settings', icon: SettingsIcon, idx: '07' },
+              { id: 'categories', label: 'Categories', icon: FolderOpen, idx: '04' },
+              { id: 'combos', label: 'Combos', icon: Percent, idx: '05' },
+              { id: 'reviews', label: 'Reviews', icon: Star, idx: '06', badge: metrics.pendingReviewsCount },
+              { id: 'customers', label: 'Customers', icon: Users, idx: '07' },
+              { id: 'payments', label: 'Payments', icon: CreditCard, idx: '08' },
+              { id: 'settings', label: 'Settings', icon: SettingsIcon, idx: '09' },
             ].map((item) => {
               const Icon = item.icon;
               const active = tab === item.id;
@@ -575,6 +581,11 @@ export default function AdminPanel() {
               <span className="border border-gold/40 bg-gold/8 px-2.5 py-1 text-[10px] text-gold tracking-widest uppercase">
                 Unsaved Changes
               </span>
+            )}
+            {!isAdminConfigured && (
+              <div className="hidden lg:flex items-center border border-maroon/30 bg-maroon/5 px-3 py-1.5 text-[11px] text-maroon uppercase tracking-wider font-semibold">
+                ⚠️ PIN-gated (Static Mode). Sensitive customer data and orders require Connected Mode.
+              </div>
             )}
           </div>
 
@@ -1395,6 +1406,137 @@ export default function AdminPanel() {
                         )}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ============ TAB: CATEGORIES ============ */}
+              {tab === 'categories' && (
+                <div className="space-y-6">
+                  <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-4 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <div>
+                      <p className={`text-[9px] uppercase tracking-widest font-semibold mb-0.5 ${
+                        darkMode ? 'text-ivory/30' : 'text-night/30'
+                      }`}>Taxonomy</p>
+                      <h3 className={`font-serif text-base ${
+                        darkMode ? 'text-ivory' : 'text-night'
+                      }`}>Product Categories</h3>
+                      <p className={`text-[11px] mt-0.5 ${
+                        darkMode ? 'text-ivory/40' : 'text-night/40'
+                      }`}>Add, rename, or toggle active status of fabric categories.</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const name = prompt('Enter new category name:');
+                        if (!name) return;
+                        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                        if (categories.some(c => c.slug === slug)) return alert('Category already exists!');
+                        setCategories(prev => [...prev, {
+                          id: slug,
+                          name,
+                          slug,
+                          description: `Premium ${name} luxury fabrics base.`,
+                          active: true
+                        }]);
+                      }}
+                      className="btn btn-gold text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>Add Category</span>
+                    </button>
+                  </div>
+
+                  <div className={`border divide-y ${
+                    darkMode ? 'border-gold/10 divide-gold/8' : 'border-[#1a1a1a]/10 divide-[#1a1a1a]/8'
+                  }`}>
+                    {categories.map((c) => (
+                      <div key={c.slug} className={`flex items-start justify-between p-4 transition-colors ${
+                        darkMode ? 'hover:bg-gold/5' : 'hover:bg-gold/5'
+                      }`}>
+                        <div className="flex-1 min-w-0 mr-4">
+                          <input
+                            type="text"
+                            value={c.name}
+                            onChange={(e) => {
+                              const newName = e.target.value;
+                              setCategories(prev => prev.map(item => item.slug === c.slug ? { ...item, name: newName } : item));
+                            }}
+                            className={`bg-transparent font-serif text-sm font-semibold outline-none border-b border-transparent focus:border-gold transition-colors ${
+                              darkMode ? 'text-ivory' : 'text-night'
+                            }`}
+                          />
+                          <p className={`text-[11px] mt-1 ${
+                            darkMode ? 'text-ivory/40' : 'text-night/40'
+                          }`}>Slug: {c.slug} | Status: <span className={c.active ? 'text-green-400' : 'text-maroon'}>{c.active ? 'Active' : 'Inactive'}</span></p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setCategories(prev => prev.map(item => item.slug === c.slug ? { ...item, active: !item.active } : item));
+                            }}
+                            className={`border text-[9px] px-3 py-1.5 uppercase tracking-widest transition-colors ${
+                              c.active
+                                ? 'border-gold bg-gold/10 text-gold hover:bg-gold/20'
+                                : (darkMode ? 'border-ivory/15 text-ivory/40' : 'border-[#1a1a1a]/15 text-night/40')
+                            }`}
+                          >
+                            {c.active ? 'Deactivate' : 'Activate'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Confirm delete + warn of items attached
+                              const attached = items.filter(item => item.categoryId === c.slug || item.category === c.name);
+                              if (attached.length > 0) {
+                                alert(`Cannot delete category "${c.name}" because it is currently assigned to ${attached.length} product(s) (${attached.map(i => i.name).join(', ')}). Please reassign them first.`);
+                                return;
+                              }
+                              if (confirm(`Are you sure you want to delete category "${c.name}"?`)) {
+                                setCategories(prev => prev.filter(item => item.slug !== c.slug));
+                              }
+                            }}
+                            className="p-1.5 text-maroon/60 hover:text-maroon transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ============ TAB: COMBOS ============ */}
+              {tab === 'combos' && (
+                <div className="space-y-6">
+                  <div className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b pb-4 ${
+                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                  }`}>
+                    <div>
+                      <p className={`text-[9px] uppercase tracking-widest font-semibold mb-0.5 ${
+                        darkMode ? 'text-ivory/30' : 'text-night/30'
+                      }`}>Offers</p>
+                      <h3 className={`font-serif text-base ${
+                        darkMode ? 'text-ivory' : 'text-night'
+                      }`}>Combo Offers</h3>
+                      <p className={`text-[11px] mt-0.5 ${
+                        darkMode ? 'text-ivory/40' : 'text-night/40'
+                      }`}>Configure special fabric bundle/set combination discounts.</p>
+                    </div>
+                  </div>
+                  <div className={`p-4 border border-dashed rounded ${
+                    darkMode ? 'border-gold/20 text-ivory/50 bg-[#150a0a]' : 'border-[#1a1a1a]/20 text-night/50 bg-[#fbf9f6]'
+                  } text-center text-[12px]`}>
+                    ⚠️ Combo discounts are automatically active and evaluated at checkout. Review current items below.
+                  </div>
+                  <div className={`border p-4 ${
+                    darkMode ? 'border-gold/10 bg-[#150a0a]' : 'border-[#1a1a1a]/10 bg-white'
+                  }`}>
+                    <h4 className="font-serif text-sm text-gold mb-2">Seeded Combo: Royal Wedding Duo</h4>
+                    <p className={`text-[12px] ${
+                      darkMode ? 'text-ivory/70' : 'text-night/70'
+                    }`}>Buy Aurelia Hand-Embroidered Tulle + Noor Pearl Organza together, get a flat 10% combo discount on both.</p>
                   </div>
                 </div>
               )}

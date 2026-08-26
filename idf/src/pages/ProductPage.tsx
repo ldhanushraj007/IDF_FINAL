@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Minus, Plus, Truck, ShieldCheck, ShoppingCart, Package, Tag } from 'lucide-react';
+import { ChevronLeft, Minus, Plus, Truck, ShieldCheck, ShoppingCart, Package, Tag, Ruler, X } from 'lucide-react';
 import { useCatalog } from '../context/CatalogContext';
 import { useCart } from '../context/CartContext';
 import { inr, waLink } from '../lib/constants';
 import FrequentlyViewedTogether from '../components/recommendations/FrequentlyViewedTogether';
 import RecentlyViewed from '../components/recommendations/RecentlyViewed';
 import { useTrackProductView } from '../lib/useTrackInteraction';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GARMENT_YARDAGE } from '../data/garmentYardage';
 
 // --- Bundle add-ons (always appear in the "Complete the Look" panel) --------
 const FIXED_ADDONS = [
@@ -33,6 +35,7 @@ export default function ProductPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [metres, setMetres] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'details' | 'care' | 'shipping'>('description');
+  const [showFabricGuide, setShowFabricGuide] = useState(false);
 
   // Bundle item selection (true = included in bundle)
   const [bundleSelected, setBundleSelected] = useState<Record<string, boolean>>({
@@ -41,9 +44,16 @@ export default function ProductPage() {
 
   useTrackProductView(item?.id);
 
+  const lastLoadedProductId = useRef<string | null>(null);
+
   useEffect(() => {
     setActiveImage(0);
-    if (item) setMetres(item.minMetres);
+    if (item) {
+      if (lastLoadedProductId.current !== item.id) {
+        setMetres(item.minMetres);
+        lastLoadedProductId.current = item.id;
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     setBundleSelected({ main: true, lining: true, border: true, tassels: false });
   }, [item]);
@@ -255,12 +265,22 @@ export default function ProductPage() {
             ) : (
               <>
                 <div>
-                  <span className="font-label-caps text-[10px] tracking-widest text-secondary block mb-3">SELECT LENGTH</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-label-caps text-[10px] tracking-widest text-secondary">SELECT LENGTH</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowFabricGuide(true)}
+                      className="flex items-center gap-1 font-label-caps text-[9px] tracking-wider text-brand-gold hover:text-primary transition-colors"
+                    >
+                      <Ruler className="h-3 w-3" />
+                      <span>FABRIC GUIDE</span>
+                    </button>
+                  </div>
                   <div className="flex items-center gap-3">
                     <div className="flex border border-[#1a1a1a] h-10">
                       <button
                         type="button"
-                        onClick={() => setMetres((m) => Math.max(item.minMetres, m - 1))}
+                        onClick={() => setMetres((m) => Math.max(item.minMetres, Number((m - 0.5).toFixed(1))))}
                         className="w-10 flex items-center justify-center hover:bg-surface-variant transition-colors border-r border-[#1a1a1a]"
                       >
                         <Minus className="h-3.5 w-3.5" />
@@ -268,7 +288,7 @@ export default function ProductPage() {
                       <span className="flex-grow flex items-center justify-center font-mono text-[15px] text-primary min-w-[40px]">{metres}</span>
                       <button
                         type="button"
-                        onClick={() => setMetres((m) => m + 1)}
+                        onClick={() => setMetres((m) => Number((m + 0.5).toFixed(1)))}
                         className="w-10 flex items-center justify-center hover:bg-surface-variant transition-colors border-l border-[#1a1a1a]"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -313,14 +333,12 @@ export default function ProductPage() {
         {/* ======================================================
             Row 04 — Complete the Look | Bulk Orders | You May Also Like | Recently Viewed
             ====================================================== */}
-        <div className="flex flex-col xl:flex-row w-full border-b border-[#1a1a1a]">
+        <div className="flex flex-col xl:flex-row w-full border-b border-[#1a1a1a] divide-y xl:divide-y-0 xl:divide-x divide-[#1a1a1a]/15 bg-[#faf9f6]">
 
           {/* ---- COMPLETE THE LOOK (Curated Bundle) ---- */}
-          <div className="w-full xl:w-[36%] flex flex-col p-6 border-r border-[#1a1a1a] relative">
-            <span className="absolute top-4 left-4 font-mono text-[10px] text-secondary/50">04</span>
-
-            <div className="mt-8 flex justify-between items-center mb-1">
-              <h3 className="font-label-caps text-[11px] tracking-widest text-primary">COMPLETE THE LOOK</h3>
+          <div className="w-full xl:w-[36%] flex flex-col p-8 relative">
+            <div className="mt-2 flex justify-between items-center mb-1">
+              <h3 className="font-label-caps text-[11px] tracking-widest text-primary font-semibold">COMPLETE THE LOOK</h3>
               <span className="border border-[#1a1a1a]/20 px-2 py-0.5 text-[9px] font-label-caps tracking-widest text-secondary uppercase">CURATED BUNDLE</span>
             </div>
             <h4 className="font-serif text-[20px] mb-1">{item.name.split(' ').slice(0, 2).join(' ')} Elegance Set</h4>
@@ -415,11 +433,9 @@ export default function ProductPage() {
           </div>
 
           {/* ---- BULK ORDER OPTIONS ---- */}
-          <div className="w-full xl:w-[22%] flex flex-col p-6 border-r border-[#1a1a1a] relative">
-            <span className="absolute top-4 left-4 font-mono text-[10px] text-secondary/50">04</span>
-
-            <div className="mt-8 mb-5">
-              <h3 className="font-label-caps text-[11px] tracking-widest text-primary mb-1">BULK ORDER OPTIONS</h3>
+          <div className="w-full xl:w-[22%] flex flex-col p-8 relative">
+            <div className="mt-2 mb-5">
+              <h3 className="font-label-caps text-[11px] tracking-widest text-primary font-semibold mb-1">BULK ORDER OPTIONS</h3>
               <p className="text-[12px] text-secondary">Order more, save more — auto-applied at checkout.</p>
             </div>
 
@@ -474,30 +490,94 @@ export default function ProductPage() {
           </div>
 
           {/* ---- YOU MAY ALSO LIKE ---- */}
-          <div className="w-full xl:flex-1 flex flex-col p-6 border-r border-[#1a1a1a] relative">
-            <span className="absolute top-4 left-4 font-mono text-[10px] text-secondary/50">04</span>
-            <div className="mt-8 mb-5 flex justify-between items-center">
-              <h3 className="font-label-caps text-[11px] tracking-widest text-primary">YOU MAY ALSO LIKE</h3>
+          <div className="w-full xl:flex-1 flex flex-col p-8 relative">
+            <div className="mt-2 mb-5 flex justify-between items-center">
+              <h3 className="font-label-caps text-[11px] tracking-widest text-primary font-semibold">YOU MAY ALSO LIKE</h3>
               <Link to="/#shop" className="text-[11px] text-secondary hover:text-primary flex items-center gap-1">View all →</Link>
             </div>
             <FrequentlyViewedTogether currentProduct={item} />
           </div>
 
           {/* ---- RECENTLY VIEWED ---- */}
-          <div className="w-full xl:w-[18%] flex flex-col p-6 relative">
-            <span className="absolute top-4 left-4 font-mono text-[10px] text-secondary/50">05</span>
-            <div className="mt-8 mb-5">
-              <h3 className="font-label-caps text-[11px] tracking-widest text-primary">RECENTLY VIEWED</h3>
+          <div className="w-full xl:w-[22%] flex flex-col p-8 relative">
+            <div className="mt-2 mb-5">
+              <h3 className="font-label-caps text-[11px] tracking-widest text-primary font-semibold">RECENTLY VIEWED</h3>
             </div>
             <RecentlyViewed excludeId={item.id} />
           </div>
         </div>
+
       </div>
 
       {/* Right sidebar */}
       <aside className="hidden md:flex flex-col w-12 border-l border-[#1a1a1a] shrink-0 pt-8 items-center">
         <span className="font-mono text-[10px] text-secondary/50">D/12</span>
       </aside>
+
+      {/* Fabric Sizing Guide Static Modal */}
+      <AnimatePresence>
+        {showFabricGuide && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[101] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.target === e.currentTarget && setShowFabricGuide(false)}
+          >
+            <motion.div
+              initial={{ y: '5%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '5%', opacity: 0 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full max-w-md rounded-t-[6px] border border-[#1a1a1a]/20 bg-white shadow-2xl sm:rounded-[5px] overflow-hidden"
+            >
+              <div className="flex items-start justify-between border-b border-[#1a1a1a]/15 px-6 py-5">
+                <div>
+                  <h2 className="font-serif text-xl text-primary">Fabric Yardage Guide</h2>
+                  <p className="mt-1 text-[12px] leading-relaxed text-secondary">
+                    Average requirements for standard width fabrics (44").
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowFabricGuide(false)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded text-secondary transition-colors hover:text-primary"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="px-6 py-5 max-h-[60vh] overflow-y-auto">
+                <table className="w-full text-left text-[12px]">
+                  <thead>
+                    <tr className="border-b border-[#1a1a1a]/15 text-primary text-[10px] font-label-caps uppercase tracking-wider">
+                      <th className="py-2 font-semibold">Garment</th>
+                      <th className="py-2 font-semibold text-right">Length Required</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#1a1a1a]/5 text-secondary">
+                    {GARMENT_YARDAGE.map((yard) => (
+                      <tr key={yard.id}>
+                        <td className="py-2.5 font-medium">{yard.label}</td>
+                        <td className="py-2.5 text-right font-mono">
+                          {yard.minMetres.toFixed(1)} – {yard.maxMetres.toFixed(1)} m
+                          {yard.note && <span className="block text-[10px] text-secondary font-normal mt-0.5">{yard.note}</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="px-6 py-4 bg-[#fcfcfc] border-t border-[#1a1a1a]/10 text-[10px] leading-relaxed text-secondary text-center italic">
+                Lengths are general guidelines — actual requirement varies with body measurements, fabric width, and pattern matching. WhatsApp us if you're unsure.
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

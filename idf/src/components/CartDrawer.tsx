@@ -82,7 +82,7 @@ export default function CartDrawer() {
                                   type="button"
                                   aria-label={`Reduce ${item.name}`}
                                   onClick={() =>
-                                    setMetres(item.id, Math.max(item.minMetres, metres - 1))
+                                    setMetres(item.id, Math.max(item.minMetres, Number((metres - 0.5).toFixed(1))))
                                   }
                                   className="flex h-9 w-9 items-center justify-center text-ivory/70 hover:text-gold"
                                 >
@@ -94,7 +94,7 @@ export default function CartDrawer() {
                                 <button
                                   type="button"
                                   aria-label={`Add ${item.name}`}
-                                  onClick={() => setMetres(item.id, metres + 1)}
+                                  onClick={() => setMetres(item.id, Number((metres + 0.5).toFixed(1)))}
                                   className="flex h-9 w-9 items-center justify-center text-ivory/70 hover:text-gold"
                                 >
                                   <Plus className="h-3.5 w-3.5" />
@@ -124,7 +124,7 @@ export default function CartDrawer() {
                       </div>
                       {discount > 0 && (
                         <div className="flex justify-between text-emerald-300">
-                          <dt>Wholesale discount</dt>
+                          <dt>Active Discount</dt>
                           <dd>−{inr(discount)}</dd>
                         </div>
                       )}
@@ -138,12 +138,37 @@ export default function CartDrawer() {
                       </div>
                     </dl>
 
-                    {!isWholesale && (
-                      <p className="mt-2 text-[11px] text-ivory/40">
-                        Add more metres to unlock {Math.round(ORDER.wholesaleDiscount * 100)}%
-                        wholesale pricing at {ORDER.wholesaleMinMetres} m.
-                      </p>
-                    )}
+                    {/* Combo & Tiered Nudge */}
+                    {(() => {
+                      const totalMetres = items.reduce((s, i) => s + i.metres, 0);
+                      const hasTulle = items.some(i => i.item.id === 'aurelia-tulle');
+                      const hasOrganza = items.some(i => i.item.id === 'noor-organza');
+
+                      return (
+                        <div className="mt-3 space-y-1 text-[11px] text-ivory/50">
+                          {totalMetres < 20 && (
+                            <p>
+                              💡 Add {20 - totalMetres}m more to unlock 15% wholesale discount!
+                            </p>
+                          )}
+                          {totalMetres >= 20 && totalMetres < 50 && (
+                            <p>
+                              💡 Add {50 - totalMetres}m more to unlock 20% bulk discount!
+                            </p>
+                          )}
+                          {totalMetres >= 50 && totalMetres < 100 && (
+                            <p>
+                              💡 Add {100 - totalMetres}m more to unlock 25% bulk discount!
+                            </p>
+                          )}
+                          {((hasTulle && !hasOrganza) || (!hasTulle && hasOrganza)) && (
+                            <p className="text-gold">
+                              🎁 Combo offer: Add {hasTulle ? 'Noor Pearl Organza' : 'Aurelia Hand-Embroidered Tulle'} to unlock 10% off both!
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     <button
                       type="button"

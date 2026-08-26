@@ -132,6 +132,11 @@ const rowToItem = (r: any): Item => ({
   ...(r.gallery?.length ? { gallery: r.gallery } : {}),
   blurb: r.blurb,
   ...(r.details ? { details: r.details } : {}),
+  suggestedGarmentIds: Array.isArray(r.suggestedGarmentIds)
+    ? r.suggestedGarmentIds
+    : typeof r.suggestedGarmentIds === 'string' && r.suggestedGarmentIds.trim()
+      ? r.suggestedGarmentIds.split('|').map((s: string) => s.trim()).filter(Boolean)
+      : undefined,
 });
 
 const itemToRow = (i: Item) => ({
@@ -149,6 +154,7 @@ const itemToRow = (i: Item) => ({
   gallery: i.gallery ?? [],
   blurb: i.blurb,
   details: i.details ?? '',
+  suggested_garment_ids: i.suggestedGarmentIds ?? [],
 });
 
 export async function fetchProducts(): Promise<Item[]> {

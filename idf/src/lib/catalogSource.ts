@@ -102,19 +102,25 @@ export function normaliseItem(raw: Record<string, unknown>): Item | null {
     id,
     name,
     category: asCategory(raw.category),
+    categoryId: raw.categoryId ? String(raw.categoryId).trim() : undefined,
     composition: String(raw.composition ?? '').trim(),
     width: String(raw.width ?? '44 in').trim(),
     pricePerMetre,
     // Only keep an MRP that is genuinely higher, otherwise the "Save ₹X"
     // badge would show a nonsense or negative saving.
     ...(mrp > pricePerMetre ? { mrp } : {}),
-    minMetres: Math.max(1, asNumber(raw.minMetres, 1)),
+    minMetres: Math.max(0.5, asNumber(raw.minMetres ?? raw.min_metres ?? raw.MinMetres, 0.5)),
     stock: asStock(raw.stock),
     tags: asTags(raw.tags),
     image: String(raw.image ?? '/images/fabrics/f01.jpg').trim(),
     blurb: String(raw.blurb ?? '').trim(),
     ...(gallery.length ? { gallery } : {}),
     ...(String(raw.details ?? '').trim() ? { details: String(raw.details).trim() } : {}),
+    suggestedGarmentIds: Array.isArray((raw as any).suggestedGarmentIds)
+      ? ((raw as any).suggestedGarmentIds as string[]).map(String)
+      : typeof (raw as any).suggestedGarmentIds === 'string' && (raw as any).suggestedGarmentIds.trim()
+        ? (raw as any).suggestedGarmentIds.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
+        : undefined,
   };
 }
 

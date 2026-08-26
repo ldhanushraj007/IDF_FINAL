@@ -9,19 +9,23 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-type Filter = 'all' | Tag;
+import { DEFAULT_CATEGORIES } from '../lib/categories';
+
+type FilterType = 'all' | Tag | string; // Allow category slugs as string
 type SortKey = 'newest' | 'price-asc' | 'price-desc';
 
-const FILTERS: { id: Filter; label: string }[] = [
+const FILTERS: { id: FilterType; label: string; isCategory?: boolean }[] = [
   { id: 'all', label: 'All Fabrics' },
   { id: 'best-seller', label: 'Best Selling' },
   { id: 'new-arrival', label: 'New Arrivals' },
   { id: 'festival', label: 'Festival Offers' },
   { id: 'seasonal', label: 'Seasonal Edit' },
   { id: 'wholesale', label: 'Wholesale' },
+  // Inject the categories dynamically
+  ...DEFAULT_CATEGORIES.map(c => ({ id: c.slug, label: c.name, isCategory: true }))
 ];
 
-const SORT_OPTIONS: { id: SortKey; label: string }[] = [
+const SORT_OPTIONS: { id: SortKey; label: string; }[] = [
   { id: 'newest', label: 'Newest' },
   { id: 'price-asc', label: 'Price: Low–High' },
   { id: 'price-desc', label: 'Price: High–Low' },
@@ -29,13 +33,25 @@ const SORT_OPTIONS: { id: SortKey; label: string }[] = [
 
 export default function Shop() {
   const { items: catalog } = useCatalog();
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<FilterType>('all');
   const [sort, setSort] = useState<SortKey>('newest');
   const [sortOpen, setSortOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
-    let list = filter === 'all' ? catalog : catalog.filter((i) => i.tags.includes(filter));
+    let list = catalog;
+    if (filter !== 'all') {
+      const isCat = FILTERS.find(f => f.id === filter)?.isCategory;
+      if (isCat) {
+        list = catalog.filter((i) => {
+          const itemCatLower = i.category?.toLowerCase() || '';
+          const itemCatIdLower = i.categoryId?.toLowerCase() || '';
+          return itemCatIdLower === String(filter).toLowerCase() || itemCatLower === String(filter).toLowerCase();
+        });
+      } else {
+        list = catalog.filter((i) => i.tags.includes(filter as Tag));
+      }
+    }
     if (sort === 'price-asc') list = [...list].sort((a, b) => a.pricePerMetre - b.pricePerMetre);
     if (sort === 'price-desc') list = [...list].sort((a, b) => b.pricePerMetre - a.pricePerMetre);
     return list;
@@ -99,10 +115,8 @@ export default function Shop() {
 
   return (
     <div id="shop" ref={containerRef} className="w-full">
-      {/* Filters & Sorting Row (03) */}
+      {/* Filters & Sorting Row */}
       <section className="shop-filter-bar grid-line relative px-6 md:px-12 py-5 flex flex-wrap justify-between items-center bg-surface border-b border-[#1a1a1a] gap-y-3 z-20">
-        <span className="index-badge">03</span>
-
         {/* Filter tabs */}
         <div className="flex items-center gap-6 overflow-x-auto hide-scrollbar scroll-smooth">
           {FILTERS.map((f) => {
@@ -177,9 +191,8 @@ export default function Shop() {
         </div>
       )}
 
-      {/* Products Grid (04) */}
+      {/* Products Grid */}
       <section className="grid-line relative bg-surface flex flex-col">
-        <span className="index-badge z-10">04</span>
         {rows.map((rowItems, rowIndex) => (
           <div
             key={rowIndex}

@@ -34,6 +34,25 @@ const staticRoutes = [
   { path: '/about', priority: '0.7', changefreq: 'monthly' },
 ];
 
+// Dynamic categories list matching src/lib/categories.ts
+const DEFAULT_CATEGORIES = [
+  { slug: 'bridal' },
+  { slug: 'heritage' },
+  { slug: 'contemporary' },
+  { slug: 'dyeable-fabrics' },
+  { slug: 'printed' },
+  { slug: 'plain' },
+  { slug: 'imported-fabrics' },
+  { slug: 'brocade' },
+  { slug: 'handprint-fabrics' }
+];
+
+const categoryRoutes = DEFAULT_CATEGORIES.map((c) => ({
+  path: `/?category=${c.slug}`,
+  priority: '0.6',
+  changefreq: 'weekly',
+}));
+
 let productRoutes = [];
 try {
   const catalog = JSON.parse(readFileSync('public/catalog.json', 'utf8'));
@@ -48,7 +67,7 @@ try {
   console.warn('generate-sitemap: could not read catalog.json —', err.message);
 }
 
-const routes = [...staticRoutes, ...productRoutes];
+const routes = [...staticRoutes, ...categoryRoutes, ...productRoutes];
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

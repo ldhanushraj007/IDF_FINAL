@@ -7,12 +7,32 @@
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
+-- CATEGORIES — custom category definition table.
+-- ---------------------------------------------------------------------------
+create table if not exists public.categories (
+  id text primary key,
+  name text not null,
+  slug text unique not null,
+  description text not null default '',
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+alter table public.categories enable row level security;
+
+drop policy if exists "categories are publicly readable" on public.categories;
+create policy "categories are publicly readable"
+  on public.categories for select
+  using (true);
+
+-- ---------------------------------------------------------------------------
 -- PRODUCTS — the live catalog. Publicly readable; only an admin can write.
 -- ---------------------------------------------------------------------------
 create table if not exists public.products (
   id text primary key,
   name text not null,
-  category text not null check (category in ('Bridal','Heritage','Contemporary')),
+  category text not null,
+  category_id text references public.categories(id) on delete set null,
   composition text not null default '',
   width text not null default '44 in',
   price_per_metre integer not null check (price_per_metre > 0),
@@ -32,6 +52,30 @@ alter table public.products enable row level security;
 drop policy if exists "products are publicly readable" on public.products;
 create policy "products are publicly readable"
   on public.products for select
+  using (true);
+
+-- ---------------------------------------------------------------------------
+-- COMBOS — combo/bundle configuration table.
+-- ---------------------------------------------------------------------------
+create table if not exists public.combos (
+  id text primary key,
+  title text not null,
+  description text not null default '',
+  product_ids text[] not null default '{}',
+  discount_type text not null check (discount_type in ('percent', 'flat')),
+  discount_value numeric not null check (discount_value >= 0),
+  min_metres numeric,
+  active boolean not null default true,
+  valid_from timestamptz,
+  valid_to timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table public.combos enable row level security;
+
+drop policy if exists "combos are publicly readable" on public.combos;
+create policy "combos are publicly readable"
+  on public.combos for select
   using (true);
 
 -- Writes to products are now handled exclusively via the admin-api Edge Function

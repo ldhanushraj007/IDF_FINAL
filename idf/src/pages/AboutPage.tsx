@@ -99,9 +99,8 @@ export default function AboutPage() {
 
   return (
     <div ref={containerRef} className="flex flex-grow relative w-full bg-surface border-x border-[#1a1a1a]">
-      {/* Left Sidebar (02 indicator area) */}
+      {/* Left Sidebar (ABOUT US indicator area) */}
       <aside className="hidden md:flex w-16 flex-col items-center py-8 border-r border-[#1a1a1a] relative shrink-0">
-        <div className="index-badge font-index-num text-index-num text-secondary w-full text-center left-0 ml-0 pl-2">02</div>
         <div className="vertical-text font-label-caps text-label-caps tracking-widest text-secondary mt-32 uppercase whitespace-nowrap">
           ABOUT US
         </div>
@@ -109,12 +108,11 @@ export default function AboutPage() {
 
       {/* Main Scrollable Canvas */}
       <main className="flex-grow flex flex-col w-full relative min-w-0">
-        {/* Hero Section: The Heritage Story (02) */}
+        {/* Hero Section: The Heritage Story */}
         <section className="relative w-full border-b border-[#1A1A1A] grid-line-b about-history-section">
           <div className="grid grid-cols-1 md:grid-cols-2 min-h-[70vh]">
             {/* Hero Text */}
             <div className="p-8 md:p-16 flex flex-col justify-center relative border-r border-[#1A1A1A] grid-line-r bg-surface z-10">
-              <div className="md:hidden index-badge font-index-num text-index-num text-secondary">02</div>
               <h1 className="font-display-lg text-[48px] md:text-[84px] text-primary mb-8 leading-tight font-serif">
                 Woven into<br/>history.
               </h1>

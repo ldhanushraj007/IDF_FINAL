@@ -75,7 +75,7 @@ export function ownerMessage(o: OrderPayload) {
     lines,
     ``,
     `Subtotal: ${inr(o.subtotal)}`,
-    o.discount ? `Wholesale discount: -${inr(o.discount)}` : '',
+    o.discount ? `Discount: -${inr(o.discount)}` : '',
     `Shipping: ${o.shipping === 0 ? 'Free' : inr(o.shipping)}`,
     `*TOTAL: ${inr(o.total)}*`,
     ``,

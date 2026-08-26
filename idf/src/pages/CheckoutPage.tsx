@@ -559,14 +559,14 @@ export default function CheckoutPage() {
                       {step === 1 && (
                         <div className="flex border border-primary bg-white h-7 items-center">
                           <button
-                            onClick={() => setMetres(item.id, Math.max(item.minMetres, metres - 1))}
+                            onClick={() => setMetres(item.id, Math.max(item.minMetres, Number((metres - 0.5).toFixed(1))))}
                             className="w-6 h-full flex items-center justify-center hover:bg-surface-variant"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
                           <span className="px-2 font-index-num text-[11px]">{metres} m</span>
                           <button
-                            onClick={() => setMetres(item.id, metres + 1)}
+                            onClick={() => setMetres(item.id, Number((metres + 0.5).toFixed(1)))}
                             className="w-6 h-full flex items-center justify-center hover:bg-surface-variant border-l border-primary"
                           >
                             <Plus className="h-3 w-3" />

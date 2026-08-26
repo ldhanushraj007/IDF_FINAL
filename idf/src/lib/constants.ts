@@ -35,7 +35,7 @@ export const BUSINESS = {
  * Any UPI ID works — GPay / PhonePe / Paytm / bank VPA.
  */
 export const UPI = {
-  vpa: 'indesignfabrics@okhdfcbank',
+  vpa: 'indesignfabrics@okhdfcbank', // TODO: verify with ₹1 test transfer
   payeeName: 'In Design Luxury Fabrics',
 
   /**
@@ -102,7 +102,7 @@ export const CATALOG_SOURCE = {
  * file that someone with host access still has to upload. Never reuse a PIN
  * here that protects anything else.
  */
-export const ADMIN_PIN = '3216';
+export const ADMIN_STATIC_PIN = import.meta.env.VITE_ADMIN_PIN || '3216';
 
 /** Reviews rated at or above this are offered for publishing. */
 export const REVIEW_PUBLISH_THRESHOLD = 4;

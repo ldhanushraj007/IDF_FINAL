@@ -21,13 +21,24 @@ export const TAG_VALUES = [
 ] as const;
 export type Tag = (typeof TAG_VALUES)[number];
 
-export const CATEGORY_VALUES = ['Bridal', 'Heritage', 'Contemporary'] as const;
+export const CATEGORY_VALUES = [
+  'Bridal',
+  'Heritage',
+  'Contemporary',
+  'Dyeable Fabrics',
+  'Printed',
+  'Plain',
+  'Imported Fabrics',
+  'Brocade',
+  'Handprint Fabrics'
+] as const;
 export type Category = (typeof CATEGORY_VALUES)[number];
 
 export interface Item {
   id: string;
   name: string;
   category: Category;
+  categoryId?: string; // NEW Category ID referencing the config
   composition: string;
   width: string;
   pricePerMetre: number;
@@ -41,6 +52,7 @@ export interface Item {
   gallery?: string[];
   /** Longer write-up for the product page. Falls back to `blurb` when empty. */
   details?: string;
+  suggestedGarmentIds?: string[];
 }
 
 export const TAG_LABELS: Record<Tag, string> = {
@@ -66,11 +78,12 @@ export const CATALOG: Item[] = [
     width: '44 in',
     pricePerMetre: 6800,
     mrp: 7900,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['best-seller', 'festival'],
     image: '/images/fabrics/f01.jpg',
     blurb: 'Whisper-light tulle with hand-couched gold zardozi — the house bridal signature.',
+    suggestedGarmentIds: ['lehenga-skirt', 'anarkali-suit', 'blouse'],
   },
   {
     id: 'noor-organza',
@@ -79,11 +92,12 @@ export const CATALOG: Item[] = [
     composition: 'Pure Silk Organza · Pearl Work',
     width: '44 in',
     pricePerMetre: 4200,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['new-arrival'],
     image: '/images/fabrics/f02.jpg',
     blurb: 'Crisp organza seeded with hand-sewn pearls. Holds sculptural shape beautifully.',
+    suggestedGarmentIds: ['lehenga-skirt', 'anarkali-suit', 'blouse'],
   },
   {
     id: 'celestine-net',
@@ -92,11 +106,12 @@ export const CATALOG: Item[] = [
     composition: 'Silk Net · Crystal Beadwork',
     width: '44 in',
     pricePerMetre: 5600,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['best-seller'],
     image: '/images/fabrics/f03.jpg',
     blurb: 'Crystal-beaded net that catches every light. Restocking shortly.',
+    suggestedGarmentIds: ['lehenga-skirt', 'anarkali-suit', 'blouse'],
   },
   {
     id: 'isabeau-satin',
@@ -105,11 +120,12 @@ export const CATALOG: Item[] = [
     composition: '100% Silk Duchess Satin',
     width: '58 in',
     pricePerMetre: 3900,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['seasonal'],
     image: '/images/fabrics/f04.jpg',
     blurb: 'Heavy, structured and luminous — the classic gown fabric.',
+    suggestedGarmentIds: ['lehenga-skirt', 'anarkali-suit', 'blouse'],
   },
   {
     id: 'banarasi-kadhwa',
@@ -119,11 +135,12 @@ export const CATALOG: Item[] = [
     width: '45 in',
     pricePerMetre: 8500,
     mrp: 9800,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['best-seller', 'festival', 'wholesale'],
     image: '/images/fabrics/f05.jpg',
     blurb: 'Handwoven kadhwa bootis in real zari, straight from Varanasi looms.',
+    suggestedGarmentIds: ['saree', 'salwar-kameez-suit', 'blouse'],
   },
   {
     id: 'kanjivaram-temple',
@@ -133,11 +150,12 @@ export const CATALOG: Item[] = [
     width: '46 in',
     pricePerMetre: 7200,
     mrp: 8400,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['festival', 'wholesale'],
     image: '/images/fabrics/f06.jpg',
     blurb: 'Korvai-woven temple border in contrast — a South Indian heirloom.',
+    suggestedGarmentIds: ['saree', 'salwar-kameez-suit', 'blouse'],
   },
   {
     id: 'tussar-ghicha',
@@ -146,11 +164,12 @@ export const CATALOG: Item[] = [
     composition: '100% Tussar Silk (Handloom)',
     width: '44 in',
     pricePerMetre: 2400,
-    minMetres: 3,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['seasonal', 'wholesale'],
     image: '/images/fabrics/f07.jpg',
     blurb: 'Textured ghicha slubs with a natural honey tone. Breathes wonderfully.',
+    suggestedGarmentIds: ['saree', 'salwar-kameez-suit', 'blouse'],
   },
   {
     id: 'rajwada-velvet',
@@ -159,11 +178,12 @@ export const CATALOG: Item[] = [
     composition: 'Silk Velvet · Zardozi & Dabka Work',
     width: '44 in',
     pricePerMetre: 9600,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['festival', 'new-arrival'],
     image: '/images/fabrics/f08.jpg',
     blurb: 'Plush plum velvet under an all-over gold jaal. Unapologetically regal.',
+    suggestedGarmentIds: ['saree', 'salwar-kameez-suit', 'blouse'],
   },
   {
     id: 'midnight-crepe',
@@ -172,11 +192,12 @@ export const CATALOG: Item[] = [
     composition: '100% Silk Crêpe de Chine',
     width: '44 in',
     pricePerMetre: 2900,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['new-arrival'],
     image: '/images/fabrics/f09.jpg',
     blurb: 'Fluid matte crêpe that drapes like liquid. Perfect for evening wear.',
+    suggestedGarmentIds: ['kurta-top', 'salwar-trouser', 'mens-shirt'],
   },
   {
     id: 'atelier-linen-silk',
@@ -185,11 +206,12 @@ export const CATALOG: Item[] = [
     composition: '55% Linen · 45% Silk',
     width: '54 in',
     pricePerMetre: 1850,
-    minMetres: 3,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['seasonal', 'wholesale', 'best-seller'],
     image: '/images/fabrics/f10.jpg',
     blurb: 'Slubbed, breathable and quietly luxurious — the summer favourite.',
+    suggestedGarmentIds: ['kurta-top', 'salwar-trouser', 'mens-shirt'],
   },
   {
     id: 'moonstone-satin',
@@ -198,11 +220,12 @@ export const CATALOG: Item[] = [
     composition: '100% Silk Satin (Sand-washed)',
     width: '54 in',
     pricePerMetre: 3400,
-    minMetres: 2,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['new-arrival'],
     image: '/images/fabrics/f11.jpg',
     blurb: 'Sand-washed satin with a soft molten sheen. Back in stock soon.',
+    suggestedGarmentIds: ['kurta-top', 'salwar-trouser', 'mens-shirt'],
   },
   {
     id: 'architectural-dupion',
@@ -211,10 +234,11 @@ export const CATALOG: Item[] = [
     composition: '100% Raw Silk (Dupion)',
     width: '44 in',
     pricePerMetre: 1650,
-    minMetres: 3,
+    minMetres: 0.5,
     stock: 'in',
     tags: ['wholesale', 'seasonal'],
     image: '/images/fabrics/f12.jpg',
     blurb: 'Crisp body that holds a shape — a tailor’s dependable workhorse.',
+    suggestedGarmentIds: ['kurta-top', 'salwar-trouser', 'mens-shirt'],
   },
 ];

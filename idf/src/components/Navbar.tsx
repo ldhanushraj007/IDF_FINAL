@@ -49,9 +49,6 @@ export default function Navbar() {
     <header className={`sticky top-0 z-50 w-full border-b border-[#1a1a1a] bg-surface transition-shadow ${scrolled ? 'shadow-sm' : ''}`}>
       <div className="flex items-center px-margin-page h-[64px] gap-0">
 
-        {/* Row index */}
-        <span className="font-mono text-[10px] text-secondary/50 w-8 shrink-0 hidden md:block">01</span>
-
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0 mr-6">
           <img
@@ -70,15 +67,15 @@ export default function Navbar() {
         {/* Separator */}
         <div className="hidden md:block h-8 w-px bg-[#1a1a1a]/20 mr-8 shrink-0" />
 
-        {/* Nav links */}
         <nav className="hidden md:flex items-center gap-7 flex-1" aria-label="Primary">
           {NAV_LINKS.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="font-label-caps text-[11px] tracking-[0.12em] uppercase text-secondary hover:text-primary transition-colors duration-200 whitespace-nowrap"
+              className="font-label-caps text-[11px] tracking-[0.12em] uppercase text-secondary hover:text-primary transition-colors duration-200 whitespace-nowrap relative py-1 group"
             >
               {l.label}
+              <span className="absolute bottom-0 left-0 w-0 h-px bg-brand-gold transition-all duration-300 group-hover:w-full" />
             </a>
           ))}
         </nav>

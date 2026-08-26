@@ -4,16 +4,12 @@ import { BUSINESS } from '../lib/constants';
 export default function Footer() {
   return (
     <footer className="w-full bg-surface text-primary border-t border-[#1a1a1a]">
-      {/* Index label row */}
-      <div className="px-margin-page border-b border-[#1a1a1a] py-1.5 flex items-center">
-        <span className="font-label-caps text-[10px] text-secondary">05</span>
-      </div>
 
       {/* 4-column footer grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 px-margin-page py-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 px-margin-page py-8 gap-y-6 md:gap-y-0">
 
         {/* Col 1 — Need Help */}
-        <div className="border-r border-[#1a1a1a] pr-8 flex flex-col justify-between min-h-[100px]">
+        <div className="border-r border-[#1a1a1a]/15 pr-8 flex flex-col items-start last:border-r-0">
           <h4 className="font-label-caps text-label-caps text-secondary uppercase mb-2">NEED HELP?</h4>
           <a
             href={`tel:${BUSINESS.phoneRaw}`}
@@ -24,19 +20,19 @@ export default function Footer() {
         </div>
 
         {/* Col 2 — Showroom */}
-        <div className="border-r border-[#1a1a1a] px-8 flex flex-col justify-between min-h-[100px]">
+        <div className="border-r border-[#1a1a1a]/15 px-8 flex flex-col items-start last:border-r-0">
           <h4 className="font-label-caps text-label-caps text-secondary uppercase mb-2">SHOWROOM</h4>
           <p className="font-body-lg text-primary">{BUSINESS.city}</p>
         </div>
 
         {/* Col 3 — Hours */}
-        <div className="border-r border-[#1a1a1a] px-8 flex flex-col justify-between min-h-[100px]">
+        <div className="border-r border-[#1a1a1a]/15 px-8 flex flex-col items-start last:border-r-0">
           <h4 className="font-label-caps text-label-caps text-secondary uppercase mb-2">HOURS</h4>
           <p className="font-body-lg text-primary">Mon – Sat: 10am – 8pm</p>
         </div>
 
         {/* Col 4 — Follow Us + Copyright — pr-16 keeps text clear of WhatsApp button */}
-        <div className="pl-8 pr-16 flex flex-col justify-between items-start md:items-end min-h-[100px]">
+        <div className="pl-8 pr-16 flex flex-col items-start md:items-end last:border-r-0">
           <h4 className="font-label-caps text-label-caps text-secondary uppercase mb-2 md:w-full md:text-right">
             FOLLOW US
           </h4>

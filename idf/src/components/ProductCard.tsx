@@ -24,14 +24,14 @@ export default function ProductCard({ item }: { item: Item }) {
   return (
     <article className={`product-card border-r border-[#1a1a1a] flex flex-col h-full last:border-r-0 bg-surface group ${soldOut ? 'opacity-80' : ''}`}>
       {/* Image area */}
-      <div className="relative aspect-square overflow-hidden bg-[#DEDAD5]">
+      <div className="relative aspect-square overflow-hidden bg-[#DEDAD5] group-hover:cursor-pointer">
         <Link to={`/product/${item.id}`} className="block w-full h-full">
           <img
             src={item.image}
             alt={item.name}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
         </Link>
 
@@ -41,14 +41,14 @@ export default function ProductCard({ item }: { item: Item }) {
           <span>{soldOut ? 'OUT OF STOCK' : 'IN STOCK'}</span>
         </div>
 
-        {/* Wishlist */}
+        {/* Wishlist - Slides in from right on hover */}
         {enabled && (
           <button
             type="button"
             onClick={onHeart}
             aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-pressed={liked}
-            className="absolute top-4 right-4 text-secondary hover:text-brand-gold transition-colors z-10"
+            className="absolute top-4 right-4 text-secondary hover:text-brand-gold transition-all duration-300 z-10 md:opacity-0 md:translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
           >
             <Heart className={`h-5 w-5 ${liked ? 'fill-brand-gold text-brand-gold' : ''}`} strokeWidth={1.5} />
           </button>
@@ -63,8 +63,11 @@ export default function ProductCard({ item }: { item: Item }) {
       </div>
 
       {/* Card info */}
-      <div className="px-5 pt-4 pb-5 flex-1 flex flex-col border-t border-[#1a1a1a] bg-surface">
-        <span className="font-label-caps text-[10px] tracking-[0.15em] text-brand-gold mb-1 uppercase">{item.category}</span>
+      <div className="px-5 pt-4 pb-5 flex-1 flex flex-col border-t border-[#1a1a1a] bg-surface relative">
+        <span className="font-label-caps text-[10px] tracking-[0.15em] text-brand-gold mb-1 uppercase relative inline-block w-fit">
+          {item.category}
+          <span className="absolute bottom-0 left-0 w-0 h-px bg-brand-gold transition-all duration-300 group-hover:w-full" />
+        </span>
         <Link to={`/product/${item.id}`}>
           <h3 className="font-serif text-[20px] text-primary mb-1 hover:text-brand-gold transition-colors leading-snug">
             {item.name}
@@ -74,9 +77,10 @@ export default function ProductCard({ item }: { item: Item }) {
           {inr(item.pricePerMetre)} <span className="text-[12px] text-secondary font-normal">/ metre</span>
         </p>
 
+        {/* Quick View - Fades/slides up slightly on hover */}
         <Link
           to={`/product/${item.id}`}
-          className="mt-auto border border-[#1a1a1a] w-full py-2.5 font-label-caps text-[11px] tracking-widest hover:bg-primary hover:text-white transition-colors flex justify-center items-center gap-2 uppercase"
+          className="mt-auto border border-[#1a1a1a] w-full py-2.5 font-label-caps text-[11px] tracking-widest hover:bg-primary hover:text-white transition-all duration-300 flex justify-center items-center gap-2 uppercase md:opacity-90 group-hover:scale-[1.01] shadow-sm"
         >
           QUICK VIEW
           <Eye className="h-3.5 w-3.5" />

@@ -11,11 +11,12 @@
       "id": "aurelia-tulle",
       "name": "Aurelia Hand-Embroidered Tulle",
       "category": "Bridal",
+      "categoryId": "bridal",
       "composition": "Silk Tulle · Zardozi & Bead Work",
       "width": "44 in",
       "pricePerMetre": 6800,
       "mrp": 7900,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "best-seller",
@@ -27,16 +28,22 @@
         "/images/fabrics/f01.jpg",
         "/images/fabrics/detail-bridal-1.jpg",
         "/images/fabrics/detail-bridal-2.jpg"
+      ],
+      "suggestedGarmentIds": [
+        "lehenga-skirt",
+        "anarkali-suit",
+        "blouse"
       ]
     },
     {
       "id": "noor-organza",
       "name": "Noor Pearl Organza",
       "category": "Bridal",
+      "categoryId": "bridal",
       "composition": "Pure Silk Organza · Pearl Work",
       "width": "44 in",
       "pricePerMetre": 4200,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "new-arrival"
@@ -47,16 +54,22 @@
         "/images/fabrics/f02.jpg",
         "/images/fabrics/detail-bridal-1.jpg",
         "/images/fabrics/detail-bridal-2.jpg"
+      ],
+      "suggestedGarmentIds": [
+        "lehenga-skirt",
+        "anarkali-suit",
+        "blouse"
       ]
     },
     {
       "id": "celestine-net",
       "name": "Celestine Beaded Net",
       "category": "Bridal",
+      "categoryId": "bridal",
       "composition": "Silk Net · Crystal Beadwork",
       "width": "44 in",
       "pricePerMetre": 5600,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "best-seller"
@@ -73,10 +86,11 @@
       "id": "isabeau-satin",
       "name": "Isabeau Duchess Satin",
       "category": "Bridal",
+      "categoryId": "bridal",
       "composition": "100% Silk Duchess Satin",
       "width": "58 in",
       "pricePerMetre": 3900,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "seasonal"
@@ -93,11 +107,12 @@
       "id": "banarasi-kadhwa",
       "name": "Banarasi Kadhwa Brocade",
       "category": "Heritage",
+      "categoryId": "heritage",
       "composition": "Katan Silk · Tested Real Zari",
       "width": "45 in",
       "pricePerMetre": 8500,
       "mrp": 9800,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "best-seller",
@@ -116,11 +131,12 @@
       "id": "kanjivaram-temple",
       "name": "Kanjivaram Temple Silk",
       "category": "Heritage",
+      "categoryId": "heritage",
       "composition": "Pure Mulberry Silk · Silver-Gold Zari",
       "width": "46 in",
       "pricePerMetre": 7200,
       "mrp": 8400,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "festival",
@@ -138,10 +154,11 @@
       "id": "tussar-ghicha",
       "name": "Tussar Ghicha Handloom",
       "category": "Heritage",
+      "categoryId": "heritage",
       "composition": "100% Tussar Silk (Handloom)",
       "width": "44 in",
       "pricePerMetre": 2400,
-      "minMetres": 3,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "seasonal",
@@ -159,10 +176,11 @@
       "id": "rajwada-velvet",
       "name": "Rajwada Zardozi Velvet",
       "category": "Heritage",
+      "categoryId": "heritage",
       "composition": "Silk Velvet · Zardozi & Dabka Work",
       "width": "44 in",
       "pricePerMetre": 9600,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "festival",
@@ -180,10 +198,11 @@
       "id": "midnight-crepe",
       "name": "Midnight Crêpe de Chine",
       "category": "Contemporary",
+      "categoryId": "contemporary",
       "composition": "100% Silk Crêpe de Chine",
       "width": "44 in",
       "pricePerMetre": 2900,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "new-arrival"
@@ -200,10 +219,11 @@
       "id": "atelier-linen-silk",
       "name": "Atelier Linen-Silk",
       "category": "Contemporary",
+      "categoryId": "contemporary",
       "composition": "55% Linen · 45% Silk",
       "width": "54 in",
       "pricePerMetre": 1850,
-      "minMetres": 3,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "seasonal",
@@ -222,10 +242,11 @@
       "id": "moonstone-satin",
       "name": "Moonstone Liquid Satin",
       "category": "Contemporary",
+      "categoryId": "contemporary",
       "composition": "100% Silk Satin (Sand-washed)",
       "width": "54 in",
       "pricePerMetre": 3400,
-      "minMetres": 2,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "new-arrival"
@@ -242,10 +263,11 @@
       "id": "architectural-dupion",
       "name": "Architectural Dupion Raw Silk",
       "category": "Contemporary",
+      "categoryId": "contemporary",
       "composition": "100% Raw Silk (Dupion)",
       "width": "44 in",
       "pricePerMetre": 1650,
-      "minMetres": 3,
+      "minMetres": 0.5,
       "stock": "in",
       "tags": [
         "wholesale",

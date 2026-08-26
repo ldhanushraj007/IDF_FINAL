@@ -13,8 +13,7 @@ Two personal access tokens were pasted into a chat conversation. Treat both as
 compromised:
 
 1. Go to **https://github.com/settings/tokens**
-2. Delete every token listed there (or at minimum the two beginning
-   `github_pat_11CK3CNPQ0foebe61iFnFQ` and `github_pat_11CK3CNPQ0HrRFqJop3NJk`)
+2. Delete every compromised token listed there.
 3. If you need one again later, generate a fresh one, use it locally, and never
    paste it into a chat window, a support ticket, an issue, or a commit
 
@@ -132,7 +131,7 @@ Full click-by-click steps are in **`HANDOVER.md` §6**. The condensed version:
    OAuth client from Google Cloud Console
 9. *(Optional)* Wire up the `IDF_CustDetails` sheet — `HANDOVER.md` §7
 
-**Change `ADMIN_PIN` in `src/lib/constants.ts` from the default `3216`** even
+**Change `ADMIN_STATIC_PIN` in `src/lib/constants.ts` from the default `3216`** even
 after this, in case you ever run without Supabase.
 
 ---

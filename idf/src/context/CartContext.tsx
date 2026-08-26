@@ -94,8 +94,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const totalMetres = items.reduce((s, i) => s + i.metres, 0);
     const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
-    const isWholesale = totalMetres >= ORDER.wholesaleMinMetres;
-    const discount = isWholesale ? Math.round(subtotal * ORDER.wholesaleDiscount) : 0;
+
+    // 1. Tiered Bulk Quantity Discount (20m -> 15%, 50m -> 20%, 100m -> 25%)
+    let bulkDiscountRate = 0;
+    if (totalMetres >= 100) {
+      bulkDiscountRate = 0.25;
+    } else if (totalMetres >= 50) {
+      bulkDiscountRate = 0.20;
+    } else if (totalMetres >= 20) {
+      bulkDiscountRate = 0.15;
+    }
+    const bulkDiscount = Math.round(subtotal * bulkDiscountRate);
+
+    // 2. Combo Offer Detection
+    // Seeded Combo: "aurelia-tulle" and "noor-organza" bought together triggers 10% off
+    const hasTulle = items.some(i => i.item.id === 'aurelia-tulle');
+    const hasOrganza = items.some(i => i.item.id === 'noor-organza');
+    let comboDiscount = 0;
+    if (hasTulle && hasOrganza) {
+      const eligibleTotal = items
+        .filter(i => i.item.id === 'aurelia-tulle' || i.item.id === 'noor-organza')
+        .reduce((sum, i) => sum + i.lineTotal, 0);
+      comboDiscount = Math.round(eligibleTotal * 0.10);
+    }
+
+    // Apply whichever discount is larger (not stacking them to keep margins safe)
+    const discount = Math.max(bulkDiscount, comboDiscount);
+    const isWholesale = totalMetres >= 20;
+
     const afterDiscount = subtotal - discount;
     const shipping =
       afterDiscount === 0 || afterDiscount >= ORDER.freeShippingAbove ? 0 : ORDER.shippingFlat;

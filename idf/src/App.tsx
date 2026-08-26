@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { MotionConfig } from 'framer-motion';
+import { MotionConfig, AnimatePresence, motion } from 'framer-motion';
 
 import { CartProvider } from './context/CartContext';
 import { CatalogProvider } from './context/CatalogContext';
@@ -59,8 +59,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 /** Scrolls to top on every real page change (not on in-page hash jumps). */
 function ScrollToTop() {
   const { pathname } = useLocation();
+  const prevPathname = useRef(pathname);
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (prevPathname.current !== pathname) {
+      window.scrollTo(0, 0);
+      prevPathname.current = pathname;
+    }
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
     }, 150);
@@ -89,14 +93,24 @@ function SiteChrome() {
       {!isLoginPage && <Navbar />}
       <main id="main">
         <Suspense fallback={<RouteFallback />}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/product/:id" element={<ProductPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/account" element={<AccountPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-          </Routes>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+            >
+              <Routes location={location} key={pathname}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/product/:id" element={<ProductPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+              </Routes>
+            </motion.div>
+          </AnimatePresence>
         </Suspense>
       </main>
       {!isLoginPage && <Footer />}
