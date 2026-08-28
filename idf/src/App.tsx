@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { MotionConfig, AnimatePresence, motion } from 'framer-motion';
 
 import { CartProvider } from './context/CartContext';
@@ -20,11 +20,16 @@ import { useAuth } from './context/AuthContext';
 
 /**
  * Only the homepage ships in the main bundle — it's what every first-time
- * visitor sees. Everything else (product detail, about, account, and the
- * whole admin panel, which a shopper never touches) loads on demand, which
- * is most of what was behind the earlier "chunk >500kB" build warning.
+ * visitor sees. Everything else loads on demand, keeping the initial bundle
+ * lean and the first-paint fast.
  */
+const ShopPage = lazy(() => import('./pages/ShopPage'));
 const ProductPage = lazy(() => import('./pages/ProductPage'));
+const CollectionsPage = lazy(() => import('./pages/CollectionsPage'));
+const ReviewsPage = lazy(() => import('./pages/ReviewsPage'));
+const VisitPage = lazy(() => import('./pages/VisitPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const AccountPage = lazy(() => import('./pages/AccountPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
@@ -33,8 +38,8 @@ const AdminPanel = lazy(() => import('./admin/AdminPanel'));
 
 function RouteFallback() {
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-ivory">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-walnut/20 border-t-gold-dark" />
+    <div className="flex min-h-[70vh] items-center justify-center bg-white">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#1F0505]/10 border-t-[#1F0505]" />
     </div>
   );
 }
@@ -83,7 +88,7 @@ function SiteChrome() {
       <ScrollToTop />
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:bg-gold focus:px-4 focus:py-2 focus:text-xs focus:font-semibold focus:uppercase focus:tracking-widest focus:text-night"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:bg-[#1F0505] focus:px-4 focus:py-2 focus:text-xs focus:font-semibold focus:uppercase focus:tracking-widest focus:text-white"
       >
         Skip to content
       </a>
@@ -103,11 +108,20 @@ function SiteChrome() {
             >
               <Routes location={location} key={pathname}>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/product/:id" element={<ProductPage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/shop/:category" element={<ShopPage />} />
+                <Route path="/shop/product/:id" element={<ProductPage />} />
+                <Route path="/collections" element={<CollectionsPage />} />
+                <Route path="/reviews" element={<ReviewsPage />} />
+                <Route path="/visit" element={<VisitPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
+                {/* Backward compat: old /product/:id → /shop/product/:id */}
+                <Route path="/product/:id" element={<RedirectToShopProduct />} />
               </Routes>
             </motion.div>
           </AnimatePresence>
@@ -120,6 +134,13 @@ function SiteChrome() {
       <AuthModal open={authModalOpen} onClose={closeAuthModal} />
     </>
   );
+}
+
+/** Redirect old /product/:id URLs to /shop/product/:id for backward compat */
+function RedirectToShopProduct() {
+  const { pathname } = useLocation();
+  const id = pathname.split('/product/')[1];
+  return <Navigate to={`/shop/product/${id}`} replace />;
 }
 
 export default function App() {

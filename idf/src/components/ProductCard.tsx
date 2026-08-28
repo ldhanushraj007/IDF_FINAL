@@ -1,31 +1,64 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Eye } from 'lucide-react';
-import type { Item } from '../data/catalog';
-import { useCart } from '../context/CartContext';
+import { Heart, ShoppingBag } from 'lucide-react';
+import type { Item, Tag } from '../data/catalog';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import { inr } from '../lib/constants';
 
-export default function ProductCard({ item }: { item: Item }) {
-  const { add } = useCart();
+function getBadge(item: Item): { label: string; dark?: boolean } | null {
+  if (item.tags.includes('new-arrival' as Tag))  return { label: 'New' };
+  if (item.tags.includes('best-seller' as Tag))  return { label: 'Best Seller', dark: true };
+  if (item.tags.includes('festival' as Tag))     return { label: 'Offer' };
+  if (item.stock === 'low')                       return { label: 'Limited' };
+  return null;
+}
+
+interface ProductCardProps {
+  item: Item;
+  onQuickView?: (item: Item) => void;
+}
+
+export default function ProductCard({ item, onQuickView }: ProductCardProps) {
   const { enabled, user, requestSignIn } = useAuth();
   const { has, toggle } = useWishlist();
+  const { add } = useCart();
+  const [added, setAdded] = useState(false);
+
   const soldOut = item.stock === 'out';
-  const liked = has(item.id);
+  const liked   = has(item.id);
+  const badge   = getBadge(item);
+  const hasDiscount = item.mrp && item.mrp > item.pricePerMetre;
+  const discountPct = hasDiscount
+    ? Math.round(100 - (item.pricePerMetre / item.mrp!) * 100)
+    : 0;
 
   const onHeart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     if (!user) { requestSignIn(); return; }
     toggle(item.id);
   };
 
+  const onAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    if (soldOut) return;
+    add(item.id, 1);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  };
+
   return (
-    <article className={`product-card border-r border-[#1a1a1a] flex flex-col h-full last:border-r-0 bg-surface group ${soldOut ? 'opacity-80' : ''}`}>
-      {/* Image area */}
-      <div className="relative aspect-square overflow-hidden bg-[#DEDAD5] group-hover:cursor-pointer">
-        <Link to={`/product/${item.id}`} className="block w-full h-full">
+    <article
+      className={`flex flex-col h-full bg-white group ${soldOut ? 'opacity-60' : ''}`}
+      aria-label={item.name}
+    >
+      {/* ── Image ─────────────────────────────────────────────────── */}
+      <div
+        className="relative aspect-[3/4] overflow-hidden bg-[#f5f0ed]"
+        style={{ borderBottom: '1px solid #1F0505' }}
+      >
+        <Link to={`/shop/product/${item.id}`} className="block w-full h-full" tabIndex={soldOut ? -1 : 0}>
           <img
             src={item.image}
             alt={item.name}
@@ -35,56 +68,133 @@ export default function ProductCard({ item }: { item: Item }) {
           />
         </Link>
 
-        {/* IN STOCK / OUT badge */}
-        <div className="absolute top-4 left-4 bg-white px-2 py-1 font-label-caps text-[10px] flex items-center gap-1.5 border border-[#1a1a1a]/20">
-          <span className={`w-1.5 h-1.5 rounded-full ${soldOut ? 'bg-red-500' : 'bg-black'}`} />
-          <span>{soldOut ? 'OUT OF STOCK' : 'IN STOCK'}</span>
+        {/* Halftone grain on hover */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-30 transition-opacity duration-500"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(31,5,5,0.07) 1px, transparent 1px)',
+            backgroundSize: '5px 5px',
+          }}
+        />
+
+        {/* Stock badge — top left */}
+        <div className="absolute top-3 left-3">
+          <span
+            className={`flex items-center gap-1.5 px-2.5 py-1 font-sans text-[9px] font-bold tracking-[0.1em] uppercase bg-white ${
+              soldOut ? 'text-red-600' : 'text-[#1F0505]'
+            }`}
+            style={{ border: '1px solid #1F0505' }}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${soldOut ? 'bg-red-500' : 'bg-emerald-500'}`} />
+            {soldOut ? 'Out of Stock' : 'In Stock'}
+          </span>
         </div>
 
-        {/* Wishlist - Slides in from right on hover */}
+        {/* Badge — top right area */}
+        {badge && !soldOut && (
+          <span
+            className={`absolute top-3 right-10 px-2.5 py-1 font-sans text-[9px] font-bold tracking-[0.1em] uppercase ${
+              badge.dark ? 'bg-[#1F0505] text-white' : 'bg-[#FFE6E9] text-[#1F0505]'
+            }`}
+            style={{ border: '1px solid #1F0505' }}
+          >
+            {badge.label}
+          </span>
+        )}
+
+        {/* Discount % */}
+        {hasDiscount && !soldOut && (
+          <span
+            className="absolute bottom-3 left-3 bg-[#1F0505] text-white px-2 py-0.5 font-sans text-[9px] font-bold tracking-[0.08em]"
+          >
+            -{discountPct}%
+          </span>
+        )}
+
+        {/* Wishlist button */}
         {enabled && (
           <button
             type="button"
             onClick={onHeart}
             aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-pressed={liked}
-            className="absolute top-4 right-4 text-secondary hover:text-brand-gold transition-all duration-300 z-10 md:opacity-0 md:translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white hover:bg-[#FFE6E9] transition-colors z-10"
+            style={{ border: '1px solid rgba(31,5,5,0.25)' }}
           >
-            <Heart className={`h-5 w-5 ${liked ? 'fill-brand-gold text-brand-gold' : ''}`} strokeWidth={1.5} />
+            <Heart
+              className={`h-4 w-4 transition-all ${liked ? 'fill-[#1F0505] text-[#1F0505]' : 'text-[#1F0505]/50'}`}
+              strokeWidth={1.5}
+            />
           </button>
         )}
 
-        {/* Gold vertical hairline indicator (right edge) */}
-        <div className="absolute right-4 top-1/4 bottom-1/4 flex flex-col items-center gap-1 pointer-events-none">
-          <div className="flex-1 w-px bg-[#1a1a1a]/25" />
-          <div className="w-1 h-5 bg-brand-gold" />
-          <div className="flex-1 w-px bg-[#1a1a1a]/25" />
-        </div>
+        {/* Quick View overlay on hover */}
+        {onQuickView && !soldOut && (
+          <button
+            type="button"
+            onClick={e => { e.preventDefault(); e.stopPropagation(); onQuickView(item); }}
+            className="absolute inset-x-0 bottom-0 py-3 bg-white/95 font-sans text-[10px] font-bold tracking-[0.2em] uppercase text-[#1F0505] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
+            style={{ borderTop: '1px solid #1F0505' }}
+          >
+            Quick View
+          </button>
+        )}
       </div>
 
-      {/* Card info */}
-      <div className="px-5 pt-4 pb-5 flex-1 flex flex-col border-t border-[#1a1a1a] bg-surface relative">
-        <span className="font-label-caps text-[10px] tracking-[0.15em] text-brand-gold mb-1 uppercase relative inline-block w-fit">
+      {/* ── Info ──────────────────────────────────────────────────── */}
+      <div className="flex flex-col flex-1 p-4 bg-white">
+        {/* Category kicker */}
+        <span className="font-sans text-[8px] tracking-[0.22em] text-[#1F0505]/40 uppercase font-bold mb-1.5 block">
           {item.category}
-          <span className="absolute bottom-0 left-0 w-0 h-px bg-brand-gold transition-all duration-300 group-hover:w-full" />
         </span>
-        <Link to={`/product/${item.id}`}>
-          <h3 className="font-serif text-[20px] text-primary mb-1 hover:text-brand-gold transition-colors leading-snug">
+
+        {/* Product name */}
+        <Link to={`/shop/product/${item.id}`}>
+          <h3 className="font-serif text-[17px] text-[#1F0505] leading-snug hover:text-[#1F0505]/70 transition-colors mb-2">
             {item.name}
           </h3>
         </Link>
-        <p className="text-[15px] font-semibold text-primary mb-4">
-          {inr(item.pricePerMetre)} <span className="text-[12px] text-secondary font-normal">/ metre</span>
-        </p>
 
-        {/* Quick View - Fades/slides up slightly on hover */}
-        <Link
-          to={`/product/${item.id}`}
-          className="mt-auto border border-[#1a1a1a] w-full py-2.5 font-label-caps text-[11px] tracking-widest hover:bg-primary hover:text-white transition-all duration-300 flex justify-center items-center gap-2 uppercase md:opacity-90 group-hover:scale-[1.01] shadow-sm"
+        {/* Blurb (optional short description) */}
+        {item.blurb && (
+          <p className="font-sans text-[11px] text-[#1F0505]/50 leading-relaxed line-clamp-2 mb-3">
+            {item.blurb}
+          </p>
+        )}
+
+        {/* Price row */}
+        <div
+          className="flex items-baseline gap-2 pt-3 mt-auto"
+          style={{ borderTop: '1px solid rgba(31,5,5,0.12)' }}
         >
-          QUICK VIEW
-          <Eye className="h-3.5 w-3.5" />
-        </Link>
+          <span className="font-serif text-[18px] font-medium text-[#1F0505]">
+            {inr(item.pricePerMetre)}
+          </span>
+          <span className="font-sans text-[9px] text-[#1F0505]/35 tracking-wide">/&nbsp;metre</span>
+          {hasDiscount && (
+            <span className="font-sans text-[10px] text-[#1F0505]/30 line-through ml-auto">
+              {inr(item.mrp!)}
+            </span>
+          )}
+        </div>
+
+        {/* Add to cart / CTA */}
+        <button
+          type="button"
+          onClick={onAddToCart}
+          disabled={soldOut}
+          className={`mt-3 w-full py-2.5 font-sans text-[10px] font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 transition-all duration-200 ${
+            soldOut
+              ? 'text-[#1F0505]/25 cursor-not-allowed'
+              : added
+              ? 'bg-[#1F0505] text-white'
+              : 'text-[#1F0505] hover:bg-[#1F0505] hover:text-white'
+          }`}
+          style={{ border: '1px solid #1F0505' }}
+        >
+          <ShoppingBag className="h-3.5 w-3.5" strokeWidth={1.5} />
+          {soldOut ? 'Out of Stock' : added ? 'Added ✓' : 'Add to Cart'}
+        </button>
       </div>
     </article>
   );

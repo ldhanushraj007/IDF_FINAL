@@ -7,18 +7,26 @@ export default {
         touch: { raw: '(hover: none)' },
       },
       colors: {
-        /** Existing client brand palette **/
+        // ── NEW BRAND PALETTE (Customer-facing) ──────────────────────────────
+        /** Primary blush — #FFE6E9 */
+        blush: { DEFAULT: '#FFE6E9', dark: '#f5ced2', light: '#fff5f6' },
+        /** Deep ink accent — #1F0505 — used sparingly */
+        ink: { DEFAULT: '#1F0505', soft: '#3a0a0a', muted: '#6b3030' },
+        /** Pure white */
+        white: '#FFFFFF',
+
+        // ── LEGACY TOKENS — KEPT FOR ADMIN PANEL COMPATIBILITY ───────────────
+        // Do NOT remove; admin panel uses these
         ivory: '#dec3b4',
         cream: '#ece0d8',
         sand: '#dec3b4',
         night: '#1c0505',
         chocolate: '#2d0a0a',
-        ink: '#1c0505',
         maroon: { DEFAULT: '#7a2424', dark: '#4d0a0a' },
         walnut: { light: '#966448', DEFAULT: '#7a4e35', dark: '#5c3924' },
         muted: '#6b5447',
 
-        /** New Redesign Palette **/
+        // ── MATERIAL DESIGN TOKENS — KEPT FOR EXISTING COMPONENTS ────────────
         "inverse-surface": "#2f312e",
         "secondary": "#5e5f5b",
         "secondary-container": "#e3e3de",
@@ -32,20 +40,21 @@ export default {
         "on-background": "#1a1c1a",
         "surface-container-lowest": "#ffffff",
         "secondary-fixed": "#e3e3de",
-        "surface": "#faf9f5",
+        /** surface — used as white base; updated to pure white */
+        "surface": "#FFFFFF",
         "tertiary": "#000000",
         "on-secondary-container": "#646561",
-        "on-surface": "#1a1c1a",
+        "on-surface": "#1F0505",
         "on-tertiary": "#ffffff",
         "secondary-fixed-dim": "#c7c7c2",
         "surface-tint": "#5f5e5e",
         "primary-fixed": "#e5e2e1",
-        "surface-container": "#eeeeea",
-        "surface-variant": "#e3e3df",
-        "primary": "#000000",
+        "surface-container": "#FFE6E9",
+        "surface-variant": "#fff5f6",
+        "primary": "#1F0505",
         "error-container": "#ffdad6",
-        "surface-bright": "#faf9f5",
-        "primary-container": "#1c1b1b",
+        "surface-bright": "#FFFFFF",
+        "primary-container": "#1F0505",
         "on-error": "#ffffff",
         "on-primary": "#ffffff",
         "primary-fixed-dim": "#c8c6c5",
@@ -54,34 +63,40 @@ export default {
         "error": "#ba1a1a",
         "on-surface-variant": "#444748",
         "on-tertiary-fixed": "#1c1b1a",
-        "surface-dim": "#dadad6",
+        "surface-dim": "#FFE6E9",
         "on-tertiary-fixed-variant": "#484645",
-        "surface-container-low": "#f4f4f0",
-        "outline": "#747878",
+        "surface-container-low": "#fff5f6",
+        "outline": "#1F0505",
         "on-secondary-fixed": "#1b1c19",
         "inverse-primary": "#c8c6c5",
-        "surface-container-high": "#e8e8e4",
+        "surface-container-high": "#FFE6E9",
         "on-secondary-fixed-variant": "#464744",
         "tertiary-fixed-dim": "#cac6c4",
         "tertiary-fixed": "#e6e2df",
-        "background": "#faf9f5",
+        "background": "#FFFFFF",
         "on-primary-fixed-variant": "#474746",
+
+        // ── GOLD — kept for admin panel & select customer elements ────────────
         "brand-gold": "#B8860B",
         "accent-gold": "#B8860B",
         "gold": { DEFAULT: '#B8860B', light: '#e5c55c', dark: '#a8831f' },
         "accent": "#B8860B",
-        "brand-accent": "#B8860B"
+        "brand-accent": "#B8860B",
       },
       fontFamily: {
+        // Display/editorial — Cormorant Garamond
         serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // UI/interface — Manrope with Inter fallback
+        sans: ['Manrope', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        manrope: ['Manrope', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Legacy font tokens (kept for admin)
         "headline-md": ["Playfair Display", "serif"],
-        "body-lg": ["Hanken Grotesk", "sans-serif"],
-        "body-sm": ["Hanken Grotesk", "sans-serif"],
-        "label-caps": ["Hanken Grotesk", "sans-serif"],
-        "index-num": ["Hanken Grotesk", "sans-serif"],
-        "display-lg": ["Playfair Display", "serif"],
-        "display-lg-mobile": ["Playfair Display", "serif"]
+        "body-lg": ["Manrope", "Inter", "sans-serif"],
+        "body-sm": ["Manrope", "Inter", "sans-serif"],
+        "label-caps": ["Manrope", "Inter", "sans-serif"],
+        "index-num": ["Manrope", "Inter", "sans-serif"],
+        "display-lg": ['"Cormorant Garamond"', "serif"],
+        "display-lg-mobile": ['"Cormorant Garamond"', "serif"],
       },
       fontSize: {
         "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
@@ -90,7 +105,7 @@ export default {
         "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
         "index-num": ["11px", { "lineHeight": "12px", "fontWeight": "400" }],
         "display-lg": ["84px", { "lineHeight": "92px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
-        "display-lg-mobile": ["48px", { "lineHeight": "52px", "fontWeight": "400" }]
+        "display-lg-mobile": ["48px", { "lineHeight": "52px", "fontWeight": "400" }],
       },
       transitionTimingFunction: {
         lux: 'cubic-bezier(0.22, 1, 0.36, 1)',
@@ -98,8 +113,8 @@ export default {
       },
       keyframes: {
         'pulse-soft': {
-          '0%, 100%': { boxShadow: '0 0 0 0 rgba(211, 170, 50, 0.45)' },
-          '70%': { boxShadow: '0 0 0 16px rgba(211, 170, 50, 0)' },
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(31, 5, 5, 0.2)' },
+          '70%': { boxShadow: '0 0 0 16px rgba(31, 5, 5, 0)' },
         },
         marquee: {
           from: { transform: 'translateX(0)' },
@@ -114,12 +129,22 @@ export default {
           '35%': { opacity: '1' },
           '100%': { transform: 'translateY(34px)', opacity: '0' },
         },
+        'fade-in-up': {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
       },
       animation: {
         'pulse-soft': 'pulse-soft 2.6s ease-out infinite',
         marquee: 'marquee 32s linear infinite',
         kenburns: 'kenburns 12s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'thread-drop': 'thread-drop 2.2s ease-in-out infinite',
+        'fade-in-up': 'fade-in-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        shimmer: 'shimmer 2s linear infinite',
       },
     },
   },

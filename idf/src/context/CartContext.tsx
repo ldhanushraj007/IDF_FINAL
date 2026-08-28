@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { type Item } from '../data/catalog';
 import { useCatalog } from './CatalogContext';
-import { ORDER } from '../lib/constants';
+import { ORDER, BULK } from '../lib/constants';
 import { trackInteraction } from '../lib/useTrackInteraction';
 
 export interface CartLine {
@@ -21,12 +21,16 @@ interface CartValue {
   lines: CartLine[];
   items: { item: Item; metres: number; lineTotal: number }[];
   count: number;
+  distinctProducts: number;
+  totalMetres: number;
   subtotal: number;
   discount: number;
   shipping: number;
   total: number;
   isWholesale: boolean;
+  isBulkOrder: boolean;
   add: (id: string, metres: number) => void;
+  addMultiple: (entries: { id: string; metres: number }[]) => void;
   setMetres: (id: string, metres: number) => void;
   remove: (id: string) => void;
   clear: () => void;
@@ -71,6 +75,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setOpen(true);
   }, []);
 
+  const addMultiple = useCallback((entries: { id: string; metres: number }[]) => {
+    setLines((prev) => {
+      let next = [...prev];
+      for (const entry of entries) {
+        const found = next.find((l) => l.id === entry.id);
+        if (found) {
+          next = next.map((l) => (l.id === entry.id ? { ...l, metres: l.metres + entry.metres } : l));
+        } else {
+          next.push({ id: entry.id, metres: entry.metres });
+        }
+        trackInteraction(entry.id, 'add_to_cart');
+      }
+      return next;
+    });
+    setOpen(true);
+  }, []);
+
   const setMetres = useCallback((id: string, metres: number) => {
     setLines((prev) =>
       metres <= 0
@@ -92,8 +113,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [{ item, metres: l.metres, lineTotal: item.pricePerMetre * l.metres }];
     });
 
+    const distinctProducts = items.length;
     const totalMetres = items.reduce((s, i) => s + i.metres, 0);
     const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
+
+    // Bulk order detection:
+    // distinctProducts >= 4 OR totalMetres >= 16
+    const isBulkOrder =
+      distinctProducts >= BULK.distinctProductsThreshold ||
+      totalMetres >= BULK.totalMetresThreshold;
 
     // 1. Tiered Bulk Quantity Discount (20m -> 15%, 50m -> 20%, 100m -> 25%)
     let bulkDiscountRate = 0;
@@ -130,19 +158,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
       lines,
       items,
       count: items.length,
+      distinctProducts,
+      totalMetres,
       subtotal,
       discount,
       shipping,
       total: afterDiscount + shipping,
       isWholesale,
+      isBulkOrder,
       add,
+      addMultiple,
       setMetres,
       remove,
       clear,
       open,
       setOpen,
     };
-  }, [lines, open, add, setMetres, remove, clear, byId]);
+  }, [lines, open, add, addMultiple, setMetres, remove, clear, byId]);
 
   return <CartCtx.Provider value={value}>{children}</CartCtx.Provider>;
 }

@@ -16,7 +16,7 @@ function Stars({ n, size = 'h-3.5 w-3.5' }: { n: number; size?: string }) {
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
-          className={`${size} ${i <= n ? 'fill-gold text-gold' : 'text-ivory/20'}`}
+          className={`${size} ${i <= n ? 'fill-[#1F0505] text-[#1F0505]' : 'text-[#1F0505]/15'}`}
           strokeWidth={1.5}
         />
       ))}
@@ -160,7 +160,7 @@ export default function Reviews() {
   };
 
   return (
-    <section id="reviews" className="scroll-mt-20 bg-cream py-16 sm:py-24 lg:py-28">
+    <section id="reviews" className="scroll-mt-20 bg-white py-16 sm:py-24 lg:py-28">
       <div className="container-lux">
         <SectionHeading
           kicker="Customer Reviews"
@@ -174,22 +174,22 @@ export default function Reviews() {
 
         <Reveal className="mt-8 flex flex-col items-center gap-3">
           <div className="flex items-center gap-3">
-            <span className="font-nums text-4xl font-semibold text-gold-dark">{avg}</span>
+            <span className="font-nums text-4xl font-semibold text-[#1F0505]">{avg}</span>
             <div>
               <Stars n={Math.round(Number(avg) || 0)} size="h-4 w-4" />
-              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-muted">
+              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-[#1F0505]/40">
                 across {published.length} published {published.length === 1 ? 'review' : 'reviews'}
               </p>
             </div>
           </div>
-          <button type="button" onClick={() => setFormOpen(true)} className="btn btn-ghost-dark mt-2">
+          <button type="button" onClick={() => setFormOpen(true)} className="btn btn-outline mt-2">
             Write a Review
           </button>
           {enabled && user && (
             <button
               type="button"
               onClick={signOut}
-              className="flex items-center gap-1.5 text-[11px] text-muted transition-colors hover:text-ink"
+              className="flex items-center gap-1.5 text-[11px] text-[#1F0505]/40 transition-colors hover:text-[#1F0505]"
             >
               <LogOut className="h-3 w-3" />
               Signed in as {user.email} · Sign out
@@ -200,14 +200,14 @@ export default function Reviews() {
         <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 lg:grid-cols-3">
           {published.slice(0, 6).map((r, i) => (
             <Reveal key={`${r.name}-${i}`} delay={(i % 3) * 0.08}>
-              <figure className="flex h-full flex-col rounded-[3px] border border-walnut/15 bg-ivory p-5">
+              <figure className="flex h-full flex-col border border-[#1F0505]/8 bg-[#FFE6E9]/30 p-5">
                 <Stars n={r.rating} />
-                <blockquote className="mt-3 flex-1 text-[14px] leading-relaxed text-ink/80">
+                <blockquote className="mt-3 flex-1 text-[14px] leading-relaxed text-[#1F0505]/70">
                   {r.text}
                 </blockquote>
-                <figcaption className="mt-4 border-t border-walnut/10 pt-3">
-                  <p className="text-[13px] font-semibold text-ink">{r.name}</p>
-                  <p className="mt-0.5 text-[11px] uppercase tracking-[0.14em] text-muted">
+                <figcaption className="mt-4 border-t border-[#1F0505]/6 pt-3">
+                  <p className="text-[13px] font-semibold text-[#1F0505]">{r.name}</p>
+                  <p className="mt-0.5 text-[11px] uppercase tracking-[0.14em] text-[#1F0505]/40">
                     {[r.city, r.date].filter(Boolean).join(' · ')}
                   </p>
                 </figcaption>
@@ -224,7 +224,7 @@ export default function Reviews() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[95] flex items-end justify-center bg-night/85 backdrop-blur-sm sm:items-center sm:p-6"
+            className="fixed inset-0 z-[95] flex items-end justify-center bg-[#1F0505]/80 backdrop-blur-sm sm:items-center sm:p-6"
             role="dialog"
             aria-modal="true"
             aria-label="Write a review"
@@ -234,17 +234,17 @@ export default function Reviews() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '4%', opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[6px] bg-chocolate p-5 sm:rounded-[4px]"
+              className="max-h-[92vh] w-full max-w-md overflow-y-auto bg-white p-5 sm:rounded-none"
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-serif text-xl text-ivory">
+                <h3 className="font-serif text-xl text-[#1F0505]">
                   {sent ? 'Thank you' : 'Write a Review'}
                 </h3>
                 <button
                   type="button"
                   onClick={closeForm}
                   aria-label="Close review form"
-                  className="flex h-10 w-10 items-center justify-center text-ivory/70 hover:text-gold"
+                  className="flex h-10 w-10 items-center justify-center text-[#1F0505]/50 hover:text-[#1F0505]"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -253,14 +253,14 @@ export default function Reviews() {
               {/* ---- After submitting ---- */}
               {sent ? (
                 <div className="space-y-5 py-6 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center border border-[#1F0505]/20 bg-[#FFE6E9]">
                     {sent === 'public' ? (
-                      <Heart className="h-7 w-7 text-gold" />
+                      <Heart className="h-7 w-7 text-[#1F0505]" />
                     ) : (
-                      <Lock className="h-7 w-7 text-gold" />
+                      <Lock className="h-7 w-7 text-[#1F0505]" />
                     )}
                   </div>
-                  <p className="mx-auto max-w-xs text-[14px] leading-relaxed text-ivory/70">
+                  <p className="mx-auto max-w-xs text-[14px] leading-relaxed text-[#1F0505]/60">
                     {enabled
                       ? sent === 'public'
                         ? 'Your review is saved and waiting for the showroom to publish it. It will appear here the moment they approve it — no refresh needed.'
@@ -269,7 +269,7 @@ export default function Reviews() {
                         ? 'Your review is on its way to the showroom on WhatsApp. Press send there and we will add it to the website shortly.'
                         : 'Your feedback goes straight to the owner on WhatsApp — press send there. Someone will call you to put this right.'}
                   </p>
-                  <button type="button" onClick={closeForm} className="btn btn-gold btn-sheen w-full">
+                  <button type="button" onClick={closeForm} className="btn btn-dark btn-sheen w-full">
                     Close
                   </button>
                 </div>
@@ -313,13 +313,13 @@ export default function Reviews() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
-                    className="w-full rounded-[2px] border border-ivory/15 bg-night/40 px-3.5 py-3 text-[14px] text-ivory placeholder-ivory/30 outline-none focus:border-gold"
+                    className="w-full border border-[#1F0505]/15 px-3.5 py-3 text-[14px] text-[#1F0505] placeholder-[#1F0505]/30 outline-none focus:border-[#1F0505]"
                   />
                   <input
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="City (optional)"
-                    className="w-full rounded-[2px] border border-ivory/15 bg-night/40 px-3.5 py-3 text-[14px] text-ivory placeholder-ivory/30 outline-none focus:border-gold"
+                    className="w-full border border-[#1F0505]/15 px-3.5 py-3 text-[14px] text-[#1F0505] placeholder-[#1F0505]/30 outline-none focus:border-[#1F0505]"
                   />
                   <textarea
                     value={text}
@@ -330,16 +330,16 @@ export default function Reviews() {
                         ? 'Tell others about the fabric, service and experience…'
                         : 'Tell us what went wrong — this goes privately to the owner.'
                     }
-                    className="w-full rounded-[2px] border border-ivory/15 bg-night/40 px-3.5 py-3 text-[14px] text-ivory placeholder-ivory/30 outline-none focus:border-gold"
+                    className="w-full border border-[#1F0505]/15 px-3.5 py-3 text-[14px] text-[#1F0505] placeholder-[#1F0505]/30 outline-none focus:border-[#1F0505]"
                   />
 
-                  {error && <p className="text-[12px] text-maroon">{error}</p>}
+                  {error && <p className="text-[12px] text-red-500">{error}</p>}
 
                   <button
                     type="button"
                     onClick={submit}
                     disabled={submitting}
-                    className="btn btn-gold btn-sheen w-full"
+                    className="btn btn-dark btn-sheen w-full"
                   >
                     {submitting
                       ? 'Sending…'
@@ -348,15 +348,15 @@ export default function Reviews() {
                         : 'Send Privately to the Owner'}
                   </button>
 
-                  <p className="flex items-start gap-2 text-[11px] leading-relaxed text-ivory/40">
+                  <p className="flex items-start gap-2 text-[11px] leading-relaxed text-[#1F0505]/40">
                     {isPositive ? (
                       <>
-                        <Heart className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold/60" />
+                        <Heart className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1F0505]/30" />
                         Reviews are read by the showroom before they appear on the site.
                       </>
                     ) : (
                       <>
-                        <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold/60" />
+                        <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1F0505]/30" />
                         This will not be posted publicly. It goes to the owner so the problem can be
                         fixed.
                       </>

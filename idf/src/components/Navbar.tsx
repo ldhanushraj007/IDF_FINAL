@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Heart, ListOrdered, LogOut, Menu, ShoppingBag, User, X, MessageCircle } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Heart, LogOut, Menu, Search, ShoppingBag, User, X, MessageCircle } from 'lucide-react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { NAV_LINKS, WA_DEFAULT } from '../lib/constants';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import Wordmark from './Wordmark';
 
 function initial(label: string) {
   const c = label.trim().charAt(0).toUpperCase();
   return c || '•';
 }
+
+// Today's date in editorial newspaper format
+const EDITION_DATE = new Date().toLocaleDateString('en-IN', {
+  day: '2-digit', month: 'long', year: 'numeric'
+});
+const EDITION_NUM = `Vol. IV — Est. 2009`;
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -18,10 +23,10 @@ export default function Navbar() {
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
 
-  const { items, setOpen: setCartOpen } = useCart();
-  const { user, profile, signOut } = useAuth();
+  const { count, setOpen: setCartOpen } = useCart();
+  const { user, profile, signOut, enabled } = useAuth();
   const navigate = useNavigate();
-  const count = items.reduce((s, i) => s + i.metres, 0);
+  const location = useLocation();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 36);
@@ -43,211 +48,295 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
+  useEffect(() => { setOpen(false); }, [location.pathname]);
+
   const accountLabel = profile?.name || user?.email || 'Account';
 
   return (
-    <header className={`sticky top-0 z-50 w-full border-b border-[#1a1a1a] bg-surface transition-shadow ${scrolled ? 'shadow-sm' : ''}`}>
-      <div className="flex items-center px-margin-page h-[64px] gap-0">
-
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0 mr-6">
-          <img
-            src="/images/logo/logo-mark.png"
-            alt=""
-            aria-hidden="true"
-            className="h-9 w-9 object-contain"
-            onError={(e) => (e.currentTarget.style.display = 'none')}
-          />
-          <div>
-            <div className="font-serif text-[18px] tracking-[0.06em] text-primary uppercase leading-none">In Design</div>
-            <div className="font-label-caps text-[8px] tracking-[0.25em] text-brand-gold uppercase mt-0.5">Luxury Fabrics</div>
+    <header
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        scrolled ? 'bg-white/97 backdrop-blur-md' : 'bg-white'
+      }`}
+    >
+      {/* ── Top masthead strip ── */}
+      <div
+        className="w-full flex items-center justify-between px-5 md:px-10 lg:px-12 py-2"
+        style={{ borderBottom: '1px solid #1F0505' }}
+      >
+        <span className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/40 uppercase font-medium hidden sm:block">
+          {EDITION_DATE}
+        </span>
+        <Link to="/" className="flex-1 flex justify-center" aria-label="IN DESIGN — Home">
+          <div className="flex items-center gap-3">
+            {/* Logo mark — gold face silhouette */}
+            <img
+              src="/images/logo/logo-mark.png"
+              alt=""
+              aria-hidden="true"
+              className="h-9 w-auto object-contain"
+              style={{ filter: 'drop-shadow(0 0 0px transparent)' }}
+            />
+            {/* Wordmark */}
+            <div className="text-left">
+              <div
+                className="font-serif text-[20px] md:text-[24px] tracking-[0.12em] text-[#1F0505] uppercase leading-none font-medium"
+                style={{ letterSpacing: '0.16em' }}
+              >
+                In Design
+              </div>
+              <div className="font-sans text-[7px] tracking-[0.34em] text-[#1F0505]/45 uppercase mt-0.5 font-semibold">
+                Luxury Fabrics
+              </div>
+            </div>
           </div>
         </Link>
-
-        {/* Separator */}
-        <div className="hidden md:block h-8 w-px bg-[#1a1a1a]/20 mr-8 shrink-0" />
-
-        <nav className="hidden md:flex items-center gap-7 flex-1" aria-label="Primary">
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="font-label-caps text-[11px] tracking-[0.12em] uppercase text-secondary hover:text-primary transition-colors duration-200 whitespace-nowrap relative py-1 group"
-            >
-              {l.label}
-              <span className="absolute bottom-0 left-0 w-0 h-px bg-brand-gold transition-all duration-300 group-hover:w-full" />
-            </a>
-          ))}
-        </nav>
-
-        {/* Right Actions */}
-        <div className="flex items-center gap-4 ml-auto">
-          {/* WhatsApp */}
-          <a
-            href={WA_DEFAULT}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden md:inline-flex items-center gap-2 border border-brand-gold text-brand-gold px-4 py-2 font-label-caps text-[11px] tracking-[0.1em] hover:bg-brand-gold hover:text-white transition-colors shrink-0"
-          >
-            WHATSAPP US
-            <MessageCircle className="h-3.5 w-3.5" />
-          </a>
-
-          {/* Account */}
-          <div className="relative" ref={accountRef}>
-            {user ? (
-              <button
-                type="button"
-                onClick={() => setAccountOpen((v) => !v)}
-                aria-label="Your account"
-                className="flex items-center justify-center text-secondary hover:text-primary transition-colors"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-brand-gold text-[12px] font-semibold text-brand-gold">
-                  {initial(accountLabel)}
-                </span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => navigate('/login')}
-                aria-label="Sign in or sign up"
-                className="flex items-center justify-center text-secondary hover:text-primary transition-colors"
-              >
-                <User className="h-5 w-5" strokeWidth={1.5} />
-              </button>
-            )}
-
-            <AnimatePresence>
-              {accountOpen && user && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.18 }}
-                  className="absolute right-0 top-full mt-2 w-56 overflow-hidden border border-[#1a1a1a] bg-surface shadow-xl z-[70]"
+        <div className="flex items-center gap-3.5 shrink-0">
+          <span className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/40 uppercase font-medium hidden sm:block">
+            {EDITION_NUM}
+          </span>
+          {/* Right icons */}
+          <div className="flex items-center gap-3" style={{ borderLeft: '1px solid rgba(31,5,5,0.15)', paddingLeft: '12px' }}>
+            {/* Account */}
+            <div className="relative" ref={accountRef}>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => setAccountOpen((v) => !v)}
+                  aria-label="Your account"
+                  className="flex items-center justify-center text-[#1F0505]/50 hover:text-[#1F0505] transition-colors"
                 >
-                  <div className="border-b border-[#1a1a1a]/10 px-4 py-3">
-                    <p className="truncate text-[13px] font-medium text-primary">{accountLabel}</p>
-                    {profile?.email && <p className="truncate text-[11px] text-secondary">{profile.email}</p>}
-                  </div>
-                  <Link
-                    to="/account"
-                    onClick={() => setAccountOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-3 text-[13px] text-secondary hover:bg-primary/5 hover:text-primary"
-                  >
-                    <ListOrdered className="h-4 w-4" />
-                    My Orders
-                  </Link>
-                  <Link
-                    to="/account#wishlist"
-                    onClick={() => setAccountOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-3 text-[13px] text-secondary hover:bg-primary/5 hover:text-primary"
-                  >
-                    <Heart className="h-4 w-4" />
-                    Wishlist
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => { signOut(); setAccountOpen(false); }}
-                    className="flex w-full items-center gap-2.5 border-t border-[#1a1a1a]/10 px-4 py-3 text-left text-[13px] text-secondary hover:bg-primary/5 hover:text-red-600"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                  </button>
-                </motion.div>
+                  <span className="flex h-6 w-6 items-center justify-center border border-[#1F0505]/30 text-[10px] font-semibold text-[#1F0505]">
+                    {initial(accountLabel)}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  aria-label="Sign in"
+                  className="flex items-center justify-center text-[#1F0505]/50 hover:text-[#1F0505] transition-colors"
+                >
+                  <User className="h-[16px] w-[16px]" strokeWidth={1.5} />
+                </button>
               )}
-            </AnimatePresence>
-          </div>
 
-          {/* Cart */}
-          <button
-            type="button"
-            onClick={() => setCartOpen(true)}
-            aria-label={`Open order — ${count} metres`}
-            className="relative flex items-center justify-center text-secondary hover:text-primary transition-colors"
-          >
-            <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
-            {count > 0 && (
-              <span className="absolute -top-2 -right-2 bg-brand-gold text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold font-mono">
-                {count}
-              </span>
+              <AnimatePresence>
+                {accountOpen && user && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute right-0 top-full mt-2 w-56 overflow-hidden bg-white shadow-xl z-[70]"
+                    style={{ border: '1px solid #1F0505' }}
+                  >
+                    <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(31,5,5,0.1)' }}>
+                      <p className="truncate text-[13px] font-medium text-[#1F0505]">{accountLabel}</p>
+                      {profile?.email && <p className="truncate text-[11px] text-[#1F0505]/40">{profile.email}</p>}
+                    </div>
+                    <Link to="/account" onClick={() => setAccountOpen(false)} className="flex items-center gap-2.5 px-4 py-3 text-[12px] text-[#1F0505]/60 hover:bg-[#FFE6E9]/30 hover:text-[#1F0505]">
+                      My Orders
+                    </Link>
+                    <Link to="/wishlist" onClick={() => setAccountOpen(false)} className="flex items-center gap-2.5 px-4 py-3 text-[12px] text-[#1F0505]/60 hover:bg-[#FFE6E9]/30 hover:text-[#1F0505]">
+                      Wishlist
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => { signOut(); setAccountOpen(false); }}
+                      className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[12px] text-[#1F0505]/60 hover:bg-[#FFE6E9]/30 hover:text-red-600"
+                      style={{ borderTop: '1px solid rgba(31,5,5,0.08)' }}
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      Sign Out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Wishlist */}
+            {enabled && (
+              <Link to="/wishlist" aria-label="Wishlist" className="hidden md:flex items-center justify-center text-[#1F0505]/50 hover:text-[#1F0505] transition-colors">
+                <Heart className="h-[16px] w-[16px]" strokeWidth={1.5} />
+              </Link>
             )}
-          </button>
 
-          {/* Mobile menu */}
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Open menu"
-            className="flex h-10 w-10 items-center justify-center text-secondary md:hidden"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+            {/* Cart */}
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              aria-label={`Shopping bag — ${count} items`}
+              className="relative flex items-center justify-center text-[#1F0505]/50 hover:text-[#1F0505] transition-colors"
+            >
+              <ShoppingBag className="h-[16px] w-[16px]" strokeWidth={1.5} />
+              {count > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-[#1F0505] text-white text-[8px] w-3.5 h-3.5 flex items-center justify-center font-bold">
+                  {count}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile menu */}
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label="Open menu"
+              className="flex items-center justify-center text-[#1F0505]/60 hover:text-[#1F0505] lg:hidden"
+              style={{ borderLeft: '1px solid rgba(31,5,5,0.15)', paddingLeft: '12px', marginLeft: '4px' }}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* ── Desktop Navigation Bar ── */}
+      <nav
+        className="hidden lg:flex items-stretch w-full"
+        aria-label="Primary"
+        style={{ borderBottom: '1px solid #1F0505' }}
+      >
+        {/* WhatsApp left flush */}
+        <a
+          href={WA_DEFAULT}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center px-5 font-sans text-[9px] font-semibold tracking-[0.18em] uppercase text-[#1F0505]/40 hover:bg-[#FFE6E9]/40 hover:text-[#1F0505] transition-colors shrink-0"
+          style={{ borderRight: '1px solid #1F0505' }}
+        >
+          <MessageCircle className="h-3 w-3 mr-1.5" />
+          WhatsApp
+        </a>
+
+        {/* Nav items — each separated by 1px vertical border */}
+        <div className="flex items-stretch flex-1">
+          {NAV_LINKS.map((l) => (
+            <NavLink
+              key={l.href}
+              to={l.href}
+              end={l.href === '/'}
+              className={({ isActive }) =>
+                `relative flex items-center justify-center px-5 py-2.5 font-sans text-[10px] font-semibold tracking-[0.18em] uppercase transition-colors duration-150 whitespace-nowrap group ${
+                  isActive
+                    ? 'bg-[#1F0505] text-white'
+                    : 'text-[#1F0505]/60 hover:bg-[#FFE6E9]/40 hover:text-[#1F0505]'
+                }`
+              }
+              style={{ borderRight: '1px solid #1F0505' }}
+            >
+              {l.label}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Right label */}
+        <span
+          className="flex items-center px-5 font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/30 uppercase font-medium shrink-0 hidden xl:flex"
+          style={{ borderLeft: '1px solid #1F0505' }}
+        >
+          Bengaluru, India
+        </span>
+      </nav>
+
+      {/* ── Mobile Drawer ── */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-night xl:hidden"
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', stiffness: 340, damping: 36 }}
+            className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-white"
+            style={{ borderLeft: '2px solid #1F0505' }}
           >
-            <div className="flex shrink-0 items-center justify-between px-6 py-5">
-              <Wordmark tone="light" />
+            {/* Mobile drawer header */}
+            <div
+              className="flex shrink-0 items-center justify-between px-6 py-4"
+              style={{ borderBottom: '2px solid #1F0505' }}
+            >
+              <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-3" aria-label="Home">
+                <img
+                  src="/images/logo/logo-mark.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-8 w-auto object-contain"
+                />
+                <div>
+                  <div className="font-serif text-[17px] tracking-[0.14em] text-[#1F0505] uppercase leading-none font-medium">
+                    In Design
+                  </div>
+                  <div className="font-sans text-[8px] tracking-[0.32em] text-[#1F0505]/40 uppercase mt-0.5">
+                    Luxury Fabrics
+                  </div>
+                </div>
+              </Link>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close menu"
-                className="flex h-11 w-11 items-center justify-center text-ivory"
+                className="flex h-10 w-10 items-center justify-center text-[#1F0505]/60 hover:text-[#1F0505] border border-[#1F0505]/20 hover:border-[#1F0505] transition-colors"
               >
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5" />
               </button>
             </div>
-            <nav className="flex flex-1 flex-col px-6 py-4" aria-label="Mobile primary">
-              <div className="border-b border-ivory/10 py-4">
+
+            {/* Mobile nav links */}
+            <nav className="flex flex-col flex-1" aria-label="Mobile primary">
+              {/* Account strip */}
+              <div className="px-6 py-4" style={{ borderBottom: '1px solid rgba(31,5,5,0.12)' }}>
                 {user ? (
-                  <div className="space-y-3">
-                    <p className="text-[13px] text-ivory/70">Signed in as {accountLabel}</p>
-                    <div className="flex gap-3">
-                      <Link to="/account" onClick={() => setOpen(false)} className="btn btn-ghost-light flex-1 !py-2.5 !text-[11px]">My Account</Link>
-                      <button type="button" onClick={() => { signOut(); setOpen(false); }} className="btn btn-ghost-light flex-1 !py-2.5 !text-[11px]">Sign Out</button>
-                    </div>
+                  <div className="flex gap-3">
+                    <Link to="/account" onClick={() => setOpen(false)} className="border border-[#1F0505]/25 px-4 py-2 text-[11px] font-semibold tracking-[0.1em] uppercase text-[#1F0505] flex-1 text-center hover:bg-[#FFE6E9]/40 transition-colors">
+                      My Account
+                    </Link>
+                    <button type="button" onClick={() => { signOut(); setOpen(false); }} className="border border-[#1F0505]/25 px-4 py-2 text-[11px] font-semibold tracking-[0.1em] uppercase text-[#1F0505] flex-1 hover:bg-red-50 transition-colors">
+                      Sign Out
+                    </button>
                   </div>
                 ) : (
-                  <Link to="/login" onClick={() => setOpen(false)} className="btn btn-gold btn-sheen flex w-full items-center justify-center gap-2">
-                    <User className="h-4 w-4" /> Sign In / Sign Up
+                  <Link to="/login" onClick={() => setOpen(false)} className="flex items-center justify-center gap-2 border border-[#1F0505] px-4 py-3 text-[11px] font-semibold tracking-[0.14em] uppercase text-[#1F0505] w-full hover:bg-[#1F0505] hover:text-white transition-colors">
+                    <User className="h-4 w-4" /> Sign In
                   </Link>
                 )}
               </div>
+
+              {/* Nav links */}
               {NAV_LINKS.map((l, i) => (
-                <motion.a
+                <motion.div
                   key={l.href}
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.08 + i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                  className="border-b border-ivory/10 py-4 font-serif text-[27px] text-ivory hover:text-gold sm:text-3xl"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.06 + i * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ borderBottom: '1px solid rgba(31,5,5,0.1)' }}
                 >
-                  {l.label}
-                </motion.a>
+                  <Link
+                    to={l.href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center justify-between px-6 py-5 font-serif text-[24px] text-[#1F0505] hover:text-[#1F0505]/70 hover:bg-[#FFE6E9]/20 transition-colors"
+                  >
+                    {l.label}
+                    <span className="font-sans text-[10px] tracking-[0.18em] text-[#1F0505]/30 font-medium">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                  </Link>
+                </motion.div>
               ))}
-              <motion.a
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.08 + NAV_LINKS.length * 0.06, duration: 0.4 }}
-                href={WA_DEFAULT}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setOpen(false)}
-                className="btn btn-gold btn-sheen mt-7 w-full"
-              >
-                WhatsApp Us
-              </motion.a>
+
+              {/* Footer strip */}
+              <div className="px-6 py-5 mt-auto" style={{ borderTop: '1px solid rgba(31,5,5,0.12)' }}>
+                <a
+                  href={WA_DEFAULT}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center gap-2 border border-[#1F0505] px-4 py-3 text-[11px] font-semibold tracking-[0.14em] uppercase text-[#1F0505] w-full hover:bg-[#1F0505] hover:text-white transition-colors"
+                >
+                  <MessageCircle className="h-4 w-4" /> WhatsApp Us
+                </a>
+                <p className="text-center text-[9px] tracking-[0.18em] text-[#1F0505]/30 uppercase mt-4">
+                  {EDITION_DATE} — {EDITION_NUM}
+                </p>
+              </div>
             </nav>
           </motion.div>
         )}

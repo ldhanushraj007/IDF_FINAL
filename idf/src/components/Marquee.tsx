@@ -23,7 +23,6 @@ export default function Marquee() {
     const track = trackRef.current;
     if (!track) return;
 
-    // Use GSAP for infinite scrolling loop
     const marqueeTween = gsap.to(track, {
       xPercent: -50,
       repeat: -1,
@@ -37,15 +36,11 @@ export default function Marquee() {
     const handleScroll = () => {
       const currentY = window.scrollY;
       const delta = currentY - lastY;
-      
-      // Scale speed based on velocity
+
       const speed = gsap.utils.clamp(0.3, 2, 1 + Math.abs(delta) * 0.05);
-      
-      // If scrolling up, reverse or slow direction
       marqueeTween.timeScale(delta < 0 ? -speed : speed);
       lastY = currentY;
 
-      // Gradually decay speed back to normal (1)
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         gsap.to(marqueeTween, { timeScale: 1, duration: 0.5, ease: 'power1.out' });
@@ -62,7 +57,9 @@ export default function Marquee() {
   }, []);
 
   return (
-    <div className="grid-line bg-primary text-on-primary py-3 overflow-hidden whitespace-nowrap border-b border-[#1a1a1a]" aria-hidden="true">
+    <div className="bg-[#1F0505] text-white py-3 overflow-hidden whitespace-nowrap" aria-hidden="true"
+      style={{ borderBottom: '1px solid rgba(31,5,5,0.08)' }}
+    >
       <div
         ref={trackRef}
         className={`flex w-max gap-0 marquee-track ${animateCSS ? 'animate-marquee' : ''} motion-reduce:animate-none`}
@@ -70,10 +67,10 @@ export default function Marquee() {
         {row.map((item, i) => (
           <span
             key={`${item}-${i}`}
-            className="flex items-center gap-6 pr-6 font-label-caps text-label-caps text-on-primary tracking-widest uppercase"
+            className="flex items-center gap-6 pr-6 font-sans text-[10px] font-semibold text-white tracking-[0.2em] uppercase"
           >
             {item}
-            <span className="text-brand-gold font-bold">|</span>
+            <span className="text-[#FFE6E9] font-bold">|</span>
           </span>
         ))}
       </div>

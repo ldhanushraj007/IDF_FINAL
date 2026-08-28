@@ -20,10 +20,10 @@ export default function SectionHeading({
   const centered = align === 'center';
   return (
     <Reveal className={centered ? 'mx-auto max-w-2xl text-center' : 'max-w-2xl'}>
-      <p className={light ? 'kicker-light' : 'kicker'}>{kicker}</p>
+      <p className={light ? 'kicker-light' : 'kicker-dark'}>{kicker}</p>
       <h2
         className={`mt-4 font-serif text-3xl leading-[1.1] sm:text-4xl md:text-5xl md:leading-[1.08] ${
-          light ? 'text-ivory' : 'text-ink'
+          light ? 'text-white' : 'text-[#1F0505]'
         }`}
       >
         {title}
@@ -33,13 +33,13 @@ export default function SectionHeading({
         whileInView={{ scaleX: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 1.1, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className={`mt-5 block h-px w-24 bg-gold sm:mt-6 ${centered ? 'mx-auto' : ''} origin-left`}
+        className={`mt-5 block h-px w-24 ${light ? 'bg-[#FFE6E9]/50' : 'bg-[#1F0505]/20'} sm:mt-6 ${centered ? 'mx-auto' : ''} origin-left`}
         aria-hidden="true"
       />
       {sub && (
         <p
           className={`mt-5 text-sm leading-relaxed sm:mt-6 sm:text-[15px] ${
-            light ? 'text-ivory/65' : 'text-muted'
+            light ? 'text-white/60' : 'text-[#1F0505]/50'
           }`}
         >
           {sub}

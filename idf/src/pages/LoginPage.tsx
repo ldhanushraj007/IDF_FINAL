@@ -1,144 +1,125 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, X, ArrowLeft, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { isGoogleAuthConfigured, renderGoogleButton } from '../lib/googleAuth';
 import {
-  customerLoginApi,
-  customerSendOtpApi,
+  customerSignupApi,
   customerVerifyOtpApi,
+  customerLoginApi,
+  adminRequestOtpApi,
+  adminVerifyOtpApi,
+  isSheetsConfigured,
 } from '../lib/customerApi';
 import { BUSINESS } from '../lib/constants';
 
-/** Google's official four-colour "G" mark. */
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 48 48" className="h-5 w-5 shrink-0" aria-hidden="true">
-      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.3 2.7l5.7-5.7C33.5 6.5 29 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5 43.5 34.8 43.5 24c0-1.2-.1-2.4-.4-3.5z" />
-      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.9 19 13 24 13c2.8 0 5.3 1 7.3 2.7l5.7-5.7C33.5 6.5 29 4.5 24 4.5c-7.7 0-14.3 4.4-17.7 10.2z" />
-      <path fill="#4CAF50" d="M24 43.5c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.6 2.3-7.2 2.3-5.2 0-9.6-3.4-11.2-8.1l-6.6 5.1C9.5 39 16.2 43.5 24 43.5z" />
-      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.2 5.2C40.9 36.4 43.5 30.7 43.5 24c0-1.2-.1-2.4-.4-3.5z" />
-    </svg>
-  );
-}
+const ADMIN_EMAIL = 'admin3300@gmail.com';
 
-type Tab = 'login' | 'signup' | 'otp';
+type Step =
+  | 'login'          // email + password form
+  | 'login_otp'      // OTP sent to user's email after password OK
+  | 'signup'         // name + phone + email + password form
+  | 'signup_otp'     // OTP sent to new user's email
+  | 'admin_otp';     // OTP sent to indesignluxuryfabrics@gmail.com
 
 export default function LoginPage() {
-  const { user, loading, signInWithGoogle, completeCustomAuthSession } = useAuth();
+  const { user, loading, completeCustomAuthSession } = useAuth();
   const navigate = useNavigate();
 
-  const [tab, setTab] = useState<Tab>('login');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [step,    setStep]   = useState<Step>('login');
+  const [busy,    setBusy]   = useState(false);
+  const [error,   setError]  = useState('');
+  const [success, setSuccess]= useState('');
 
-  // Form Fields
-  const [email, setEmail] = useState('');
+  // shared form state
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [otpCode, setOtpCode] = useState('');
+  const [name,     setName]     = useState('');
+  const [phone,    setPhone]    = useState('');
+  const [otp,      setOtp]      = useState('');
 
-  // Google OAuth
-  const [gsiLoaded, setGsiLoaded] = useState(Boolean(window.google?.accounts?.id));
-  const [useNativeButton, setUseNativeButton] = useState(false);
-  const btnRef = useRef<HTMLDivElement>(null);
+  // 6-input refs for stylish OTP boxes
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Redirect if already signed in
   useEffect(() => {
-    if (!loading && user) {
-      navigate('/', { replace: true });
-    }
+    if (!loading && user) navigate('/', { replace: true });
   }, [user, loading, navigate]);
 
-  // Set page title
   useEffect(() => {
-    document.title = tab === 'login' ? `Login | ${BUSINESS.name}` : `Sign Up | ${BUSINESS.name}`;
-  }, [tab]);
+    document.title = step === 'signup' || step === 'signup_otp'
+      ? `Create Account | ${BUSINESS.name}`
+      : `Sign In | ${BUSINESS.name}`;
+  }, [step]);
 
-  // Wait for GSI script to load
+  // Auto-focus first OTP box when OTP step appears
   useEffect(() => {
-    if (gsiLoaded) return;
-    const interval = setInterval(() => {
-      if (window.google?.accounts?.id) {
-        setGsiLoaded(true);
-        clearInterval(interval);
-      }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [gsiLoaded]);
+    if (step === 'login_otp' || step === 'signup_otp' || step === 'admin_otp') {
+      setOtp('');
+      setTimeout(() => otpRefs.current[0]?.focus(), 120);
+    }
+  }, [step]);
 
-  // Render native Google button once GSI ready
-  useEffect(() => {
-    if (!gsiLoaded || !btnRef.current || tab !== 'login') return;
-    const id = 'idf-login-page-btn';
-    btnRef.current.id = id;
-    renderGoogleButton(id);
-    setUseNativeButton(true);
-  }, [gsiLoaded, tab]);
+  const clear = () => { setError(''); setSuccess(''); };
 
-  // ─── Actions ───────────────────────────────────────────────────────────────
+  // ── OTP box helpers ─────────────────────────────────────────────────────────
+
+  const handleOtpChar = (i: number, val: string) => {
+    if (!/^\d?$/.test(val)) return;
+    const arr = otp.split('');
+    arr[i] = val;
+    const next = arr.join('').padEnd(6, '').slice(0, 6);
+    setOtp(next.trimEnd());
+    if (val && i < 5) otpRefs.current[i + 1]?.focus();
+  };
+
+  const handleOtpKey = (i: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    setOtp(pasted);
+    otpRefs.current[Math.min(pasted.length, 5)]?.focus();
+    e.preventDefault();
+  };
+
+  // ── Login: Step 1 — password ────────────────────────────────────────────────
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault(); clear();
     if (!email.trim() || !password) return setError('Email and password are required.');
-    
+
+    const isAdmin = email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
     setBusy(true);
     try {
-      const res = await customerLoginApi(email.trim().toLowerCase(), password);
-      await completeCustomAuthSession(res.token, {
-        id: res.user.id,
-        email: res.user.email,
-        name: res.user.name,
-        picture: '',
-      });
-      navigate('/');
+      if (isAdmin) {
+        await adminRequestOtpApi(email.trim().toLowerCase(), password);
+        setSuccess(`Admin OTP sent to indesignluxuryfabrics@gmail.com`);
+        setStep('admin_otp');
+      } else {
+        const r = await customerLoginApi(email.trim().toLowerCase(), password);
+        if (r.otpSent) {
+          setSuccess(`Verification code sent to ${email}`);
+          setStep('login_otp');
+        }
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid email or password.');
+      setError(err instanceof Error ? err.message : 'Login failed. Check your email and password.');
     } finally {
       setBusy(false);
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!name.trim() || !phone.trim() || !email.trim() || !password) {
-      return setError('All fields are required.');
-    }
-    if (password.length < 6) {
-      return setError('Password must be at least 6 characters.');
-    }
+  // ── Login: Step 2 — verify OTP ──────────────────────────────────────────────
 
+  const handleLoginOtp = async (e: React.FormEvent) => {
+    e.preventDefault(); clear();
+    if (otp.length < 6) return setError('Please enter the complete 6-digit code.');
     setBusy(true);
     try {
-      await customerSendOtpApi(name.trim(), phone.trim(), email.trim().toLowerCase(), password);
-      setSuccessMsg(`Verification code sent to ${email}`);
-      setTab('otp');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!otpCode.trim()) return setError('Please enter the 6-digit verification code.');
-
-    setBusy(true);
-    try {
-      const res = await customerVerifyOtpApi(email.trim().toLowerCase(), otpCode.trim());
-      await completeCustomAuthSession(res.token, {
-        id: res.user.id,
-        email: res.user.email,
-        name: res.user.name,
-        picture: '',
-      });
+      const res = await customerVerifyOtpApi(email.trim().toLowerCase(), otp);
+      await completeCustomAuthSession(res.token, { id: res.user.id, email: res.user.email, name: res.user.name, picture: '' });
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Incorrect or expired code.');
@@ -147,299 +128,373 @@ export default function LoginPage() {
     }
   };
 
-  const resendOtp = async () => {
-    setError('');
+  // ── Admin OTP verify ────────────────────────────────────────────────────────
+
+  const handleAdminOtp = async (e: React.FormEvent) => {
+    e.preventDefault(); clear();
+    if (otp.length < 6) return setError('Please enter the complete 6-digit code.');
     setBusy(true);
     try {
-      await customerSendOtpApi(name.trim(), phone.trim(), email.trim().toLowerCase(), password);
-      setSuccessMsg(`A new code has been sent to ${email}`);
+      const res = await adminVerifyOtpApi(otp);
+      // Store admin token separately, then redirect to admin panel
+      localStorage.setItem('idf_admin_token', res.token);
+      await completeCustomAuthSession(res.token, { id: 'admin', email: ADMIN_EMAIL, name: 'Admin', picture: '' });
+      window.location.href = '/#/admin';
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to resend code.');
+      setError(err instanceof Error ? err.message : 'Incorrect admin code.');
     } finally {
       setBusy(false);
     }
   };
 
+  // ── Signup: Step 1 — details ────────────────────────────────────────────────
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault(); clear();
+    if (!name.trim() || !phone.trim() || !email.trim() || !password)
+      return setError('All fields are required.');
+    if (password.length < 6) return setError('Password must be at least 6 characters.');
+
+    setBusy(true);
+    try {
+      await customerSignupApi(name.trim(), phone.trim(), email.trim().toLowerCase(), password);
+      setSuccess(`Verification code sent to ${email}`);
+      setStep('signup_otp');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // ── Signup: Step 2 — verify OTP ─────────────────────────────────────────────
+
+  const handleSignupOtp = async (e: React.FormEvent) => {
+    e.preventDefault(); clear();
+    if (otp.length < 6) return setError('Please enter the complete 6-digit code.');
+    setBusy(true);
+    try {
+      const res = await customerVerifyOtpApi(email.trim().toLowerCase(), otp);
+      await completeCustomAuthSession(res.token, { id: res.user.id, email: res.user.email, name: res.user.name, picture: '' });
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Incorrect or expired code.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // ── Resend OTP ───────────────────────────────────────────────────────────────
+
+  const resend = async () => {
+    clear(); setBusy(true);
+    try {
+      if (step === 'admin_otp') {
+        await adminRequestOtpApi(email.trim().toLowerCase(), password);
+        setSuccess('New admin OTP sent to indesignluxuryfabrics@gmail.com');
+      } else if (step === 'login_otp') {
+        await customerLoginApi(email.trim().toLowerCase(), password);
+        setSuccess(`New code sent to ${email}`);
+      } else {
+        await customerSignupApi(name.trim(), phone.trim(), email.trim().toLowerCase(), password);
+        setSuccess(`New code sent to ${email}`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // ── Loading guard ────────────────────────────────────────────────────────────
+
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface">
-        <Loader2 className="h-6 w-6 animate-spin text-brand-gold" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[#1F0505]" />
       </div>
     );
   }
 
-  return (
-    <div className="grid-container w-full mx-auto max-w-[1600px] relative bg-surface border-x border-[#1a1a1a] min-h-screen flex flex-row">
-      {/* Left Sidebar */}
-      <div className="hairline-r relative flex flex-col items-center py-4 w-12 border-r border-[#1a1a1a] shrink-0">
-        <div className="font-index-num text-index-num mb-auto">01</div>
-        <div className="font-label-caps text-label-caps tracking-widest text-secondary rotate-[-90deg] whitespace-nowrap mb-32 uppercase">ACCOUNT</div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-grow flex flex-col min-h-screen">
-        {/* TopAppBar (Transactional - Hidden Navigation Links for focus) */}
-        <header className="flex items-center w-full px-margin-page py-6 border-b border-[#1a1a1a] bg-surface">
-          <div className="flex-1" />
-          <Link to="/" className="font-headline-md text-headline-md tracking-widest text-primary text-center font-serif uppercase">
-            IN DESIGN<br/><span className="text-sm tracking-[0.3em] text-brand-gold block font-sans">LUXURY FABRICS</span>
+  // ── Backend not yet deployed — show setup notice ─────────────────────────────
+  if (!isSheetsConfigured) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col" style={{ borderTop: '2px solid #1F0505' }}>
+        <div className="flex items-center justify-between px-6 md:px-12 py-4" style={{ borderBottom: '1px solid #1F0505' }}>
+          <Link to="/" className="flex items-center gap-3">
+            <img src="/images/logo/logo-mark.png" alt="" className="h-8 w-auto" />
+            <div>
+              <div className="font-serif text-[17px] tracking-[0.14em] text-[#1F0505] uppercase font-medium">In Design</div>
+              <div className="font-sans text-[7px] tracking-[0.32em] text-[#1F0505]/40 uppercase mt-0.5">Luxury Fabrics</div>
+            </div>
           </Link>
-          <div className="flex-1 flex justify-end">
-            <Link to="/" className="font-label-caps text-label-caps flex items-center gap-1.5 hover:text-primary text-secondary transition-colors duration-200">
-              <X className="h-4 w-4" />
-              <span>CLOSE</span>
+          <Link to="/" className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/50 uppercase font-semibold hover:text-[#1F0505] transition-colors">← Back to Shop</Link>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-[440px] bg-white p-8" style={{ border: '1px solid #1F0505' }}>
+            <p className="font-sans text-[9px] tracking-[0.28em] text-[#1F0505]/40 uppercase font-bold mb-3">Setup Required</p>
+            <h1 className="font-serif text-[26px] text-[#1F0505] mb-4">Backend not configured</h1>
+            <p className="font-sans text-[13px] text-[#1F0505]/60 leading-relaxed mb-6">
+              The Google Sheets backend hasn't been deployed yet. Customer accounts, OTP login, and order storage won't work until the Apps Script is deployed and the URL is set in <code className="bg-[#1F0505]/5 px-1.5 py-0.5 font-mono text-[12px]">.env.local</code>.
+            </p>
+            <div className="p-4 font-mono text-[11px] text-[#1F0505]/70 leading-relaxed space-y-1" style={{ border: '1px solid rgba(31,5,5,0.15)', background: '#FAFAFA' }}>
+              <p className="font-sans text-[8px] tracking-[0.22em] uppercase font-bold text-[#1F0505]/40 mb-2">Steps</p>
+              <p>1. Deploy <strong>IDF_Backend.gs</strong> to Google Apps Script</p>
+              <p>2. Set <strong>VITE_APPS_SCRIPT_URL</strong> in <strong>.env.local</strong></p>
+              <p>3. Restart dev server: <strong>npm run dev</strong></p>
+            </div>
+            <Link to="/" className="mt-6 block text-center font-sans text-[10px] tracking-[0.14em] text-[#1F0505]/40 hover:text-[#1F0505] transition-colors uppercase">
+              Continue browsing as guest →
             </Link>
           </div>
-        </header>
+        </div>
+      </div>
+    );
+  }
 
-        {/* Authentication Panel */}
-        <main className="flex-grow flex items-center justify-center p-4 sm:p-8 bg-surface-bright">
-          <div className="w-full max-w-md relative p-8 border border-on-background bg-surface">
-            <div className="index-marker absolute top-2 left-2 font-index-num text-index-num text-secondary">02</div>
-            <h1 className="font-headline-md text-headline-md text-center mb-8 mt-4 font-serif">Welcome Back</h1>
-            
-            {/* Tabs */}
-            {tab !== 'otp' && (
-              <div className="flex border-b border-outline mb-8">
-                <button
-                  onClick={() => { setTab('login'); setError(''); setSuccessMsg(''); }}
-                  className={`flex-1 pb-3 text-center font-label-caps text-label-caps transition-colors ${
-                    tab === 'login' ? 'border-b-2 border-brand-gold text-primary' : 'text-secondary'
-                  }`}
+  const isOtpStep = step === 'login_otp' || step === 'signup_otp' || step === 'admin_otp';
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col" style={{ borderTop: '2px solid #1F0505' }}>
+
+      {/* Top bar */}
+      <div
+        className="flex items-center justify-between px-6 md:px-12 py-4"
+        style={{ borderBottom: '1px solid #1F0505' }}
+      >
+        <Link to="/" className="flex items-center gap-3" aria-label="Home">
+          <img src="/images/logo/logo-mark.png" alt="" className="h-8 w-auto" />
+          <div>
+            <div className="font-serif text-[17px] tracking-[0.14em] text-[#1F0505] uppercase leading-none font-medium">In Design</div>
+            <div className="font-sans text-[7px] tracking-[0.32em] text-[#1F0505]/40 uppercase mt-0.5">Luxury Fabrics</div>
+          </div>
+        </Link>
+        <Link to="/" className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/50 uppercase font-semibold hover:text-[#1F0505] transition-colors">
+          ← Back to Shop
+        </Link>
+      </div>
+
+      {/* Center card */}
+      <div className="flex-1 flex items-center justify-center p-6 md:p-12 bg-[#FAFAFA]">
+        <div className="w-full max-w-[420px] bg-white" style={{ border: '1px solid #1F0505' }}>
+
+          {/* Card header */}
+          <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(31,5,5,0.12)' }}>
+            {isOtpStep ? (
+              <div className="text-center">
+                <div
+                  className="inline-flex items-center justify-center w-12 h-12 mb-4"
+                  style={{ border: '1px solid #1F0505' }}
                 >
-                  SIGN IN
-                </button>
-                <button
-                  onClick={() => { setTab('signup'); setError(''); setSuccessMsg(''); }}
-                  className={`flex-1 pb-3 text-center font-label-caps text-label-caps transition-colors ${
-                    tab === 'signup' ? 'border-b-2 border-brand-gold text-primary' : 'text-secondary'
-                  }`}
-                >
-                  SIGN UP
-                </button>
+                  <ShieldCheck className="h-6 w-6 text-[#1F0505]" strokeWidth={1.5} />
+                </div>
+                <h1 className="font-serif text-[26px] text-[#1F0505] leading-tight">Verify your {step === 'admin_otp' ? 'admin' : 'email'}</h1>
+                <p className="font-sans text-[12px] text-[#1F0505]/50 mt-2 leading-relaxed">
+                  {step === 'admin_otp'
+                    ? 'A 6-digit code was sent to indesignluxuryfabrics@gmail.com'
+                    : <>A 6-digit code was sent to <span className="text-[#1F0505] font-semibold">{email}</span></>
+                  }
+                </p>
               </div>
+            ) : (
+              <>
+                <p className="font-sans text-[9px] tracking-[0.3em] text-[#1F0505]/35 uppercase font-semibold mb-2">
+                  {step === 'signup' ? 'Create Account' : 'Customer Login'}
+                </p>
+                <h1 className="font-serif text-[30px] text-[#1F0505] leading-tight">
+                  {step === 'signup' ? 'Join IN DESIGN' : 'Welcome Back'}
+                </h1>
+              </>
             )}
+          </div>
 
-            {/* Notifications */}
+          {/* Tab switcher (only on login/signup) */}
+          {!isOtpStep && (
+            <div className="grid grid-cols-2" style={{ borderBottom: '1px solid #1F0505' }}>
+              {(['login', 'signup'] as const).map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setStep(t); clear(); }}
+                  className={`py-3 font-sans text-[10px] font-bold tracking-[0.18em] uppercase transition-colors ${
+                    step === t
+                      ? 'bg-[#1F0505] text-white'
+                      : 'text-[#1F0505]/50 hover:bg-[#FFE6E9]/40 hover:text-[#1F0505]'
+                  }`}
+                  style={t === 'login' ? { borderRight: '1px solid #1F0505' } : undefined}
+                >
+                  {t === 'login' ? 'Sign In' : 'Sign Up'}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Notifications */}
+          <div className="px-8">
             {error && (
-              <div className="mb-4 p-3 border border-error bg-error/5 text-[12px] text-error">
+              <div className="mt-5 p-3 font-sans text-[11px] text-red-700 bg-red-50" style={{ border: '1px solid #dc2626' }}>
                 {error}
               </div>
             )}
-            {successMsg && (
-              <div className="mb-4 flex items-center gap-2 p-3 border border-brand-gold bg-brand-gold/5 text-[12px] text-brand-gold">
-                <CheckCircle2 className="h-4 w-4 shrink-0" />
-                {successMsg}
+            {success && (
+              <div className="mt-5 p-3 font-sans text-[11px] text-[#1F0505] bg-[#FFE6E9]/40 flex items-start gap-2" style={{ border: '1px solid #1F0505' }}>
+                <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+                {success}
               </div>
             )}
+          </div>
 
+          {/* Forms */}
+          <div className="px-8 pb-8 pt-6">
             <AnimatePresence mode="wait">
-              {tab === 'login' && (
-                <motion.div
-                  key="login"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  className="space-y-6"
+
+              {/* ── LOGIN FORM ─────────────────────────────────────── */}
+              {step === 'login' && (
+                <motion.form key="login" onSubmit={handleLogin}
+                  initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }}
+                  className="space-y-5"
                 >
-                  <form onSubmit={handleLogin} className="space-y-6">
-                    <div>
-                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">EMAIL ADDRESS</label>
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">PASSWORD</label>
-                      <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
-                      />
-                    </div>
-                    <button type="submit" disabled={busy} className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors">
-                      {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'SIGN IN'}
-                    </button>
-                  </form>
-
-                  {isGoogleAuthConfigured && (
-                    <>
-                      <div className="relative flex items-center justify-center my-6">
-                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-outline-variant"></div></div>
-                        <span className="relative bg-surface px-4 font-label-caps text-label-caps text-secondary">OR</span>
-                      </div>
-
-                      <div ref={btnRef} className={useNativeButton ? 'flex justify-center' : 'hidden'} />
-                      
-                      {!useNativeButton && (
-                        <button
-                          type="button"
-                          onClick={gsiLoaded ? signInWithGoogle : undefined}
-                          disabled={!gsiLoaded}
-                          className="btn-outline w-full p-4 border border-primary text-primary font-label-caps text-label-caps flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
-                        >
-                          {gsiLoaded ? (
-                            <>
-                              <GoogleMark />
-                              CONTINUE WITH GOOGLE
-                            </>
-                          ) : (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              LOADING GOOGLE...
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </>
-                  )}
-                </motion.div>
+                  <Field label="Email Address">
+                    <input type="email" required autoComplete="email" value={email}
+                      onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
+                  </Field>
+                  <Field label="Password">
+                    <input type="password" required autoComplete="current-password" value={password}
+                      onChange={e => setPassword(e.target.value)} placeholder="Your password" />
+                  </Field>
+                  <SubmitBtn busy={busy}>Sign In →</SubmitBtn>
+                </motion.form>
               )}
 
-              {tab === 'signup' && (
-                <motion.div
-                  key="signup"
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="space-y-6"
+              {/* ── SIGNUP FORM ────────────────────────────────────── */}
+              {step === 'signup' && (
+                <motion.form key="signup" onSubmit={handleSignup}
+                  initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }}
+                  className="space-y-5"
                 >
-                  <form onSubmit={handleSignup} className="space-y-6">
-                    <div>
-                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">FULL NAME</label>
-                      <input
-                        type="text"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter your full name"
-                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">PHONE NUMBER</label>
-                      <input
-                        type="tel"
-                        required
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Enter phone number"
-                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">EMAIL ADDRESS</label>
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-label-caps text-label-caps mb-2 text-secondary">PASSWORD</label>
-                      <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Create a password"
-                        className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
-                      />
-                    </div>
-                    <button type="submit" disabled={busy} className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors">
-                      {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'CREATE ACCOUNT'}
-                    </button>
-                  </form>
-                </motion.div>
+                  <Field label="Full Name">
+                    <input type="text" required autoComplete="name" value={name}
+                      onChange={e => setName(e.target.value)} placeholder="Your full name" />
+                  </Field>
+                  <Field label="Phone Number">
+                    <input type="tel" required autoComplete="tel" value={phone}
+                      onChange={e => setPhone(e.target.value)} placeholder="+91 98765 43210" />
+                  </Field>
+                  <Field label="Email Address">
+                    <input type="email" required autoComplete="email" value={email}
+                      onChange={e => setEmail(e.target.value)} placeholder="you@example.com" />
+                  </Field>
+                  <Field label="Create Password">
+                    <input type="password" required autoComplete="new-password" value={password}
+                      onChange={e => setPassword(e.target.value)} placeholder="Min. 6 characters" />
+                  </Field>
+                  <SubmitBtn busy={busy}>Create Account →</SubmitBtn>
+                </motion.form>
               )}
 
-              {tab === 'otp' && (
-                <motion.div
+              {/* ── OTP FORM (login + signup + admin share) ────────── */}
+              {isOtpStep && (
+                <motion.form
                   key="otp"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  onSubmit={step === 'login_otp' ? handleLoginOtp : step === 'admin_otp' ? handleAdminOtp : handleSignupOtp}
+                  initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }}
                   className="space-y-6"
                 >
-                  <button
-                    onClick={() => { setTab('signup'); setError(''); setSuccessMsg(''); }}
-                    className="flex items-center gap-1.5 text-[12px] text-secondary hover:text-primary transition-colors"
+                  {/* Back button */}
+                  <button type="button"
+                    onClick={() => { setStep(step === 'signup_otp' ? 'signup' : 'login'); clear(); }}
+                    className="flex items-center gap-1.5 font-sans text-[11px] text-[#1F0505]/50 hover:text-[#1F0505] transition-colors"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5" /> Back to Sign Up
+                    <ArrowLeft className="h-3.5 w-3.5" /> Back
                   </button>
 
-                  <div className="mb-6 text-center">
-                    <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-gold/10 text-brand-gold">
-                      <ShieldCheck className="h-5 w-5" />
-                    </div>
-                    <h2 className="font-serif text-2xl text-primary">Verify your email</h2>
-                    <p className="mt-1 text-[13px] text-secondary">
-                      We sent a 6-digit code to <span className="text-brand-gold font-medium">{email}</span>. Enter it below to activate your account.
-                    </p>
+                  {/* 6-box OTP input */}
+                  <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <input
+                        key={i}
+                        ref={el => { otpRefs.current[i] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={otp[i] || ''}
+                        onChange={e => handleOtpChar(i, e.target.value)}
+                        onKeyDown={e => handleOtpKey(i, e)}
+                        className="w-11 h-12 text-center font-sans text-[20px] font-bold text-[#1F0505] bg-white outline-none transition-all"
+                        style={{
+                          border: otp[i] ? '2px solid #1F0505' : '1px solid rgba(31,5,5,0.3)',
+                          caretColor: '#1F0505',
+                        }}
+                      />
+                    ))}
                   </div>
 
-                  <form onSubmit={handleVerifyOtp} className="space-y-6">
-                    <input
-                      type="text"
-                      required
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Enter 6-digit Code"
-                      className="w-full border border-outline p-3 text-center tracking-[0.3em] font-bold text-lg bg-transparent outline-none focus:border-primary"
-                    />
-                    <button type="submit" disabled={busy} className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors">
-                      {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'VERIFY & SIGN IN'}
-                    </button>
-                  </form>
+                  <SubmitBtn busy={busy}>Verify & Continue →</SubmitBtn>
 
-                  <div className="text-center text-[12px] text-secondary">
-                    Didn't receive the email?{' '}
-                    <button
-                      onClick={resendOtp}
-                      disabled={busy}
-                      className="text-brand-gold hover:underline disabled:opacity-50"
-                    >
-                      Resend Code
+                  <p className="text-center font-sans text-[11px] text-[#1F0505]/40">
+                    Didn't receive it?{' '}
+                    <button type="button" onClick={resend} disabled={busy}
+                      className="text-[#1F0505] underline underline-offset-2 disabled:opacity-50 hover:no-underline">
+                      Resend code
                     </button>
-                  </div>
-                </motion.div>
+                  </p>
+                </motion.form>
               )}
+
             </AnimatePresence>
-
-            <div className="mt-8 border-t border-primary/5 pt-6 text-center">
-              <Link to="/" className="text-[12px] text-secondary hover:text-primary transition-colors">
-                ← Continue browsing as guest
-              </Link>
-            </div>
           </div>
-        </main>
 
-        {/* Footer (Minimal for Auth) */}
-        <footer className="w-full px-margin-page py-6 border-t border-[#1a1a1a] bg-surface flex justify-between items-center text-secondary font-label-caps text-label-caps">
-          <span>© {new Date().getFullYear()} {BUSINESS.legalName}. ALL RIGHTS RESERVED.</span>
-          <div className="flex gap-4">
-            <a className="hover:text-primary" href="#">PRIVACY</a>
-            <a className="hover:text-primary" href="#">TERMS</a>
+          {/* Footer link */}
+          <div className="px-8 py-4 text-center" style={{ borderTop: '1px solid rgba(31,5,5,0.08)' }}>
+            <Link to="/" className="font-sans text-[10px] tracking-[0.12em] text-[#1F0505]/40 hover:text-[#1F0505] transition-colors">
+              Continue browsing as guest →
+            </Link>
           </div>
-        </footer>
+        </div>
       </div>
 
-      {/* Right Sidebar */}
-      <div className="relative flex flex-col items-center py-4 w-12 border-l border-[#1a1a1a] shrink-0">
-        <div className="font-index-num text-index-num mb-auto">02</div>
+      {/* Bottom bar */}
+      <div
+        className="px-6 md:px-12 py-4 flex flex-wrap items-center justify-between gap-3"
+        style={{ borderTop: '1px solid rgba(31,5,5,0.12)' }}
+      >
+        <p className="font-sans text-[9px] text-[#1F0505]/30 tracking-[0.15em] uppercase">
+          © {new Date().getFullYear()} {BUSINESS.legalName}
+        </p>
+        <div className="flex gap-4">
+          <a href="#" className="font-sans text-[9px] text-[#1F0505]/30 hover:text-[#1F0505] uppercase tracking-[0.15em] transition-colors">Privacy</a>
+          <a href="#" className="font-sans text-[9px] text-[#1F0505]/30 hover:text-[#1F0505] uppercase tracking-[0.15em] transition-colors">Terms</a>
+        </div>
       </div>
     </div>
+  );
+}
+
+// ── Small reusable sub-components ─────────────────────────────────────────────
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block font-sans text-[9px] tracking-[0.22em] text-[#1F0505]/50 uppercase font-bold mb-2">
+        {label}
+      </label>
+      <div className="[&_input]:w-full [&_input]:border [&_input]:border-[rgba(31,5,5,0.25)] [&_input]:px-4 [&_input]:py-3 [&_input]:font-sans [&_input]:text-[14px] [&_input]:text-[#1F0505] [&_input]:bg-white [&_input]:outline-none [&_input:focus]:border-[#1F0505] [&_input]:transition-colors [&_input::placeholder]:text-[#1F0505]/25">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SubmitBtn({ busy, children }: { busy: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="submit"
+      disabled={busy}
+      className="w-full py-3.5 bg-[#1F0505] text-white font-sans text-[11px] font-bold tracking-[0.22em] uppercase hover:bg-[#1F0505]/85 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+    >
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : children}
+    </button>
   );
 }

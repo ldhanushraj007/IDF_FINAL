@@ -24,11 +24,11 @@ export default function Counter({ value, suffix = '+', label }: CounterProps) {
 
   return (
     <div ref={ref} className="text-center">
-      <p className="font-nums font-semibold text-3xl text-gold sm:text-4xl md:text-5xl">
+      <p className="font-nums font-semibold text-3xl text-[#FFE6E9] sm:text-4xl md:text-5xl">
         {display.toLocaleString('en-IN')}
         {suffix}
       </p>
-      <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-ivory/70 sm:mt-3 sm:text-[11px] sm:tracking-[0.25em]">
+      <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/50 sm:mt-3 sm:text-[11px] sm:tracking-[0.25em]">
         {label}
       </p>
     </div>

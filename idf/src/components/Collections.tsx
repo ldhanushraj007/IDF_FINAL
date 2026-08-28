@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Link } from 'react-router-dom';
 import { COLLECTIONS } from '../data/collections';
-import { waLink } from '../lib/constants';
 import SectionHeading from './SectionHeading';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -92,13 +92,11 @@ export default function Collections() {
 
         <div className="collections-grid mt-10 grid gap-5 sm:mt-16 sm:gap-6 md:grid-cols-3">
           {COLLECTIONS.map((c) => (
-            <a
+            <Link
               key={c.slug}
-              href={waLink(`Hello! I'm interested in the ${c.name} collection.`)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="collection-card group relative block overflow-hidden border border-[#1a1a1a] bg-surface"
-              aria-label={`Enquire about ${c.name} on WhatsApp`}
+              to={`/shop/${c.slug}`}
+              className="collection-card group relative block overflow-hidden border border-[#1F0505]/10 bg-white"
+              aria-label={`Shop the ${c.name} collection`}
             >
               {/* Outer image wrapper for parallax clipping */}
               <div className="w-full aspect-[4/5] md:aspect-[3/4] overflow-hidden">
@@ -116,7 +114,7 @@ export default function Collections() {
               />
 
               <div className="absolute inset-x-0 bottom-0 p-5 lg:p-6 text-white">
-                <p className="collection-card__caption text-[10px] uppercase tracking-[0.3em] text-brand-gold inline-block">
+                <p className="collection-card__caption text-[10px] uppercase tracking-[0.3em] text-[#FFE6E9] inline-block">
                   {c.tagline.toUpperCase()}
                 </p>
                 <h3 className="mt-2 font-serif text-2xl leading-snug text-white md:text-xl lg:text-2xl">
@@ -125,11 +123,11 @@ export default function Collections() {
                 <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-white/80 md:max-lg:hidden">
                   {c.description}
                 </p>
-                <p className="mt-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-gold opacity-0 transition-all duration-500 ease-lux group-hover:opacity-100 touch:opacity-100">
-                  Enquire on WhatsApp <span aria-hidden="true">→</span>
+                <p className="mt-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#FFE6E9] opacity-0 transition-all duration-500 ease-lux group-hover:opacity-100 touch:opacity-100">
+                  Shop Collection <span aria-hidden="true">→</span>
                 </p>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

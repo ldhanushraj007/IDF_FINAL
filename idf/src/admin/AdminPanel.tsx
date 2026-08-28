@@ -53,7 +53,8 @@ import { loadCatalog, EMPTY_OFFER, type Offer } from '../lib/catalogSource';
 import { loadReviews } from '../lib/reviewSource';
 import { isAdminConfigured } from '../lib/adminApi';
 import {
-  adminLogin,
+  adminRequestOtp,
+  adminVerifyOtp,
   checkIsAdmin,
   adminSignOut,
   fetchProducts,
@@ -118,84 +119,116 @@ function exportCsv(filename: string, rows: Record<string, string | number | bool
  * LOGIN SCREENS
  * ================================================================== */
 
-type LoginStep = 'credentials' | 'otp';
-
+/**
+ * OTP-based Admin Login (when Apps Script backend is deployed).
+ * Step 1: enter admin password → OTP sent to indesignluxuryfabrics@gmail.com
+ * Step 2: enter OTP → session token saved → panel unlocked
+ */
 function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [step, setStep]           = useState<'password' | 'otp'>('password');
+  const [password, setPassword]   = useState('');
+  const [showPw, setShowPw]       = useState(false);
+  const [otpVal, setOtpVal]       = useState('');
+  const [busy, setBusy]           = useState(false);
+  const [error, setError]         = useState('');
+  const [info, setInfo]           = useState('');
 
-  const handleLogin = async () => {
+  // Step 1: validate password → send OTP
+  const handlePassword = async () => {
     setError('');
-    if (!username.trim() || !password) return setError('Enter your username and password');
+    if (!password) return setError('Enter the admin password.');
     setBusy(true);
     try {
-      await adminLogin(username.trim(), password);
-      if (!checkIsAdmin()) {
-        setError('Authentication failed');
-        return;
-      }
-      onUnlocked();
+      await adminRequestOtp(password);
+      setInfo('A 6-digit code has been sent to indesignluxuryfabrics@gmail.com');
+      setStep('otp');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Invalid credentials');
+      setError(e instanceof Error ? e.message : 'Authentication failed.');
     } finally {
       setBusy(false);
     }
   };
 
-  return (
-    <div className="w-full max-w-sm">
-      {/* Header */}
-      <div className="border-b border-gold/20 pb-6 mb-6 flex items-center gap-4">
-        <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
-        <div>
-          <p className="text-[10px] tracking-[0.2em] text-gold uppercase font-semibold">Admin Portal</p>
-          <h1 className="font-serif text-xl text-ivory">In Design Luxury Fabrics</h1>
-        </div>
+  // Step 2: verify OTP → unlock panel
+  const handleOtp = async () => {
+    setError('');
+    if (otpVal.length < 6) return setError('Enter the 6-digit code.');
+    setBusy(true);
+    try {
+      await adminVerifyOtp(otpVal.trim());
+      if (!checkIsAdmin()) throw new Error('Session not created.');
+      onUnlocked();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Invalid code.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const Header = () => (
+    <div className="border-b border-gold/20 pb-6 mb-6 flex items-center gap-4">
+      <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
+      <div>
+        <p className="text-[10px] tracking-[0.2em] text-gold uppercase font-semibold">Admin Portal</p>
+        <h1 className="font-serif text-xl text-ivory">In Design Luxury Fabrics</h1>
       </div>
+    </div>
+  );
 
-      <p className="mb-5 text-[12px] text-ivory/40 tracking-wide uppercase">Sign in with admin credentials</p>
-
-      <div className="space-y-3">
+  if (step === 'otp') {
+    return (
+      <div className="w-full max-w-sm">
+        <Header />
+        {info && <p className="mb-4 text-[11px] text-gold/80 border border-gold/20 px-3 py-2">{info}</p>}
+        <p className="mb-5 text-[12px] text-ivory/40 tracking-wide uppercase">Enter verification code</p>
         <div className="border border-ivory/10 focus-within:border-gold transition-colors">
           <input
             type="text"
-            name="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+            inputMode="numeric"
+            maxLength={6}
+            value={otpVal}
             autoFocus
-            autoCapitalize="none"
-            placeholder="Username"
-            className="w-full bg-transparent px-4 py-3 text-[13px] text-ivory placeholder-ivory/30 outline-none"
+            onChange={(e) => setOtpVal(e.target.value.replace(/\D/g, ''))}
+            onKeyDown={(e) => e.key === 'Enter' && handleOtp()}
+            placeholder="6-digit code"
+            className="w-full bg-transparent px-4 py-3 text-center text-xl tracking-[0.4em] text-ivory placeholder-ivory/20 outline-none font-semibold"
           />
         </div>
-        <div className="border border-ivory/10 focus-within:border-gold transition-colors flex items-center">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            placeholder="Password"
-            className="flex-1 bg-transparent px-4 py-3 text-[13px] text-ivory placeholder-ivory/30 outline-none"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-            className="px-3 text-ivory/30 hover:text-ivory transition-colors"
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
+        <button type="button" onClick={handleOtp} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full py-3 text-[12px] tracking-widest uppercase">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Verify & Unlock'}
+        </button>
+        {error && <p className="mt-3 text-[12px] text-maroon border border-maroon/30 px-3 py-2">{error}</p>}
+        <button type="button" onClick={() => { setStep('password'); setError(''); setOtpVal(''); }}
+          className="mt-4 text-[11px] text-ivory/30 hover:text-gold transition-colors">
+          ← Resend / Change password
+        </button>
       </div>
+    );
+  }
 
-      <button type="button" onClick={handleLogin} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full py-3 text-[12px] tracking-widest uppercase">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Authenticate'}
+  return (
+    <div className="w-full max-w-sm">
+      <Header />
+      <p className="mb-5 text-[12px] text-ivory/40 tracking-wide uppercase">Sign in with admin password</p>
+      <div className="border border-ivory/10 focus-within:border-gold transition-colors flex items-center">
+        <input
+          type={showPw ? 'text' : 'password'}
+          value={password}
+          autoFocus
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handlePassword()}
+          placeholder="Admin password"
+          className="flex-1 bg-transparent px-4 py-3 text-[13px] text-ivory placeholder-ivory/30 outline-none"
+        />
+        <button type="button" onClick={() => setShowPw(v => !v)}
+          aria-label={showPw ? 'Hide' : 'Show'}
+          className="px-3 text-ivory/30 hover:text-ivory transition-colors">
+          {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+      <button type="button" onClick={handlePassword} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full py-3 text-[12px] tracking-widest uppercase">
+        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Send Verification Code'}
       </button>
-
       {error && <p className="mt-3 text-[12px] text-maroon border border-maroon/30 px-3 py-2">{error}</p>}
       <div className="mt-8 border-t border-ivory/10 pt-4">
         <a href="/" className="text-[11px] text-ivory/30 hover:text-gold tracking-widest uppercase transition-colors">
@@ -385,7 +418,7 @@ export default function AdminPanel() {
     setPublishState('publishing');
     setPublishError('');
     try {
-      await publishProducts(items, offer, originalIds);
+      await publishProducts(items, offer);
       setOriginalIds(items.map((i) => i.id));
       setDirty(false);
       setPublishState('done');

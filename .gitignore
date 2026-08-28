@@ -1,0 +1,12 @@
+# Portable Git binaries (not part of the project)
+PortableGit/
+portablegit.exe
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Env files with secrets
+*.local
+.env

@@ -22,21 +22,21 @@ export default function OfferBar() {
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="relative overflow-hidden bg-maroon text-center"
+          className="relative overflow-hidden bg-[#1F0505] text-center"
         >
           <div className="container-lux py-2.5 pr-8">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-gold-light sm:text-[13px]">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#FFE6E9] sm:text-[13px]">
               {offer.headline}
             </p>
             {offer.detail && (
-              <p className="mt-0.5 text-[11px] tracking-wide text-ivory/70">{offer.detail}</p>
+              <p className="mt-0.5 text-[11px] tracking-wide text-white/50">{offer.detail}</p>
             )}
           </div>
           <button
             type="button"
             onClick={() => setDismissed(true)}
             aria-label="Dismiss offer"
-            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-ivory/50 transition-colors hover:text-ivory"
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-white/40 transition-colors hover:text-white"
           >
             <X className="h-4 w-4" />
           </button>

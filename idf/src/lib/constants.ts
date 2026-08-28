@@ -2,7 +2,7 @@
 export const BUSINESS = {
   name: 'In Design Luxury Fabrics',
   legalName: 'IN DESIGN LUXURY FABRICS',
-  tagline: 'Curators of Haute Couture',
+  tagline: 'Curated couture and bridal fabrics, by the metre.',
   city: 'Bengaluru',
 
   phoneDisplay: '088848 53153',
@@ -69,6 +69,14 @@ export const ORDER = {
   wholesaleDiscount: 0.15, // 15% off at wholesale quantities
 } as const;
 
+/** Bulk order qualification thresholds. */
+export const BULK = {
+  /** Cart qualifies as bulk if distinct product count >= this. */
+  distinctProductsThreshold: 4,
+  /** Cart qualifies as bulk if total metres >= this. */
+  totalMetresThreshold: 16,
+} as const;
+
 /**
  * WHERE THE LIVE CATALOG COMES FROM.
  *
@@ -118,13 +126,15 @@ export const WA_VISIT = waLink(
   'Hello! I would like to plan a visit to your Commercial Street showroom.',
 );
 
+/** Main navigation — proper routes (not hash anchors). */
 export const NAV_LINKS = [
-  { href: '/#collections', label: 'Collections' },
-  { href: '/#shop', label: 'Shop' },
+  { href: '/', label: 'Home' },
   { href: '/about', label: 'About Us' },
-  { href: '/#gallery', label: 'Gallery' },
-  { href: '/#reviews', label: 'Reviews' },
-  { href: '/#visit', label: 'Visit' },
+  { href: '/collections', label: 'Collections' },
+  { href: '/shop', label: 'Shop' },
+  { href: '/reviews', label: 'Reviews' },
+  { href: '/visit', label: 'Visit' },
+  { href: '/contact', label: 'Contact Us' },
 ] as const;
 
 export const inr = (n: number) => `₹${n.toLocaleString('en-IN')}`;

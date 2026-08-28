@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { fadeInUpVariants } from '../lib/motionVariants';
 
@@ -7,10 +7,11 @@ interface RevealProps {
   delay?: number;
   y?: number;
   className?: string;
+  style?: CSSProperties;
 }
 
 /** Gentle fade-and-rise on scroll into view. */
-export default function Reveal({ children, delay = 0, y = 24, className }: RevealProps) {
+export default function Reveal({ children, delay = 0, y = 24, className, style }: RevealProps) {
   const customVariants = {
     hidden: { opacity: 0, y },
     visible: {
@@ -31,6 +32,7 @@ export default function Reveal({ children, delay = 0, y = 24, className }: Revea
       whileInView="visible"
       viewport={{ once: true, margin: '-100px' }}
       className={className}
+      style={style}
     >
       {children}
     </motion.div>
