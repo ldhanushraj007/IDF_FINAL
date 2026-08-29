@@ -61,44 +61,40 @@ export default function Navbar() {
     >
       {/* ── Top masthead strip ── */}
       <div
-        className="w-full grid grid-cols-3 items-center px-5 md:px-10 lg:px-12 py-2"
-        style={{ borderBottom: '1px solid rgba(31,5,5,0.15)' }}
+        className="w-full flex items-center justify-between px-4 sm:px-8 md:px-10 lg:px-12 py-2.5 border-b border-[#1F0505]/15"
       >
-        {/* Left column */}
-        <div className="flex items-center justify-start">
-          <span className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/40 uppercase font-semibold hidden sm:block">
+        {/* Left: Brand Logo */}
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/40 uppercase font-semibold hidden md:block mr-2">
             Est. 2009
           </span>
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 text-left" aria-label="IN DESIGN — Home">
+            <img
+              src="/images/logo/logo-mark.png"
+              alt=""
+              aria-hidden="true"
+              className="h-7 sm:h-8 w-auto object-contain shrink-0"
+            />
+            <div className="text-left shrink-0">
+              <div
+                className="font-serif text-[17px] sm:text-[20px] md:text-[22px] tracking-[0.14em] text-[#1F0505] uppercase leading-none font-medium"
+              >
+                In Design
+              </div>
+              <div className="font-sans text-[6.5px] sm:text-[7px] tracking-[0.3em] text-[#1F0505]/50 uppercase mt-0.5 font-semibold">
+                Luxury Fabrics
+              </div>
+            </div>
+          </Link>
         </div>
 
-        {/* Center column — 100% mathematically centered */}
-        <Link to="/" className="flex items-center justify-center gap-3 text-center" aria-label="IN DESIGN — Home">
-          <img
-            src="/images/logo/logo-mark.png"
-            alt=""
-            aria-hidden="true"
-            className="h-8 w-auto object-contain"
-          />
-          <div className="text-left">
-            <div
-              className="font-serif text-[20px] md:text-[22px] tracking-[0.12em] text-[#1F0505] uppercase leading-none font-medium"
-              style={{ letterSpacing: '0.16em' }}
-            >
-              In Design
-            </div>
-            <div className="font-sans text-[7px] tracking-[0.34em] text-[#1F0505]/45 uppercase mt-0.5 font-semibold">
-              Luxury Fabrics
-            </div>
-          </div>
-        </Link>
-
-        {/* Right column */}
-        <div className="flex items-center justify-end gap-3.5 shrink-0">
+        {/* Right: Actions & Menu */}
+        <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
           <span className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/40 uppercase font-medium hidden xl:inline-block">
             {EDITION_NUM}
           </span>
           {/* Right icons */}
-          <div className="flex items-center gap-3" style={{ borderLeft: '1px solid rgba(31,5,5,0.15)', paddingLeft: '12px' }}>
+          <div className="flex items-center gap-1.5 sm:gap-2.5 pl-2 sm:pl-3 border-l border-[#1F0505]/15">
             {/* Account */}
             <div className="relative" ref={accountRef}>
               {user ? (
@@ -179,13 +175,12 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* Mobile menu */}
+            {/* Mobile menu button */}
             <button
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="flex items-center justify-center p-1.5 rounded-full text-[#1F0505]/70 hover:text-[#1F0505] hover:bg-[#FFE6E9]/40 lg:hidden"
-              style={{ borderLeft: '1px solid rgba(31,5,5,0.15)', paddingLeft: '12px', marginLeft: '4px' }}
+              className="flex items-center justify-center p-1.5 rounded-full text-[#1F0505]/70 hover:text-[#1F0505] hover:bg-[#FFE6E9]/40 lg:hidden ml-1"
             >
               <Menu className="h-5 w-5" />
             </button>
