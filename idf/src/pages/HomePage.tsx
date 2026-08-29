@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ArrowRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCatalog } from '../context/CatalogContext';
 import { BUSINESS, inr, waLink } from '../lib/constants';
 import Reveal from '../components/Reveal';
@@ -28,10 +29,21 @@ const BRAND_PILLARS = [
 export default function HomePage() {
   const { items, loading } = useCatalog();
   const [quickView, setQuickView] = useState<Item | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const featured = items.filter(i => i.stock !== 'out').slice(0, 6);
-  const hero = items.find(i => i.stock !== 'out') || null;
-  const editorial = items.filter(i => i.stock !== 'out').slice(1, 4);
+  const heroItems = items.filter(i => i.stock !== 'out').slice(0, 5);
+  const hero = heroItems[currentSlide] || heroItems[0] || null;
+  const editorial = items.filter(i => i.stock !== 'out').slice(0, 5);
+
+  // Auto-advance hero carousel every 4.5 seconds
+  useEffect(() => {
+    if (heroItems.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroItems.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [heroItems.length]);
 
   useEffect(() => {
     document.title = `IN DESIGN — Luxury Fabrics, Bengaluru`;
@@ -99,18 +111,25 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Hero fabric image — full bleed */}
-            <div className="relative flex-1 min-h-[420px] md:min-h-[520px] overflow-hidden bg-[#FFE6E9]/30">
+            {/* Hero fabric carousel — full bleed */}
+            <div className="relative flex-1 min-h-[420px] md:min-h-[520px] overflow-hidden bg-[#FFE6E9]/30 group">
               {hero ? (
                 <>
-                  <img
-                    src={hero.image}
-                    alt={hero.name}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    style={{
-                      filter: 'grayscale(0.12) contrast(1.04)',
-                    }}
-                  />
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={hero.id}
+                      src={hero.image}
+                      alt={hero.name}
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.7, ease: 'easeOut' }}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={{
+                        filter: 'grayscale(0.12) contrast(1.04)',
+                      }}
+                    />
+                  </AnimatePresence>
                   {/* Halftone texture overlay */}
                   <div
                     className="absolute inset-0 pointer-events-none"
@@ -120,22 +139,60 @@ export default function HomePage() {
                     }}
                   />
                   {/* Gradient fade to white at bottom */}
-                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-white via-white/70 to-transparent pointer-events-none" />
 
-                  {/* Hero caption block (newspaper photo caption style) */}
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <div className="bg-white/92 backdrop-blur-sm px-4 py-3" style={{ border: '1px solid #1F0505' }}>
-                      <p className="font-sans text-[8px] tracking-[0.2em] text-[#1F0505]/50 uppercase font-semibold mb-1">
-                        Featured Fabric
-                      </p>
-                      <p className="font-serif text-[16px] text-[#1F0505] leading-tight">{hero.name}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="font-sans text-[11px] text-[#1F0505]/60">{inr(hero.pricePerMetre)} / metre</span>
+                  {/* Left / Right Carousel Controls */}
+                  {heroItems.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentSlide((prev) => (prev - 1 + heroItems.length) % heroItems.length)}
+                        aria-label="Previous featured fabric"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#1F0505] shadow-md border border-[#1F0505]/20 hover:bg-[#1F0505] hover:text-white transition-all opacity-80 group-hover:opacity-100"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentSlide((prev) => (prev + 1) % heroItems.length)}
+                        aria-label="Next featured fabric"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#1F0505] shadow-md border border-[#1F0505]/20 hover:bg-[#1F0505] hover:text-white transition-all opacity-80 group-hover:opacity-100"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Hero caption block (newspaper photo caption style) + Carousel Dots */}
+                  <div className="absolute bottom-6 left-6 right-6 z-10 flex flex-col gap-3">
+                    <div className="bg-white/95 backdrop-blur-md px-5 py-3.5 shadow-md" style={{ border: '1px solid #1F0505' }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-sans text-[8px] tracking-[0.2em] text-[#1F0505]/50 uppercase font-semibold">
+                          Featured Fabric · {currentSlide + 1} of {heroItems.length}
+                        </p>
+                        {/* Carousel Dots */}
+                        <div className="flex items-center gap-1.5">
+                          {heroItems.map((_, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setCurrentSlide(idx)}
+                              aria-label={`Go to slide ${idx + 1}`}
+                              className={`h-1.5 rounded-full transition-all ${
+                                currentSlide === idx ? 'w-5 bg-[#1F0505]' : 'w-1.5 bg-[#1F0505]/30 hover:bg-[#1F0505]/60'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="font-serif text-[18px] sm:text-[20px] text-[#1F0505] leading-tight font-medium">{hero.name}</p>
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#1F0505]/10">
+                        <span className="font-sans text-[12px] font-semibold text-[#1F0505]">{inr(hero.pricePerMetre)} / metre</span>
                         <Link
                           to={`/shop/product/${hero.id}`}
-                          className="font-sans text-[9px] tracking-[0.16em] text-[#1F0505] uppercase font-semibold underline underline-offset-2"
+                          className="font-sans text-[9.5px] tracking-[0.18em] text-[#1F0505] uppercase font-bold underline underline-offset-2 hover:no-underline"
                         >
-                          View →
+                          View Fabric →
                         </Link>
                       </div>
                     </div>
@@ -186,18 +243,18 @@ export default function HomePage() {
             {editorial.map((item, i) => (
               <div
                 key={item.id}
-                className="px-5 py-5 group cursor-pointer hover:bg-[#FFE6E9]/20 transition-colors"
+                className="px-5 py-3.5 group cursor-pointer hover:bg-[#FFE6E9]/20 transition-colors"
                 style={i < editorial.length - 1 ? rule : undefined}
                 onClick={() => setQuickView(item)}
               >
-                <div className="flex gap-3">
-                  <div className="w-16 h-20 shrink-0 overflow-hidden bg-[#f5f0ed]" style={{ border: '1px solid rgba(31,5,5,0.1)' }}>
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                <div className="flex gap-3 items-center">
+                  <div className="w-14 h-16 shrink-0 overflow-hidden bg-[#f5f0ed] rounded" style={{ border: '1px solid rgba(31,5,5,0.1)' }}>
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-sans text-[8px] tracking-[0.18em] text-[#1F0505]/40 uppercase font-semibold mb-1">{item.category}</p>
-                    <p className="font-serif text-[13px] text-[#1F0505] leading-snug line-clamp-2">{item.name}</p>
-                    <p className="font-sans text-[11px] text-[#1F0505]/50 mt-1.5">{inr(item.pricePerMetre)}<span className="text-[9px] text-[#1F0505]/30">/m</span></p>
+                    <p className="font-sans text-[7.5px] tracking-[0.18em] text-[#1F0505]/40 uppercase font-semibold mb-0.5">{item.category}</p>
+                    <p className="font-serif text-[13px] text-[#1F0505] leading-snug truncate font-medium group-hover:text-[#1F0505]/70">{item.name}</p>
+                    <p className="font-sans text-[10.5px] font-medium text-[#1F0505]/60 mt-1">{inr(item.pricePerMetre)}<span className="text-[8.5px] text-[#1F0505]/35">/m</span></p>
                   </div>
                 </div>
               </div>
