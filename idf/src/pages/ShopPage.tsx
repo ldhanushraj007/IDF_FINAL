@@ -379,16 +379,13 @@ export default function ShopPage() {
               </div>
             ) : (
               <div
-                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 bg-white"
                 style={{ borderBottom: '1px solid #1F0505' }}
               >
                 {items.map((item, i) => (
                   <div
                     key={item.id}
-                    style={{
-                      borderRight: (i % 3 !== 2) ? '1px solid #1F0505' : undefined,
-                      borderBottom: '1px solid #1F0505',
-                    }}
+                    className="border-b border-r border-[#1F0505]/20"
                   >
                     <ProductCard item={item} onQuickView={setQuickViewItem} />
                   </div>

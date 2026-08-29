@@ -68,20 +68,20 @@ export default function Navbar() {
           <span className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/40 uppercase font-semibold hidden md:block mr-2">
             Est. 2009
           </span>
-          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 text-left" aria-label="IN DESIGN — Home">
+          <Link to="/" className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 text-left" aria-label="IN DESIGN — Home">
             <img
               src="/images/logo/logo-mark.png"
               alt=""
               aria-hidden="true"
-              className="h-7 sm:h-8 w-auto object-contain shrink-0"
+              className="h-6 xs:h-7 sm:h-8 w-auto object-contain shrink-0"
             />
             <div className="text-left shrink-0">
               <div
-                className="font-serif text-[17px] sm:text-[20px] md:text-[22px] tracking-[0.14em] text-[#1F0505] uppercase leading-none font-medium"
+                className="font-serif text-[14px] xs:text-[16px] sm:text-[20px] md:text-[22px] tracking-[0.1em] sm:tracking-[0.14em] text-[#1F0505] uppercase leading-none font-medium"
               >
                 In Design
               </div>
-              <div className="font-sans text-[6.5px] sm:text-[7px] tracking-[0.3em] text-[#1F0505]/50 uppercase mt-0.5 font-semibold">
+              <div className="font-sans text-[6px] sm:text-[7px] tracking-[0.25em] sm:tracking-[0.3em] text-[#1F0505]/50 uppercase mt-0.5 font-semibold">
                 Luxury Fabrics
               </div>
             </div>

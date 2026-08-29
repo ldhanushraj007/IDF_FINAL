@@ -142,37 +142,37 @@ export default function ProductCard({ item, onQuickView }: ProductCardProps) {
       </div>
 
       {/* ── Info ──────────────────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 p-4 bg-white">
+      <div className="flex flex-col flex-1 p-3 sm:p-4 bg-white">
         {/* Category kicker */}
-        <span className="font-sans text-[8px] tracking-[0.22em] text-[#1F0505]/40 uppercase font-bold mb-1.5 block">
+        <span className="font-sans text-[7.5px] sm:text-[8px] tracking-[0.2em] text-[#1F0505]/40 uppercase font-bold mb-1 block">
           {item.category}
         </span>
 
         {/* Product name */}
         <Link to={`/shop/product/${item.id}`}>
-          <h3 className="font-serif text-[17px] text-[#1F0505] leading-snug hover:text-[#1F0505]/70 transition-colors mb-2">
+          <h3 className="font-serif text-[14px] sm:text-[17px] text-[#1F0505] leading-tight sm:leading-snug hover:text-[#1F0505]/70 transition-colors mb-1.5 line-clamp-2">
             {item.name}
           </h3>
         </Link>
 
         {/* Blurb (optional short description) */}
         {item.blurb && (
-          <p className="font-sans text-[11px] text-[#1F0505]/50 leading-relaxed line-clamp-2 mb-3">
+          <p className="font-sans text-[10px] sm:text-[11px] text-[#1F0505]/50 leading-snug sm:leading-relaxed line-clamp-2 mb-2 hidden sm:block">
             {item.blurb}
           </p>
         )}
 
         {/* Price row */}
         <div
-          className="flex items-baseline gap-2 pt-3 mt-auto"
+          className="flex items-baseline gap-1.5 sm:gap-2 pt-2 sm:pt-3 mt-auto"
           style={{ borderTop: '1px solid rgba(31,5,5,0.12)' }}
         >
-          <span className="font-serif text-[18px] font-medium text-[#1F0505]">
+          <span className="font-serif text-[15px] sm:text-[18px] font-medium text-[#1F0505]">
             {inr(item.pricePerMetre)}
           </span>
-          <span className="font-sans text-[9px] text-[#1F0505]/35 tracking-wide">/&nbsp;metre</span>
+          <span className="font-sans text-[8.5px] sm:text-[9px] text-[#1F0505]/35 tracking-wide">/&nbsp;m</span>
           {hasDiscount && (
-            <span className="font-sans text-[10px] text-[#1F0505]/30 line-through ml-auto">
+            <span className="font-sans text-[9px] sm:text-[10px] text-[#1F0505]/30 line-through ml-auto">
               {inr(item.mrp!)}
             </span>
           )}
