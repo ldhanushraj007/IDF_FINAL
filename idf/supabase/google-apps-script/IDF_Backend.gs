@@ -55,6 +55,8 @@ function doPost(e) {
       case 'toggle_wishlist':      result = toggleWishlist(body);      break;
       case 'get_catalog':          result = getCatalog(body);          break;
       case 'save_catalog':         result = saveCatalog(body);         break;
+      case 'get_reviews':          result = getReviews(body);          break;
+      case 'submit_review':       result = submitReview(body);       break;
       default: result = { ok: false, error: 'unknown_action: ' + action };
     }
     return out(result);
@@ -393,4 +395,45 @@ function saveCatalog(body) {
     sh.getRange(2, 1).setValue(payload);
   }
   return { ok: true };
+}
+
+function getReviews(body) {
+  var sh = sheet('Reviews');
+  if (sh.getLastRow() < 1) return { ok: true, data: [] };
+  var data = sh.getDataRange().getValues();
+  var list = [];
+  for (var i = 1; i < data.length; i++) {
+    var r = data[i];
+    var status = String(r[7] || 'approved').toLowerCase();
+    if (status !== 'hidden') {
+      list.push({
+        id: String(r[0]),
+        name: String(r[1]),
+        city: String(r[2]),
+        rating: Number(r[3]) || 5,
+        text: String(r[4]),
+        product: String(r[5]),
+        date: String(r[6]),
+        status: status
+      });
+    }
+  }
+  return { ok: true, data: list };
+}
+
+function submitReview(body) {
+  var name = String(body.name || '').trim();
+  var text = String(body.text || body.review_text || '').trim();
+  if (!name || !text) return { ok: false, error: 'Name and review text are required' };
+
+  var sh = sheet('Reviews');
+  var id = 'rev_' + Date.now();
+  var dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  var rating = Number(body.rating) || 5;
+  var city = String(body.city || '').trim();
+  var product = String(body.product || '').trim();
+  var status = 'approved';
+
+  sh.appendRow([id, name, city, rating, text, product, dateStr, status]);
+  return { ok: true, id: id };
 }
