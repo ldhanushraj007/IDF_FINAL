@@ -338,8 +338,19 @@ export default function LoginPage() {
           {/* Notifications */}
           <div className="px-8">
             {error && (
-              <div className="mt-5 p-3 rounded-xl font-sans text-[11px] text-red-700 bg-red-50 border border-red-200">
-                {error}
+              <div className="mt-5 p-4 rounded-xl font-sans text-[11px] text-red-700 bg-red-50 border border-red-200 space-y-2.5">
+                <p>{error}</p>
+                {(error.toLowerCase().includes('admin') || email.toLowerCase().includes('virtuosodhanush')) && (
+                  <div className="pt-2 border-t border-red-200/80">
+                    <Link
+                      to="/admin"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#1F0505] text-white font-bold text-[10.5px] uppercase tracking-wider hover:bg-[#1F0505]/90 transition-colors shadow-sm"
+                    >
+                      <ShieldCheck className="h-4 w-4 text-[#B8860B]" />
+                      Go to Admin Portal (/#/admin) →
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
             {success && (
