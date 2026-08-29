@@ -23,9 +23,9 @@
 
 // ── CONFIG — Change SHARED_TOKEN before deploying ──────────────────────────────
 var SHARED_TOKEN    = 'idf-secret-2024';
-var ADMIN_EMAIL     = 'admin3300@gmail.com';
+var ADMIN_EMAIL     = 'virtuosodhanush@gmail.com';
 var ADMIN_PASSWORD  = 'ADMIN3300';
-var ADMIN_OTP_TO    = 'indesignluxuryfabrics@gmail.com';
+var ADMIN_OTP_TO    = 'virtuosodhanush@gmail.com';
 var OTP_EXPIRY_MIN  = 10;
 var SESSION_TTL_DAYS = 30;
 
@@ -53,6 +53,8 @@ function doPost(e) {
       case 'get_my_orders':        result = getMyOrders(body);         break;
       case 'get_wishlist':         result = getWishlist(body);         break;
       case 'toggle_wishlist':      result = toggleWishlist(body);      break;
+      case 'get_catalog':          result = getCatalog(body);          break;
+      case 'save_catalog':         result = saveCatalog(body);         break;
       default: result = { ok: false, error: 'unknown_action: ' + action };
     }
     return out(result);
@@ -357,5 +359,38 @@ function toggleWishlist(body) {
     }
   }
   if (on) sh.appendRow([email, pid]);
+  return { ok: true };
+}
+
+// ── Catalog Storage ────────────────────────────────────────────────────────────
+
+function getCatalog(body) {
+  var sh = sheet('Catalog');
+  var data = sh.getDataRange().getValues();
+  if (data.length < 2) return { ok: true, data: { items: [], offer: { active: false, headline: '', detail: '' } } };
+
+  var row = data[1];
+  var rawJson = String(row[0] || '');
+  if (!rawJson) return { ok: true, data: { items: [], offer: { active: false, headline: '', detail: '' } } };
+
+  try {
+    var parsed = JSON.parse(rawJson);
+    return { ok: true, data: parsed };
+  } catch(e) {
+    return { ok: true, data: { items: [], offer: { active: false, headline: '', detail: '' } } };
+  }
+}
+
+function saveCatalog(body) {
+  var items = body.items || [];
+  var offer = body.offer || { active: false, headline: '', detail: '' };
+  var payload = JSON.stringify({ items: items, offer: offer, updatedAt: new Date().toISOString() });
+
+  var sh = sheet('Catalog');
+  if (sh.getLastRow() < 2) {
+    sh.appendRow([payload]);
+  } else {
+    sh.getRange(2, 1).setValue(payload);
+  }
   return { ok: true };
 }

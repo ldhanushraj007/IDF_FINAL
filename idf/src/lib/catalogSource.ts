@@ -121,6 +121,7 @@ export function normaliseItem(raw: Record<string, unknown>): Item | null {
       : typeof (raw as any).suggestedGarmentIds === 'string' && (raw as any).suggestedGarmentIds.trim()
         ? (raw as any).suggestedGarmentIds.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
         : undefined,
+    hidden: Boolean(raw.hidden),
   };
 }
 
@@ -222,7 +223,44 @@ const bust = (url: string) => `${url}${url.includes('?') ? '&' : '?'}t=${Date.no
 const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined;
 const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined;
 
+export function saveLocalCatalogCache(items: Item[], offer: Offer) {
+  try {
+    localStorage.setItem('idf_catalog_cache', JSON.stringify({
+      items,
+      offer,
+      updatedAt: new Date().toISOString(),
+    }));
+  } catch (e) {
+    console.warn('Failed to save catalog to localStorage cache', e);
+  }
+}
+
 export async function loadCatalog(): Promise<LoadedCatalog> {
+  // 0. LocalStorage Cache (Instant 0s local reflection for newly published items)
+  try {
+    const cached = localStorage.getItem('idf_catalog_cache');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      const items = (Array.isArray(parsed.items) ? parsed.items : [])
+        .map((i: any) => normaliseItem(i))
+        .filter((i: any): i is Item => i !== null);
+      if (items.length) {
+        // Asynchronously re-sync from server in background
+        setTimeout(() => refreshServerCatalog(), 100);
+        return {
+          items,
+          offer: normaliseOffer(parsed.offer),
+          origin: 'sheet',
+          updatedAt: parsed.updatedAt,
+        };
+      }
+    }
+  } catch {}
+
+  return await refreshServerCatalog();
+}
+
+async function refreshServerCatalog(): Promise<LoadedCatalog> {
   // 1. Google Sheets Apps Script Web App (Real-time DB)
   if (SCRIPT_URL && SCRIPT_TOKEN) {
     try {
@@ -239,9 +277,11 @@ export async function loadCatalog(): Promise<LoadedCatalog> {
             .map((i: any) => normaliseItem(i))
             .filter((i: any): i is Item => i !== null);
           if (items.length) {
+            const offer = normaliseOffer(json.data.offer);
+            saveLocalCatalogCache(items, offer);
             return {
               items,
-              offer: normaliseOffer(json.data.offer),
+              offer,
               origin: 'sheet',
               updatedAt: json.data.updatedAt,
             };

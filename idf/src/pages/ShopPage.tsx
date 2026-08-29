@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
 import { type Tag } from '../data/catalog';
 import { useCatalog } from '../context/CatalogContext';
 import { useCart } from '../context/CartContext';
@@ -40,15 +40,19 @@ export default function ShopPage() {
   const { isBulkOrder, totalMetres, distinctProducts } = useCart();
 
   const [filter, setFilter] = useState<FilterType>(urlCategory || 'all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [sort, setSort]     = useState<SortKey>('newest');
   const [sortOpen, setSortOpen] = useState(false);
+  const [catOpen, setCatOpen]   = useState(false);
   const [quickViewItem, setQuickViewItem] = useState<Item | null>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+  const catRef  = useRef<HTMLDivElement>(null);
 
-  // Close sort dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false);
+      if (catRef.current && !catRef.current.contains(e.target as Node)) setCatOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -62,7 +66,18 @@ export default function ShopPage() {
 
   const items = useMemo(() => {
     let list = catalog;
-    if (filter !== 'all') {
+
+    const q = searchQuery.trim().toLowerCase();
+
+    if (q) {
+      list = catalog.filter((i) =>
+        i.name.toLowerCase().includes(q) ||
+        i.category.toLowerCase().includes(q) ||
+        i.composition.toLowerCase().includes(q) ||
+        i.blurb.toLowerCase().includes(q) ||
+        i.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    } else if (filter !== 'all') {
       const isCat = CATEGORY_FILTERS.find(f => f.id === filter)?.isCategory;
       if (isCat) {
         list = catalog.filter(i =>
@@ -80,7 +95,7 @@ export default function ShopPage() {
       case 'featured':    return [...list].sort((a, b) => b.tags.length - a.tags.length);
       default:            return list;
     }
-  }, [filter, sort, catalog]);
+  }, [filter, sort, catalog, searchQuery]);
 
   const activeLabel = CATEGORY_FILTERS.find(f => f.id === filter)?.label ?? 'All Fabrics';
 
@@ -145,39 +160,31 @@ export default function ShopPage() {
       <div className="flex min-h-screen bg-white" style={{ borderTop: '1px solid #1F0505' }}>
 
         {/* ════════════════════════════════════════════════════════════
-            LEFT SIDEBAR — Category Index (Desktop)
-            Newspaper-style vertical list with 1px ink rules
+            LEFT SIDEBAR — Category Index (Desktop Floating Curved Card)
         ════════════════════════════════════════════════════════════ */}
         <aside
-          className="hidden lg:flex flex-col w-[220px] xl:w-[240px] shrink-0 sticky top-[110px] self-start h-fit"
-          style={{ borderRight: '1px solid #1F0505' }}
+          className="hidden lg:flex flex-col w-[230px] xl:w-[250px] shrink-0 sticky top-[100px] self-start h-fit my-4 ml-5 mr-3 p-3 bg-white border border-[#1F0505]/20 rounded-2xl shadow-sm"
           aria-label="Filter by category"
         >
           {/* Sidebar header */}
-          <div
-            className="px-5 py-3 bg-[#1F0505]"
-          >
-            <span className="font-sans text-[9px] tracking-[0.3em] text-white/60 uppercase font-bold">
+          <div className="px-4 py-2.5 bg-[#1F0505] rounded-xl text-center mb-2">
+            <span className="font-sans text-[9px] tracking-[0.3em] text-[#FFE6E9] uppercase font-bold">
               Browse By
             </span>
           </div>
 
-          {/* Category list — each row separated by 1px rule */}
-          <nav className="flex flex-col">
+          {/* Category list */}
+          <nav className="flex flex-col gap-0.5">
             {CATEGORY_FILTERS.map((f, i) => {
               const active = filter === f.id;
-              // Insert group divider before first item of a new group
               const prevGroup = i > 0 ? CATEGORY_FILTERS[i - 1].group : undefined;
               const showDivider = f.group && f.group !== prevGroup && i > 0;
 
               return (
                 <div key={f.id}>
                   {showDivider && (
-                    <div
-                      className="px-5 py-1.5 bg-[#FFE6E9]/40"
-                      style={{ borderTop: '1px solid #1F0505', borderBottom: '1px solid rgba(31,5,5,0.2)' }}
-                    >
-                      <span className="font-sans text-[8px] tracking-[0.28em] text-[#1F0505]/50 uppercase font-bold">
+                    <div className="px-3 py-1 bg-[#FFE6E9]/60 rounded-lg text-center my-1.5 border border-[#1F0505]/10">
+                      <span className="font-sans text-[8px] tracking-[0.28em] text-[#1F0505]/70 uppercase font-bold">
                         {f.group}
                       </span>
                     </div>
@@ -185,12 +192,11 @@ export default function ShopPage() {
                   <button
                     type="button"
                     onClick={() => handleFilterChange(f.id)}
-                    className={`w-full text-left px-5 py-3 font-sans text-[11px] font-semibold tracking-[0.12em] uppercase transition-colors duration-150 flex items-center justify-between group ${
+                    className={`w-full text-left px-4 py-2.5 rounded-xl font-sans text-[10px] font-bold tracking-[0.14em] uppercase transition-all duration-200 flex items-center justify-between group ${
                       active
-                        ? 'bg-[#1F0505] text-white'
-                        : 'text-[#1F0505] hover:bg-[#FFE6E9]/50 hover:text-[#1F0505]'
+                        ? 'bg-[#1F0505] text-white shadow-sm'
+                        : 'text-[#1F0505]/80 hover:bg-[#FFE6E9]/60 hover:text-[#1F0505]'
                     }`}
-                    style={{ borderBottom: '1px solid rgba(31,5,5,0.12)' }}
                     aria-current={active ? 'true' : undefined}
                   >
                     <span>{f.label}</span>
@@ -202,11 +208,8 @@ export default function ShopPage() {
           </nav>
 
           {/* Sidebar footer */}
-          <div
-            className="px-5 py-4 mt-auto"
-            style={{ borderTop: '1px solid #1F0505' }}
-          >
-            <p className="font-sans text-[8px] tracking-[0.18em] text-[#1F0505]/35 uppercase leading-relaxed">
+          <div className="px-4 py-3 mt-2 border-t border-[#1F0505]/10 text-center">
+            <p className="font-sans text-[8px] tracking-[0.18em] text-[#1F0505]/40 uppercase font-medium">
               {BUSINESS.city} · Est. 2009
             </p>
           </div>
@@ -217,49 +220,111 @@ export default function ShopPage() {
         ════════════════════════════════════════════════════════════ */}
         <div className="flex-1 min-w-0 flex flex-col">
 
-          {/* ── Mobile horizontal category tabs ─────────────────────── */}
-          <div
-            className="lg:hidden overflow-x-auto"
-            style={{ borderBottom: '2px solid #1F0505' }}
-          >
-            <div className="flex items-stretch min-w-max">
-              {CATEGORY_FILTERS.map((f) => {
-                const active = filter === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => handleFilterChange(f.id)}
-                    className={`flex-shrink-0 px-4 py-3 font-sans text-[10px] font-bold tracking-[0.14em] uppercase transition-colors whitespace-nowrap ${
-                      active
-                        ? 'bg-[#1F0505] text-white'
-                        : 'text-[#1F0505] hover:bg-[#FFE6E9]/40 bg-white'
-                    }`}
-                    style={{ borderRight: '1px solid #1F0505' }}
+          {/* ── Mobile horizontal category tabs (Curved pills + All Categories Dropdown) ───────── */}
+          <div className="lg:hidden p-3 bg-white/90 backdrop-blur-md border-b border-[#1F0505]/15 relative z-30">
+            <div className="flex items-center gap-2">
+              {/* Category Dropdown button */}
+              <div className="relative shrink-0" ref={catRef}>
+                <button
+                  type="button"
+                  onClick={() => setCatOpen(v => !v)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full font-sans text-[10px] font-bold tracking-[0.14em] uppercase text-white bg-[#1F0505] shadow-sm transition-all hover:bg-[#3a0a0a]"
+                >
+                  <span>Categories</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${catOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {catOpen && (
+                  <div
+                    className="absolute left-0 top-full mt-2 bg-white z-[60] w-64 rounded-2xl p-2 shadow-2xl border border-[#1F0505]/20 max-h-80 overflow-y-auto"
                   >
-                    {f.label}
-                  </button>
-                );
-              })}
+                    {CATEGORY_FILTERS.map((f, i) => {
+                      const active = filter === f.id;
+                      const prevGroup = i > 0 ? CATEGORY_FILTERS[i - 1].group : undefined;
+                      const showDivider = f.group && f.group !== prevGroup && i > 0;
+                      return (
+                        <div key={f.id}>
+                          {showDivider && (
+                            <div className="px-3 py-1 bg-[#FFE6E9]/60 rounded-lg text-center my-1 border border-[#1F0505]/10">
+                              <span className="font-sans text-[8px] tracking-[0.28em] text-[#1F0505]/70 uppercase font-bold">
+                                {f.group}
+                              </span>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => { handleFilterChange(f.id); setCatOpen(false); }}
+                            className={`w-full text-left px-3.5 py-2.5 rounded-xl font-sans text-[10px] font-bold uppercase tracking-[0.12em] transition-all flex items-center justify-between ${
+                              active
+                                ? 'bg-[#1F0505] text-white shadow-sm'
+                                : 'text-[#1F0505]/80 hover:bg-[#FFE6E9]/50'
+                            }`}
+                          >
+                            <span>{f.label}</span>
+                            {active && <span className="text-[#FFE6E9] text-[10px]">✓</span>}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Horizontal Scroll Pill Row (Clean scrollbar hidden) */}
+              <div className="flex-1 overflow-x-auto flex items-center gap-1.5 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {CATEGORY_FILTERS.map((f) => {
+                  const active = filter === f.id;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => handleFilterChange(f.id)}
+                      className={`flex-shrink-0 px-4 py-2 rounded-full font-sans text-[10px] font-bold tracking-[0.14em] uppercase transition-all duration-200 whitespace-nowrap ${
+                        active
+                          ? 'bg-[#1F0505] text-white shadow-sm'
+                          : 'text-[#1F0505]/70 hover:bg-[#FFE6E9]/60 bg-white border border-[#1F0505]/15'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* ── Sort toolbar ─────────────────────────────────────────── */}
+          {/* ── Sort & Search toolbar ─────────────────────────────────────────── */}
           <div
-            className="px-5 md:px-8 py-3 flex items-center justify-between gap-4 bg-white sticky top-[110px] z-20"
-            style={{ borderBottom: '1px solid #1F0505' }}
+            className="px-5 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3 bg-white sticky top-[44px] lg:top-[86px] z-20 border-b border-[#1F0505]/15"
           >
             {/* Active filter label */}
-            <div className="flex items-center gap-3">
-              <span
-                className="font-sans text-[11px] font-bold tracking-[0.18em] text-[#1F0505] uppercase px-3 py-1"
-                style={{ border: '1px solid #1F0505' }}
-              >
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="font-sans text-[11px] font-bold tracking-[0.18em] text-[#1F0505] uppercase px-4 py-1.5 rounded-full bg-[#FFE6E9]/40 border border-[#1F0505]/20">
                 {activeLabel}
               </span>
-              <span className="font-sans text-[10px] text-[#1F0505]/40">
+              <span className="font-sans text-[10px] text-[#1F0505]/50 font-medium hidden sm:inline">
                 {items.length} {items.length === 1 ? 'fabric' : 'fabrics'}
               </span>
+            </div>
+
+            {/* Search Input Bar */}
+            <div className="relative flex-1 max-w-xs md:max-w-sm">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#1F0505]/40 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search fabrics by name or material..."
+                className="w-full pl-9 pr-8 py-2 rounded-full border border-[#1F0505]/20 bg-[#FAFAFA] text-[11px] font-medium text-[#1F0505] placeholder-[#1F0505]/40 outline-none focus:border-[#1F0505] focus:bg-white transition-all shadow-sm"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1F0505]/40 hover:text-[#1F0505] text-[11px] font-bold"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
             {/* Sort dropdown */}
@@ -267,28 +332,25 @@ export default function ShopPage() {
               <button
                 type="button"
                 onClick={() => setSortOpen(v => !v)}
-                className="flex items-center gap-2 px-4 py-2 font-sans text-[10px] font-bold tracking-[0.14em] uppercase text-[#1F0505] hover:bg-[#FFE6E9]/40 transition-colors"
-                style={{ border: '1px solid #1F0505' }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full font-sans text-[10px] font-bold tracking-[0.14em] uppercase text-[#1F0505] bg-white border border-[#1F0505]/20 hover:bg-[#FFE6E9]/40 transition-all shadow-sm"
               >
                 Sort: {SORT_OPTIONS.find(s => s.id === sort)?.label}
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
               </button>
               {sortOpen && (
                 <div
-                  className="absolute right-0 top-full mt-px bg-white z-30 w-56 shadow-lg"
-                  style={{ border: '1px solid #1F0505' }}
+                  className="absolute right-0 top-full mt-2 bg-white z-30 w-56 rounded-2xl p-1.5 shadow-xl border border-[#1F0505]/20 overflow-hidden"
                 >
-                  {SORT_OPTIONS.map((o, i) => (
+                  {SORT_OPTIONS.map((o) => (
                     <button
                       key={o.id}
                       type="button"
                       onClick={() => { setSort(o.id); setSortOpen(false); }}
-                      className={`w-full text-left px-4 py-3 font-sans text-[10px] font-bold uppercase tracking-[0.12em] transition-colors ${
+                      className={`w-full text-left px-4 py-2.5 rounded-xl font-sans text-[10px] font-bold uppercase tracking-[0.12em] transition-all ${
                         sort === o.id
-                          ? 'bg-[#1F0505] text-white'
-                          : 'text-[#1F0505] hover:bg-[#FFE6E9]/40'
+                          ? 'bg-[#1F0505] text-white shadow-sm'
+                          : 'text-[#1F0505]/80 hover:bg-[#FFE6E9]/50'
                       }`}
-                      style={i < SORT_OPTIONS.length - 1 ? { borderBottom: '1px solid rgba(31,5,5,0.1)' } : undefined}
                     >
                       {o.label}
                     </button>

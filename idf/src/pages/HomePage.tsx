@@ -39,34 +39,7 @@ export default function HomePage() {
 
   return (
     <>
-      {/* ══════════════════════════════════════════════════════════════════
-          MASTHEAD / DATE STRIP
-      ══════════════════════════════════════════════════════════════════ */}
-      <div className="bg-white px-5 md:px-10 lg:px-12 py-2 flex items-center justify-between gap-4" style={rule}>
-        <span className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/40 uppercase hidden sm:block">
-          {EDITION_DATE}
-        </span>
-        <div className="flex-1 flex justify-center">
-          <div className="flex items-center gap-4">
-            {/* Logo mark */}
-            <img
-              src="/images/logo/logo-mark.png"
-              alt="IN DESIGN Luxury Fabrics"
-              className="h-8 md:h-10 w-auto object-contain"
-            />
-            <div className="flex items-center gap-3">
-              <span className="w-6 h-px bg-[#1F0505]/20" />
-              <span className="font-sans text-[9px] tracking-[0.3em] text-[#1F0505]/40 uppercase font-medium">
-                Curated Couture &amp; Bridal Textiles
-              </span>
-              <span className="w-6 h-px bg-[#1F0505]/20" />
-            </div>
-          </div>
-        </div>
-        <span className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/40 uppercase hidden sm:block">
-          Commercial Street, Bengaluru
-        </span>
-      </div>
+
 
       {/* ══════════════════════════════════════════════════════════════════
           HERO — NEWSPAPER BROADSHEET GRID

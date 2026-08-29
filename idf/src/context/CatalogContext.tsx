@@ -81,10 +81,12 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<CatalogValue>(() => {
-    const map = new Map(items.map((i) => [i.id, i]));
+    // Exclude products marked hidden (Not Live) from customer website view
+    const liveItems = items.filter((i) => !i.hidden);
+    const map = new Map(liveItems.map((i) => [i.id, i]));
     return {
-      items,
-      available: items.filter((i) => i.stock !== 'out'),
+      items: liveItems,
+      available: liveItems.filter((i) => i.stock !== 'out'),
       offer,
       byId: (id: string) => map.get(id),
       loading,

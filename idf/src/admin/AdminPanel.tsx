@@ -36,6 +36,8 @@ import {
   DollarSign,
   FolderOpen, // For Categories tab
   Percent, // For Combos tab
+  Sun,
+  Moon,
 } from 'lucide-react';
 import {
   CATALOG,
@@ -140,7 +142,7 @@ function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
     setBusy(true);
     try {
       await adminRequestOtp(password);
-      setInfo('A 6-digit code has been sent to indesignluxuryfabrics@gmail.com');
+      setInfo('A 6-digit verification code was sent to virtuosodhanush@gmail.com');
       setStep('otp');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Authentication failed.');
@@ -166,22 +168,31 @@ function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
   };
 
   const Header = () => (
-    <div className="border-b border-gold/20 pb-6 mb-6 flex items-center gap-4">
-      <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
-      <div>
-        <p className="text-[10px] tracking-[0.2em] text-gold uppercase font-semibold">Admin Portal</p>
-        <h1 className="font-serif text-xl text-ivory">In Design Luxury Fabrics</h1>
+    <div className="text-center pb-6 mb-6 border-b border-[#d4af37]/20 flex flex-col items-center">
+      <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/10 border border-[#d4af37]/30 flex items-center justify-center mb-3 shadow-md">
+        <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="h-10 w-auto object-contain" />
       </div>
+      <span className="text-[9px] tracking-[0.3em] text-[#d4af37] uppercase font-bold px-3 py-1 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 mb-2">
+        Admin Portal
+      </span>
+      <h1 className="font-serif text-2xl text-white tracking-wide">In Design Luxury Fabrics</h1>
     </div>
   );
 
   if (step === 'otp') {
     return (
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md bg-[#180e0c]/90 border border-[#d4af37]/30 rounded-3xl p-8 shadow-2xl shadow-black/80 backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
         <Header />
-        {info && <p className="mb-4 text-[11px] text-gold/80 border border-gold/20 px-3 py-2">{info}</p>}
-        <p className="mb-5 text-[12px] text-ivory/40 tracking-wide uppercase">Enter verification code</p>
-        <div className="border border-ivory/10 focus-within:border-gold transition-colors">
+        {info && (
+          <p className="mb-5 text-[11px] text-[#ffe6e9]/90 border border-[#d4af37]/30 bg-[#d4af37]/10 rounded-xl px-4 py-3 text-center leading-relaxed">
+            {info}
+          </p>
+        )}
+        <p className="mb-4 text-[11px] text-white/50 tracking-[0.2em] uppercase font-bold text-center">
+          Enter Verification Code
+        </p>
+        <div className="rounded-2xl border border-[#d4af37]/30 bg-black/40 focus-within:border-[#d4af37] focus-within:ring-2 focus-within:ring-[#d4af37]/20 transition-all overflow-hidden">
           <input
             type="text"
             inputMode="numeric"
@@ -190,27 +201,44 @@ function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
             autoFocus
             onChange={(e) => setOtpVal(e.target.value.replace(/\D/g, ''))}
             onKeyDown={(e) => e.key === 'Enter' && handleOtp()}
-            placeholder="6-digit code"
-            className="w-full bg-transparent px-4 py-3 text-center text-xl tracking-[0.4em] text-ivory placeholder-ivory/20 outline-none font-semibold"
+            placeholder="• • • • • •"
+            className="w-full bg-transparent px-4 py-3.5 text-center text-2xl tracking-[0.5em] text-[#d4af37] placeholder-white/20 outline-none font-bold"
           />
         </div>
-        <button type="button" onClick={handleOtp} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full py-3 text-[12px] tracking-widest uppercase">
-          {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Verify & Unlock'}
+        <button
+          type="button"
+          onClick={handleOtp}
+          disabled={busy}
+          className="mt-5 w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] font-bold text-[11px] tracking-[0.22em] uppercase shadow-lg hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify & Unlock →'}
         </button>
-        {error && <p className="mt-3 text-[12px] text-maroon border border-maroon/30 px-3 py-2">{error}</p>}
-        <button type="button" onClick={() => { setStep('password'); setError(''); setOtpVal(''); }}
-          className="mt-4 text-[11px] text-ivory/30 hover:text-gold transition-colors">
-          ← Resend / Change password
-        </button>
+        {error && (
+          <p className="mt-4 text-[11px] text-red-300 border border-red-500/30 bg-red-950/40 rounded-xl px-4 py-2.5 text-center font-medium">
+            {error}
+          </p>
+        )}
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => { setStep('password'); setError(''); setOtpVal(''); }}
+            className="text-[11px] text-white/40 hover:text-[#d4af37] transition-colors font-medium"
+          >
+            ← Resend / Change password
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-md bg-[#180e0c]/90 border border-[#d4af37]/30 rounded-3xl p-8 shadow-2xl shadow-black/80 backdrop-blur-xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
       <Header />
-      <p className="mb-5 text-[12px] text-ivory/40 tracking-wide uppercase">Sign in with admin password</p>
-      <div className="border border-ivory/10 focus-within:border-gold transition-colors flex items-center">
+      <p className="mb-4 text-[11px] text-white/50 tracking-[0.2em] uppercase font-bold text-center">
+        Sign In With Admin Password
+      </p>
+      <div className="rounded-2xl border border-[#d4af37]/30 bg-black/40 focus-within:border-[#d4af37] focus-within:ring-2 focus-within:ring-[#d4af37]/20 transition-all flex items-center overflow-hidden">
         <input
           type={showPw ? 'text' : 'password'}
           value={password}
@@ -218,20 +246,32 @@ function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handlePassword()}
           placeholder="Admin password"
-          className="flex-1 bg-transparent px-4 py-3 text-[13px] text-ivory placeholder-ivory/30 outline-none"
+          className="flex-1 bg-transparent px-4 py-3.5 text-[13px] text-white placeholder-white/30 outline-none"
         />
-        <button type="button" onClick={() => setShowPw(v => !v)}
+        <button
+          type="button"
+          onClick={() => setShowPw(v => !v)}
           aria-label={showPw ? 'Hide' : 'Show'}
-          className="px-3 text-ivory/30 hover:text-ivory transition-colors">
+          className="px-4 text-white/40 hover:text-white transition-colors"
+        >
           {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       </div>
-      <button type="button" onClick={handlePassword} disabled={busy} className="btn btn-gold btn-sheen mt-4 w-full py-3 text-[12px] tracking-widest uppercase">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : 'Send Verification Code'}
+      <button
+        type="button"
+        onClick={handlePassword}
+        disabled={busy}
+        className="mt-5 w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] font-bold text-[11px] tracking-[0.22em] uppercase shadow-lg hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Verification Code →'}
       </button>
-      {error && <p className="mt-3 text-[12px] text-maroon border border-maroon/30 px-3 py-2">{error}</p>}
-      <div className="mt-8 border-t border-ivory/10 pt-4">
-        <a href="/" className="text-[11px] text-ivory/30 hover:text-gold tracking-widest uppercase transition-colors">
+      {error && (
+        <p className="mt-4 text-[11px] text-red-300 border border-red-500/30 bg-red-950/40 rounded-xl px-4 py-2.5 text-center font-medium">
+          {error}
+        </p>
+      )}
+      <div className="mt-8 border-t border-white/10 pt-4 text-center">
+        <a href="/" className="text-[10px] text-white/40 hover:text-[#d4af37] tracking-[0.18em] uppercase font-bold transition-colors">
           ← Back to website
         </a>
       </div>
@@ -249,18 +289,23 @@ function PinLogin({ onUnlocked }: { onUnlocked: () => void }) {
   };
 
   return (
-    <div className="w-full max-w-sm">
-      <div className="border-b border-gold/20 pb-6 mb-6 flex items-center gap-4">
-        <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="h-12 w-12 object-contain" />
-        <div>
-          <p className="text-[10px] tracking-[0.2em] text-gold uppercase font-semibold">Admin Portal · Static Mode</p>
-          <h1 className="font-serif text-xl text-ivory">In Design Luxury Fabrics</h1>
+    <div className="w-full max-w-md bg-[#180e0c]/90 border border-[#d4af37]/30 rounded-3xl p-8 shadow-2xl shadow-black/80 backdrop-blur-xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
+      <div className="text-center pb-6 mb-6 border-b border-[#d4af37]/20 flex flex-col items-center">
+        <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/10 border border-[#d4af37]/30 flex items-center justify-center mb-3 shadow-md">
+          <img src="/images/logo/logo-mark.png" alt="" aria-hidden="true" className="h-10 w-auto object-contain" />
         </div>
+        <span className="text-[9px] tracking-[0.3em] text-[#d4af37] uppercase font-bold px-3 py-1 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 mb-2">
+          Admin Portal · Static Mode
+        </span>
+        <h1 className="font-serif text-2xl text-white tracking-wide">In Design Luxury Fabrics</h1>
       </div>
 
-      <p className="mb-5 text-[12px] text-ivory/40 tracking-wide uppercase">Enter shop PIN to continue</p>
+      <p className="mb-4 text-[11px] text-white/50 tracking-[0.2em] uppercase font-bold text-center">
+        Enter Shop PIN To Continue
+      </p>
 
-      <div className="border border-ivory/10 focus-within:border-gold transition-colors">
+      <div className="rounded-2xl border border-[#d4af37]/30 bg-black/40 focus-within:border-[#d4af37] focus-within:ring-2 focus-within:ring-[#d4af37]/20 transition-all overflow-hidden">
         <input
           type="password"
           inputMode="numeric"
@@ -271,18 +316,26 @@ function PinLogin({ onUnlocked }: { onUnlocked: () => void }) {
             setWrong(false);
           }}
           onKeyDown={(e) => e.key === 'Enter' && tryUnlock()}
-          placeholder="· · · · · ·"
-          className="w-full bg-transparent px-4 py-3 text-center text-lg tracking-[0.4em] text-ivory placeholder-ivory/20 outline-none"
+          placeholder="• • • • • •"
+          className="w-full bg-transparent px-4 py-3.5 text-center text-2xl tracking-[0.5em] text-[#d4af37] placeholder-white/20 outline-none font-bold"
         />
       </div>
 
-      <button type="button" onClick={tryUnlock} className="btn btn-gold btn-sheen mt-4 w-full py-3 text-[12px] tracking-widest uppercase">
-        Unlock
+      <button
+        type="button"
+        onClick={tryUnlock}
+        className="mt-5 w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] font-bold text-[11px] tracking-[0.22em] uppercase shadow-lg hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+      >
+        Unlock Dashboard →
       </button>
-      {wrong && <p className="mt-3 text-[12px] text-maroon border border-maroon/30 px-3 py-2">Incorrect PIN — try again</p>}
+      {wrong && (
+        <p className="mt-4 text-[11px] text-red-300 border border-red-500/30 bg-red-950/40 rounded-xl px-4 py-2.5 text-center font-medium">
+          Incorrect PIN — try again
+        </p>
+      )}
 
-      <div className="mt-8 border-t border-ivory/10 pt-4">
-        <a href="/" className="text-[11px] text-ivory/30 hover:text-gold tracking-widest uppercase transition-colors">
+      <div className="mt-8 border-t border-white/10 pt-4 text-center">
+        <a href="/" className="text-[10px] text-white/40 hover:text-[#d4af37] tracking-[0.18em] uppercase font-bold transition-colors">
           ← Back to website
         </a>
       </div>
@@ -321,7 +374,7 @@ export default function AdminPanel() {
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [showAddOrderModal, setShowAddOrderModal] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('idf_admin_theme') !== 'light';
+    return localStorage.getItem('idf_admin_theme') === 'dark';
   });
 
   const loadAllData = () => {
@@ -414,7 +467,6 @@ export default function AdminPanel() {
   };
 
   const handlePublish = async () => {
-    if (!isAdminConfigured) return;
     setPublishState('publishing');
     setPublishError('');
     try {
@@ -505,8 +557,8 @@ export default function AdminPanel() {
 
   return (
     <div className={`flex min-h-screen transition-colors duration-300 ${darkMode ? 'bg-[#0d0806] text-ivory' : 'bg-[#f7f4f0] text-night'}`}>
-      {/* ================= SIDEBAR ================= */}
-      <aside className={`w-60 shrink-0 border-r flex flex-col justify-between hidden md:flex ${
+      {/* ================= SIDEBAR (FIXED ON SCROLL) ================= */}
+      <aside className={`w-60 shrink-0 border-r flex flex-col justify-between hidden md:flex sticky top-0 h-screen overflow-y-auto ${
         darkMode ? 'border-gold/10 bg-[#150a0a]' : 'border-[#1a1a1a]/10 bg-white'
       }`}>
         {/* Logo area */}
@@ -542,23 +594,25 @@ export default function AdminPanel() {
                     setTab(item.id as TabId);
                     setQuery('');
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 mb-0.5 text-[12px] transition-all border-l-2 ${
+                  className={`w-full flex items-center justify-between px-3.5 py-3 mb-1.5 rounded-2xl text-[12px] font-semibold transition-all duration-200 ${
                     active
-                      ? 'border-gold text-gold bg-gold/8'
+                      ? 'bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] shadow-md font-bold'
                       : (darkMode
-                          ? 'border-transparent text-ivory/50 hover:text-ivory hover:border-gold/30'
-                          : 'border-transparent text-night/50 hover:text-night hover:border-gold/30')
+                          ? 'text-ivory/60 hover:text-white hover:bg-[#d4af37]/10'
+                          : 'text-night/70 hover:text-night hover:bg-[#d4af37]/10')
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className={`text-[9px] font-mono tabular-nums ${
-                      active ? 'text-gold' : (darkMode ? 'text-ivory/20' : 'text-night/20')
+                      active ? 'text-[#1F0505]' : (darkMode ? 'text-ivory/30' : 'text-night/30')
                     }`}>{item.idx}</span>
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className="h-4 w-4" />
                     <span className="tracking-wide">{item.label}</span>
                   </div>
                   {Boolean((item as any).badge) && (
-                    <span className="rounded-sm bg-gold/20 px-1.5 py-0.5 text-[9px] font-bold text-gold tabular-nums">
+                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold tabular-nums ${
+                      active ? 'bg-black text-gold' : 'bg-gold/20 text-gold'
+                    }`}>
                       {(item as any).badge}
                     </span>
                   )}
@@ -623,28 +677,40 @@ export default function AdminPanel() {
           </div>
 
           <div className="flex items-center gap-3">
-            {isAdminConfigured && (
-              <button
-                onClick={handlePublish}
-                disabled={publishState === 'publishing'}
-                className="btn btn-gold btn-sheen text-[11px] px-4 py-2 tracking-widest uppercase"
-              >
-                {publishState === 'publishing' ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : publishState === 'done' ? (
-                  'Published ✓'
-                ) : (
-                  'Publish Live'
-                )}
-              </button>
-            )}
-            <a href="/" target="_blank" className={`flex items-center gap-1.5 text-[11px] uppercase tracking-widest border px-3 py-2 transition-colors ${
+            {/* Theme Switcher */}
+            <button
+              type="button"
+              onClick={() => handleThemeToggle(!darkMode)}
+              title={`Switch to ${darkMode ? 'Light' : 'Dark'} Mode`}
+              className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all ${
+                darkMode
+                  ? 'border-gold/30 bg-gold/10 text-gold hover:bg-gold/20'
+                  : 'border-[#1F0505]/20 bg-white text-[#1F0505] hover:bg-[#FFE6E9]/40 shadow-sm'
+              }`}
+            >
+              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+
+            <button
+              onClick={handlePublish}
+              disabled={publishState === 'publishing'}
+              className="rounded-full bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] font-bold text-[11px] tracking-[0.2em] uppercase px-5 py-2.5 shadow-md hover:brightness-110 active:scale-[0.98] transition-all"
+            >
+              {publishState === 'publishing' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : publishState === 'done' ? (
+                'Published ✓'
+              ) : (
+                'Publish Live'
+              )}
+            </button>
+            <a href="/" target="_blank" className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] border px-4 py-2.5 rounded-full transition-all ${
               darkMode
-                ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
-                : 'border-night/15 text-night/50 hover:border-gold hover:text-gold'
+                ? 'border-gold/30 text-gold hover:bg-gold/10'
+                : 'border-[#1F0505]/20 text-[#1F0505] hover:bg-[#1F0505] hover:text-white bg-white shadow-sm'
             }`}>
               <span>View Site</span>
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
         </header>
@@ -661,9 +727,7 @@ export default function AdminPanel() {
               {tab === 'dashboard' && (
                 <div className="space-y-6">
                   {/* KPI Grid */}
-                  <div className={`grid grid-cols-1 gap-0 sm:grid-cols-2 lg:grid-cols-4 border ${
-                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
-                  }`}>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {[
                       {
                         label: 'Orders Needing Action', value: metrics.confirmedOrders,
@@ -689,23 +753,23 @@ export default function AdminPanel() {
                       <div
                         key={card.idx}
                         onClick={card.onClick}
-                        className={`relative p-5 border-b lg:border-b-0 border-r last:border-r-0 transition-colors ${
-                          card.onClick ? 'cursor-pointer' : ''
+                        className={`relative p-6 rounded-3xl border transition-all duration-300 shadow-md ${
+                          card.onClick ? 'cursor-pointer hover:-translate-y-1' : ''
                         } ${
                           darkMode
-                            ? 'border-gold/10 hover:bg-gold/5'
-                            : 'border-[#1a1a1a]/10 hover:bg-gold/5'
+                            ? 'border-gold/20 bg-[#160b09]/80 hover:border-gold/50 shadow-black/40'
+                            : 'border-[#1a1a1a]/15 bg-white hover:border-gold/50 shadow-gray-200'
                         }`}
                       >
-                        <p className={`text-[9px] font-mono absolute top-3 right-3 ${
-                          darkMode ? 'text-ivory/20' : 'text-night/20'
+                        <p className={`text-[10px] font-mono font-bold absolute top-4 right-4 ${
+                          darkMode ? 'text-gold/40' : 'text-gold'
                         }`}>{card.idx}</p>
-                        <p className={`text-[10px] uppercase tracking-widest font-semibold mb-2 ${
-                          darkMode ? 'text-ivory/40' : 'text-night/40'
+                        <p className={`text-[10px] uppercase tracking-[0.18em] font-bold mb-2 ${
+                          darkMode ? 'text-ivory/50' : 'text-night/50'
                         }`}>{card.label}</p>
                         <h3 className={`font-nums text-3xl font-bold ${card.accent}`}>{card.value}</h3>
-                        <p className={`mt-1.5 text-[11px] ${
-                          darkMode ? 'text-ivory/30' : 'text-night/30'
+                        <p className={`mt-2 text-[11px] font-medium ${
+                          darkMode ? 'text-ivory/40' : 'text-night/40'
                         }`}>{card.sub}</p>
                       </div>
                     ))}
@@ -713,91 +777,109 @@ export default function AdminPanel() {
 
                   <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Recent Orders */}
-                    <div className={`border ${
-                      darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
-                    }`}>
-                      <div className={`flex items-center justify-between px-5 py-3 border-b ${
-                        darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                    <div className={`rounded-3xl border ${
+                      darkMode ? 'border-gold/20 bg-[#160b09]/80 shadow-xl' : 'border-[#1a1a1a]/15 bg-white shadow-lg'
+                    } overflow-hidden`}>
+                      <div className={`flex items-center justify-between px-6 py-4 border-b ${
+                        darkMode ? 'border-gold/15 bg-white/5' : 'border-[#1a1a1a]/10 bg-gray-50'
                       }`}>
-                        <h3 className={`font-serif text-base ${
-                          darkMode ? 'text-ivory' : 'text-night'
-                        }`}>Recent Orders</h3>
-                        <button onClick={() => setTab('orders')} className="text-[10px] text-gold uppercase tracking-widest hover:underline">
-                          View all →
+                        <div className="flex items-center gap-2">
+                          <ShoppingBag className="h-4 w-4 text-gold" />
+                          <h3 className={`font-serif text-lg font-medium ${
+                            darkMode ? 'text-white' : 'text-night'
+                          }`}>Recent Orders</h3>
+                        </div>
+                        <button onClick={() => setTab('orders')} className="text-[10px] text-gold font-bold uppercase tracking-[0.18em] hover:underline">
+                          View all orders →
                         </button>
                       </div>
-                      <div className="divide-y divide-gold/8">
+                      <div className="divide-y divide-gold/10">
                         {orders.slice(0, 5).map((o) => (
                           <div
                             key={o.id}
                             onClick={() => setSelectedOrder(o)}
-                            className={`flex cursor-pointer items-center justify-between px-5 py-3 transition-colors ${
-                              darkMode ? 'hover:bg-gold/5' : 'hover:bg-gold/5'
+                            className={`flex cursor-pointer items-center justify-between px-6 py-3.5 transition-colors ${
+                              darkMode ? 'hover:bg-gold/10' : 'hover:bg-gold/10'
                             }`}
                           >
                             <div>
-                              <p className="font-mono text-[12px] text-gold">{o.order_code}</p>
-                              <p className={`text-[11px] ${
-                                darkMode ? 'text-ivory/50' : 'text-night/50'
+                              <p className="font-mono text-[12px] font-bold text-gold">{o.order_code}</p>
+                              <p className={`text-[11px] font-medium ${
+                                darkMode ? 'text-ivory/60' : 'text-night/60'
                               }`}>{o.customers?.name || 'Customer'}</p>
                             </div>
                             <div className="text-right">
-                              <p className={`font-nums text-[13px] font-semibold ${
-                                darkMode ? 'text-ivory' : 'text-night'
+                              <p className={`font-nums text-[14px] font-bold ${
+                                darkMode ? 'text-white' : 'text-night'
                               }`}>{inr(o.total)}</p>
-                              <span className={`text-[9px] uppercase tracking-widest ${
-                                darkMode ? 'text-ivory/30' : 'text-night/30'
-                              }`}>{o.order_status.replace('_', ' ')}</span>
+                              <span className="inline-block rounded-full bg-gold/15 border border-gold/30 px-2 py-0.5 text-[9px] font-bold text-gold uppercase tracking-wider">
+                                {o.order_status.replace('_', ' ')}
+                              </span>
                             </div>
                           </div>
                         ))}
                         {orders.length === 0 && (
-                          <p className={`px-5 py-6 text-[12px] text-center ${
-                            darkMode ? 'text-ivory/30' : 'text-night/30'
-                          }`}>No orders yet.</p>
+                          <div className="px-6 py-10 text-center space-y-2">
+                            <div className="w-12 h-12 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold mx-auto mb-2">
+                              <ShoppingBag className="h-6 w-6" />
+                            </div>
+                            <p className={`text-[13px] font-bold ${darkMode ? 'text-ivory' : 'text-night'}`}>No Orders Placed Yet</p>
+                            <p className={`text-[11px] ${darkMode ? 'text-ivory/40' : 'text-night/40'}`}>
+                              Customer checkout orders will appear here automatically in real time.
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>
 
                     {/* Pending Reviews */}
-                    <div className={`border ${
-                      darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
-                    }`}>
-                      <div className={`flex items-center justify-between px-5 py-3 border-b ${
-                        darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                    <div className={`rounded-3xl border ${
+                      darkMode ? 'border-gold/20 bg-[#160b09]/80 shadow-xl' : 'border-[#1a1a1a]/15 bg-white shadow-lg'
+                    } overflow-hidden`}>
+                      <div className={`flex items-center justify-between px-6 py-4 border-b ${
+                        darkMode ? 'border-gold/15 bg-white/5' : 'border-[#1a1a1a]/10 bg-gray-50'
                       }`}>
-                        <h3 className={`font-serif text-base ${
-                          darkMode ? 'text-ivory' : 'text-night'
-                        }`}>Reviews to Moderate</h3>
-                        <button onClick={() => setTab('reviews')} className="text-[10px] text-gold uppercase tracking-widest hover:underline">
+                        <div className="flex items-center gap-2">
+                          <Star className="h-4 w-4 text-gold fill-gold" />
+                          <h3 className={`font-serif text-lg font-medium ${
+                            darkMode ? 'text-white' : 'text-night'
+                          }`}>Reviews to Moderate</h3>
+                        </div>
+                        <button onClick={() => setTab('reviews')} className="text-[10px] text-gold font-bold uppercase tracking-[0.18em] hover:underline">
                           View queue →
                         </button>
                       </div>
-                      <div className="divide-y divide-gold/8">
+                      <div className="divide-y divide-gold/10">
                         {liveReviews
                           .filter((r) => r.status === 'pending')
                           .slice(0, 4)
                           .map((r) => (
-                            <div key={r.id} className={`px-5 py-3`}>
+                            <div key={r.id} className="px-6 py-3.5">
                               <div className="flex items-center justify-between mb-1">
-                                <span className={`text-[12px] font-semibold ${
-                                  darkMode ? 'text-ivory' : 'text-night'
+                                <span className={`text-[12px] font-bold ${
+                                  darkMode ? 'text-white' : 'text-night'
                                 }`}>{r.name}</span>
                                 <div className="flex text-gold gap-0.5">
                                   {Array.from({ length: r.rating }).map((_, i) => (
-                                    <Star key={i} className="h-2.5 w-2.5 fill-current" />
+                                    <Star key={i} className="h-3 w-3 fill-current" />
                                   ))}
                                 </div>
                               </div>
-                              <p className={`text-[11px] line-clamp-2 ${
-                                darkMode ? 'text-ivory/50' : 'text-night/50'
+                              <p className={`text-[11px] line-clamp-2 leading-relaxed ${
+                                darkMode ? 'text-ivory/60' : 'text-night/60'
                               }`}>{r.text}</p>
                             </div>
                           ))}
                         {liveReviews.filter((r) => r.status === 'pending').length === 0 && (
-                          <p className={`px-5 py-6 text-[12px] text-center ${
-                            darkMode ? 'text-ivory/30' : 'text-night/30'
-                          }`}>No pending reviews.</p>
+                          <div className="px-6 py-10 text-center space-y-2">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto mb-2">
+                              <CheckCircle2 className="h-6 w-6" />
+                            </div>
+                            <p className={`text-[13px] font-bold ${darkMode ? 'text-ivory' : 'text-night'}`}>All Reviews Moderated</p>
+                            <p className={`text-[11px] ${darkMode ? 'text-ivory/40' : 'text-night/40'}`}>
+                              No pending customer reviews in the approval queue.
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -947,18 +1029,16 @@ export default function AdminPanel() {
               {tab === 'catalog' && (
                 <div className="space-y-5">
                   {/* Offer Banner Control */}
-                  <div className={`border p-5 ${
-                    darkMode ? 'border-gold/15' : 'border-[#1a1a1a]/10'
+                  <div className={`rounded-3xl border p-6 transition-all shadow-md ${
+                    darkMode ? 'border-gold/20 bg-[#160b09]/90 text-white' : 'border-[#1F0505]/15 bg-white text-[#1F0505]'
                   }`}>
-                    <p className={`text-[9px] uppercase tracking-widest font-semibold mb-1 ${
-                      darkMode ? 'text-ivory/30' : 'text-night/30'
-                    }`}>Sitewide Offer Banner</p>
-                    <h3 className={`font-serif text-base mb-4 ${
-                      darkMode ? 'text-ivory' : 'text-night'
-                    }`}>Promotional Message Control</h3>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                      <div className={`border focus-within:border-gold transition-colors ${
-                        darkMode ? 'border-ivory/10' : 'border-[#1a1a1a]/15'
+                    <p className="text-[10px] text-gold font-bold uppercase tracking-[0.2em] mb-1">
+                      Sitewide Offer Banner
+                    </p>
+                    <h3 className="font-serif text-lg font-bold mb-4">Promotional Message Control</h3>
+                    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+                      <div className={`rounded-2xl border focus-within:border-gold transition-colors ${
+                        darkMode ? 'border-ivory/20 bg-black/40' : 'border-[#1F0505]/20 bg-[#FAFAFA]'
                       }`}>
                         <input
                           value={offer.headline}
@@ -967,11 +1047,11 @@ export default function AdminPanel() {
                             setDirty(true);
                           }}
                           placeholder="Headline (e.g. FESTIVAL SPECIAL)"
-                          className="w-full bg-transparent px-3 py-2.5 text-[12px] outline-none"
+                          className="w-full bg-transparent px-4 py-3 text-[12px] font-medium outline-none placeholder:text-gray-400"
                         />
                       </div>
-                      <div className={`border focus-within:border-gold transition-colors ${
-                        darkMode ? 'border-ivory/10' : 'border-[#1a1a1a]/15'
+                      <div className={`rounded-2xl border focus-within:border-gold transition-colors ${
+                        darkMode ? 'border-ivory/20 bg-black/40' : 'border-[#1F0505]/20 bg-[#FAFAFA]'
                       }`}>
                         <input
                           value={offer.detail}
@@ -980,37 +1060,38 @@ export default function AdminPanel() {
                             setDirty(true);
                           }}
                           placeholder="Details (e.g. 15% off on 20+ metres)"
-                          className="w-full bg-transparent px-3 py-2.5 text-[12px] outline-none"
+                          className="w-full bg-transparent px-4 py-3 text-[12px] font-medium outline-none placeholder:text-gray-400"
                         />
                       </div>
                       <button
+                        type="button"
                         onClick={() => {
                           setOffer((o) => ({ ...o, active: !o.active }));
                           setDirty(true);
                         }}
-                        className={`text-[10px] uppercase tracking-widest font-semibold border transition-colors ${
+                        className={`rounded-2xl text-[11px] uppercase tracking-[0.16em] font-bold border py-3 transition-all flex items-center justify-center gap-2 shadow-sm ${
                           offer.active
-                            ? 'border-gold bg-gold/15 text-gold'
-                            : (darkMode ? 'border-ivory/15 text-ivory/40' : 'border-[#1a1a1a]/20 text-night/40')
+                            ? 'border-emerald-500 bg-emerald-500/15 text-emerald-500'
+                            : (darkMode ? 'border-ivory/20 text-ivory/40 bg-black/30' : 'border-[#1F0505]/20 text-[#1F0505]/50 bg-gray-100')
                         }`}
                       >
-                        {offer.active ? '● Banner Active' : '○ Banner Off'}
+                        <span className={`h-2.5 w-2.5 rounded-full ${offer.active ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
+                        {offer.active ? 'Banner Active' : 'Banner Off'}
                       </button>
                     </div>
                   </div>
 
                   {/* Toolbar */}
-                  <div className={`flex items-center justify-between border-b pb-4 ${
-                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
-                  }`}>
-                    <div className={`border focus-within:border-gold transition-colors w-64 ${
-                      darkMode ? 'border-ivory/10' : 'border-[#1a1a1a]/15'
+                  <div className="flex items-center justify-between gap-4 py-2">
+                    <div className={`rounded-full border focus-within:border-gold transition-colors w-72 flex items-center px-4 ${
+                      darkMode ? 'border-ivory/20 bg-black/40' : 'border-[#1F0505]/20 bg-white shadow-sm'
                     }`}>
+                      <Search className="h-4 w-4 text-gold shrink-0 mr-2" />
                       <input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search fabrics…"
-                        className="w-full bg-transparent px-3 py-2 text-[12px] outline-none"
+                        placeholder="Search fabrics by name..."
+                        className="w-full bg-transparent py-2.5 text-[12px] font-medium outline-none"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -1033,19 +1114,19 @@ export default function AdminPanel() {
                             }))
                           )
                         }
-                        className={`border text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest transition-colors ${
+                        className={`border rounded-full text-[10px] font-bold px-4 py-2 flex items-center gap-1.5 uppercase tracking-[0.16em] transition-all ${
                           darkMode
-                            ? 'border-ivory/15 text-ivory/50 hover:border-gold hover:text-gold'
-                            : 'border-[#1a1a1a]/15 text-night/50 hover:border-gold hover:text-gold'
+                            ? 'border-gold/30 text-gold hover:bg-gold/10'
+                            : 'border-[#1F0505]/20 text-[#1F0505] hover:bg-[#1F0505] hover:text-white bg-white shadow-sm'
                         }`}
                       >
-                        <Download className="h-3 w-3" />
+                        <Download className="h-3.5 w-3.5" />
                         <span>CSV</span>
                       </button>
 
                       <button
                         onClick={() => setShowAddModal(true)}
-                        className="btn btn-gold btn-sheen text-[10px] px-3 py-2 flex items-center gap-1.5 uppercase tracking-widest"
+                        className="rounded-full bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] font-bold text-[11px] px-4 py-2 flex items-center gap-1.5 uppercase tracking-[0.18em] shadow-md hover:brightness-110 active:scale-[0.98] transition-all"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         <span>Add Fabric</span>
@@ -1054,12 +1135,10 @@ export default function AdminPanel() {
                   </div>
 
                   {/* Fabrics Grid */}
-                  <div className={`grid grid-cols-1 gap-0 md:grid-cols-2 lg:grid-cols-3 border ${
-                    darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
-                  }`}>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {filteredProducts.map((item) => (
-                      <div key={item.id} className={`p-4 border-b border-r space-y-3 ${
-                        darkMode ? 'border-gold/10' : 'border-[#1a1a1a]/10'
+                      <div key={item.id} className={`p-5 rounded-3xl border transition-all duration-300 shadow-md space-y-4 ${
+                        darkMode ? 'border-gold/20 bg-[#160b09]/80 hover:border-gold/50 shadow-black/40' : 'border-[#1a1a1a]/15 bg-white hover:border-gold/50 shadow-gray-200'
                       }`}>
                         <div className="flex items-center gap-3">
                           <img src={item.image} alt="" className="h-14 w-14 object-cover border border-gold/15" />
@@ -1094,27 +1173,27 @@ export default function AdminPanel() {
                           darkMode ? 'border-gold/8' : 'border-[#1a1a1a]/8'
                         }`}>
                           <div>
-                            <p className={`text-[9px] uppercase tracking-widest mb-1 ${
-                              darkMode ? 'text-ivory/30' : 'text-night/30'
-                            }`}>Price/m</p>
+                            <p className={`text-[9px] uppercase tracking-widest mb-1 font-bold ${
+                              darkMode ? 'text-ivory/40' : 'text-night/40'
+                            }`}>Price/m (₹)</p>
                             <input
                               type="number"
                               value={item.pricePerMetre}
                               onChange={(e) => patchFabric(item.id, { pricePerMetre: Number(e.target.value) })}
-                              className={`w-full border bg-transparent px-2 py-1 outline-none focus:border-gold transition-colors ${
-                                darkMode ? 'border-ivory/10 text-ivory' : 'border-[#1a1a1a]/15 text-night'
+                              className={`w-full border rounded-xl bg-transparent px-2.5 py-1 text-[12px] font-bold outline-none focus:border-gold transition-colors ${
+                                darkMode ? 'border-ivory/15 text-gold' : 'border-[#1a1a1a]/15 text-night'
                               }`}
                             />
                           </div>
                           <div>
-                            <p className={`text-[9px] uppercase tracking-widest mb-1 ${
-                              darkMode ? 'text-ivory/30' : 'text-night/30'
+                            <p className={`text-[9px] uppercase tracking-widest mb-1 font-bold ${
+                              darkMode ? 'text-ivory/40' : 'text-night/40'
                             }`}>Stock</p>
                             <select
                               value={item.stock}
                               onChange={(e) => patchFabric(item.id, { stock: e.target.value as Stock })}
-                              className={`w-full border bg-transparent px-2 py-1 text-[11px] outline-none focus:border-gold transition-colors ${
-                                darkMode ? 'border-ivory/10 text-ivory' : 'border-[#1a1a1a]/15 text-night'
+                              className={`w-full border rounded-xl bg-transparent px-2.5 py-1 text-[11px] outline-none focus:border-gold transition-colors ${
+                                darkMode ? 'border-ivory/15 text-ivory' : 'border-[#1a1a1a]/15 text-night'
                               }`}
                             >
                               <option value="in">In Stock</option>
@@ -1122,6 +1201,25 @@ export default function AdminPanel() {
                               <option value="out">Out of Stock</option>
                             </select>
                           </div>
+                        </div>
+
+                        {/* Live / Not Live Visibility Toggle */}
+                        <div className="pt-2 flex items-center justify-between border-t border-gold/10">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                            darkMode ? 'text-ivory/40' : 'text-night/40'
+                          }`}>Website Visibility</span>
+                          <button
+                            type="button"
+                            onClick={() => patchFabric(item.id, { hidden: !item.hidden })}
+                            className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm ${
+                              !item.hidden
+                                ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/25'
+                                : 'bg-rose-500/15 border border-rose-500/40 text-rose-600 hover:bg-rose-500/25'
+                            }`}
+                          >
+                            <span className={`h-2 w-2 rounded-full ${!item.hidden ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                            {!item.hidden ? 'Live' : 'Not Live'}
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -1759,11 +1857,19 @@ export default function AdminPanel() {
       {showAddModal && (
         <AddProductModal
           onClose={() => setShowAddModal(false)}
-          onSave={(newItem) => {
-            setItems((prev) => [newItem, ...prev]);
-            setDirty(true);
+          onSave={async (newItem) => {
+            const updated = [newItem, ...items];
+            setItems(updated);
+            setDirty(false);
             setShowAddModal(false);
-            handlePublish();
+            setPublishState('publishing');
+            try {
+              await publishProducts(updated, offer);
+              setPublishState('done');
+              setTimeout(() => setPublishState('idle'), 2500);
+            } catch (e) {
+              setPublishState('error');
+            }
           }}
         />
       )}

@@ -24,6 +24,31 @@
   :focus-visible {
     @apply outline-none ring-2 ring-[#1F0505]/40 ring-offset-2 ring-offset-white transition-all duration-300;
   }
+
+  /* Override WebKit input autofill background (prevent ugly blue background) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-text-fill-color: #1F0505 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Admin select option dropdown overrides */
+  select option {
+    background-color: #1c0f0d !important;
+    color: #fcefe6 !important;
+    padding: 10px 14px;
+    font-weight: 600;
+  }
+  select option:hover,
+  select option:focus,
+  select option:active,
+  select option:checked {
+    background-color: #d4af37 !important;
+    color: #1F0505 !important;
+  }
 }
 
 @layer components {

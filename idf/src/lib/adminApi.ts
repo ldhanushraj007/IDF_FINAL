@@ -61,7 +61,7 @@ export async function adminRequestOtp(password: string): Promise<void> {
     body: JSON.stringify({
       token: SCRIPT_TOKEN,
       action: 'admin_request_otp',
-      email: 'admin3300@gmail.com',
+      email: 'virtuosodhanush@gmail.com',
       password,
     }),
   });
@@ -117,6 +117,7 @@ const rowToItem = (r: any): Item => ({
     : typeof r.suggestedGarmentIds === 'string' && r.suggestedGarmentIds.trim()
       ? r.suggestedGarmentIds.split('|').map((s: string) => s.trim()).filter(Boolean)
       : undefined,
+  hidden: Boolean(r.hidden),
 });
 
 const itemToRow = (i: Item) => ({
@@ -125,6 +126,7 @@ const itemToRow = (i: Item) => ({
   min_metres: i.minMetres, stock: i.stock, tags: i.tags, image: i.image,
   gallery: i.gallery ?? [], blurb: i.blurb, details: i.details ?? '',
   suggested_garment_ids: i.suggestedGarmentIds ?? [],
+  hidden: Boolean(i.hidden),
 });
 
 export async function fetchProducts(): Promise<Item[]> {
@@ -137,8 +139,15 @@ export async function fetchOffer(): Promise<Offer> {
   return data.offer;
 }
 
+import { saveLocalCatalogCache } from './catalogSource';
+
 export async function publishProducts(items: Item[], offer: Offer): Promise<void> {
-  await adminPost('save_catalog', { items: items.map(itemToRow), offer });
+  saveLocalCatalogCache(items, offer);
+  try {
+    await adminPost('save_catalog', { items: items.map(itemToRow), offer });
+  } catch (e) {
+    console.warn('Backend save_catalog failed (static mode or script error), saved to local catalog cache:', e);
+  }
 }
 
 // ── Admin Reviews ─────────────────────────────────────────────────────────────

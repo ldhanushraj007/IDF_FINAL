@@ -53,6 +53,7 @@ export interface Item {
   /** Longer write-up for the product page. Falls back to `blurb` when empty. */
   details?: string;
   suggestedGarmentIds?: string[];
+  hidden?: boolean; // If true, product is hidden ("Not Live") from customer website
 }
 
 export const TAG_LABELS: Record<Tag, string> = {
