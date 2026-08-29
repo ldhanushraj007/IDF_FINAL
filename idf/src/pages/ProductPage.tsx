@@ -237,18 +237,38 @@ export default function ProductPage() {
                         type="button"
                         aria-label="Decrease metres"
                         onClick={() => setMetres(m => Math.max(item.minMetres, Number((m - 0.5).toFixed(1))))}
-                        className="flex h-11 w-11 items-center justify-center text-[#1F0505]/40 hover:text-[#1F0505]"
+                        className="flex h-11 w-10 items-center justify-center text-[#1F0505]/40 hover:text-[#1F0505]"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
-                      <span className="min-w-[60px] text-center font-sans text-[15px] text-[#1F0505] font-medium">
-                        {metres}m
-                      </span>
+                      <div className="relative flex items-center border-x border-[#1F0505]/10">
+                        <input
+                          type="number"
+                          min={item.minMetres || 0.5}
+                          step="0.5"
+                          value={metres}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (!isNaN(val) && val > 0) {
+                              setMetres(val);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (isNaN(val) || val < (item.minMetres || 0.5)) {
+                              setMetres(item.minMetres || 0.5);
+                            }
+                          }}
+                          aria-label="Quantity in metres"
+                          className="w-16 h-11 text-center font-sans text-[15px] text-[#1F0505] font-medium bg-transparent focus:outline-none focus:bg-[#1F0505]/5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none pr-3"
+                        />
+                        <span className="absolute right-2 font-sans text-[12px] text-[#1F0505]/40 pointer-events-none">m</span>
+                      </div>
                       <button
                         type="button"
                         aria-label="Increase metres"
                         onClick={() => setMetres(m => Number((m + 0.5).toFixed(1)))}
-                        className="flex h-11 w-11 items-center justify-center text-[#1F0505]/40 hover:text-[#1F0505]"
+                        className="flex h-11 w-10 items-center justify-center text-[#1F0505]/40 hover:text-[#1F0505]"
                       >
                         <Plus className="h-4 w-4" />
                       </button>

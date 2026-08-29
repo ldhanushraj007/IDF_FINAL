@@ -13,7 +13,7 @@ import {
 } from '../lib/customerApi';
 import { BUSINESS } from '../lib/constants';
 
-const ADMIN_EMAIL = 'admin3300@gmail.com';
+const ADMIN_EMAIL = 'virtuosodhanush@gmail.com';
 
 type Step =
   | 'login'          // email + password form
@@ -95,7 +95,7 @@ export default function LoginPage() {
     try {
       if (isAdmin) {
         await adminRequestOtpApi(email.trim().toLowerCase(), password);
-        setSuccess(`Admin OTP sent to indesignluxuryfabrics@gmail.com`);
+        setSuccess(`Admin OTP sent to ${ADMIN_EMAIL}`);
         setStep('admin_otp');
       } else {
         const r = await customerLoginApi(email.trim().toLowerCase(), password);

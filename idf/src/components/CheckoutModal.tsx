@@ -354,13 +354,8 @@ export default function CheckoutModal({ open, onClose }: Props) {
                   </div>
 
                   <div className="text-center">
-                    <img
-                      src={UPI.staticQrImage || qr}
-                      alt="UPI payment QR code"
-                      className="mx-auto h-56 w-56 rounded-[3px] border border-gold/20 bg-ivory object-contain p-2"
-                    />
-                    <p className="mt-3 text-[12px] text-ivory/50">
-                      Scan with GPay, PhonePe, Paytm or any UPI app
+                    <p className="mt-1 text-[13px] text-ivory/70">
+                      Pay via UPI App or UPI ID
                     </p>
 
                     <a href={upiLink(order)} className="btn btn-gold btn-sheen mt-4 w-full sm:hidden">

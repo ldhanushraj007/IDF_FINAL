@@ -185,9 +185,29 @@ export default function QuickViewModal({ item, onClose }: Props) {
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
-                    <span className="font-nums text-[13px] text-[#1F0505]">
-                      {metres} <span className="text-[#1F0505]/40">metres</span>
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={item.minMetres || 1}
+                        step="1"
+                        value={metres}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (!isNaN(val) && val > 0) {
+                            setMetres(val);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (isNaN(val) || val < (item.minMetres || 1)) {
+                            setMetres(item.minMetres || 1);
+                          }
+                        }}
+                        aria-label="Quantity in metres"
+                        className="w-12 h-8 text-center font-nums text-[13px] text-[#1F0505] bg-transparent focus:outline-none focus:bg-[#1F0505]/5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="text-[#1F0505]/40 text-[13px]">metres</span>
+                    </div>
                     <button
                       type="button"
                       aria-label="Increase metres"

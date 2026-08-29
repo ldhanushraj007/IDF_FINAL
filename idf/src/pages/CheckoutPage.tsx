@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useCatalog } from '../context/CatalogContext';
 import {
   newOrderId,
   ownerMessage,
@@ -43,8 +44,14 @@ const EMPTY: Customer = {
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { items, subtotal, discount, shipping, total, isWholesale, setMetres, remove, clear } = useCart();
+  const { items, subtotal, discount, shipping, total, isWholesale, setMetres, remove, clear, add } = useCart();
   const { enabled: accountsEnabled, user, profile, saveProfile } = useAuth();
+  const { available } = useCatalog();
+
+  const suggestedProducts = useMemo(() => {
+    const cartIds = new Set(items.map((i) => i.item.id));
+    return available.filter((p) => !cartIds.has(p.id)).slice(0, 4);
+  }, [available, items]);
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [customer, setCustomer] = useState<Customer>(EMPTY);
@@ -206,9 +213,24 @@ export default function CheckoutPage() {
       <div className="flex-grow flex flex-col min-h-screen min-w-0">
         {/* TopAppBar (Transactional) */}
         <header className="flex justify-between items-center w-full px-4 sm:px-8 py-4 border-b border-[#1a1a1a] bg-surface">
-          <Link to="/" className="font-headline-md text-base sm:text-xl md:text-2xl tracking-widest text-primary font-serif uppercase">
-            IN DESIGN<span className="text-[10px] sm:text-sm tracking-[0.3em] text-brand-gold block font-sans">LUXURY FABRICS</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (step > 1) {
+                  setStep((s) => (s - 1) as 1 | 2 | 3 | 4);
+                } else {
+                  navigate(-1);
+                }
+              }}
+              className="font-label-caps text-[10px] sm:text-xs flex items-center gap-1.5 hover:text-primary text-secondary transition-colors duration-200 uppercase"
+            >
+              <ArrowLeft className="h-4 w-4" /> BACK
+            </button>
+            <Link to="/" className="font-headline-md text-base sm:text-xl md:text-2xl tracking-widest text-primary font-serif uppercase ml-1">
+              IN DESIGN<span className="text-[10px] sm:text-sm tracking-[0.3em] text-brand-gold block font-sans">LUXURY FABRICS</span>
+            </Link>
+          </div>
           <Link to="/" className="font-label-caps text-[10px] sm:text-xs flex items-center gap-1 hover:text-primary text-secondary transition-colors duration-200 shrink-0">
             <span className="material-symbols-outlined text-[16px] sm:text-[18px]">close</span> CANCEL
           </Link>
@@ -371,6 +393,47 @@ export default function CheckoutPage() {
                       </div>
                     </div>
 
+                    {/* Suggested Choices Section */}
+                    {suggestedProducts.length > 0 && (
+                      <div className="pt-4 border-t border-[#1a1a1a]/10">
+                        <div className="flex justify-between items-baseline mb-4">
+                          <h3 className="font-headline-md text-[16px] font-serif uppercase tracking-wider text-primary">
+                            Suggested Choices
+                          </h3>
+                          <span className="font-label-caps text-[10px] text-secondary">CURATED FOR YOU</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {suggestedProducts.map((prod) => (
+                            <div
+                              key={prod.id}
+                              className="group border border-[#1a1a1a]/15 p-2 bg-white flex flex-col justify-between hover:border-brand-gold transition-colors"
+                            >
+                              <div>
+                                <img
+                                  src={prod.image}
+                                  alt={prod.name}
+                                  className="w-full h-24 sm:h-28 object-cover border border-[#1a1a1a]/10 mb-2"
+                                />
+                                <h4 className="font-serif text-[12px] leading-tight font-medium text-primary line-clamp-1 group-hover:text-brand-gold transition-colors">
+                                  {prod.name}
+                                </h4>
+                                <p className="font-sans text-[11px] text-secondary mt-0.5">
+                                  {inr(prod.pricePerMetre)} / m
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => add(prod.id, prod.minMetres || 1)}
+                                className="mt-2.5 w-full py-1.5 px-2 bg-surface-variant hover:bg-brand-gold hover:text-white text-primary text-[10px] font-label-caps tracking-wider uppercase transition-colors flex items-center justify-center gap-1 border border-[#1a1a1a]/10"
+                              >
+                                <Plus className="h-3 w-3" /> ADD {prod.minMetres || 1}M
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => validate() && setStep(2)}
@@ -392,19 +455,14 @@ export default function CheckoutPage() {
                     <span className="font-label-caps text-label-caps text-secondary">02.2</span>
                   </div>
                   <p className="font-body-sm text-secondary mb-6">
-                    Scan the dynamic QR code encoding exact order total of <span className="font-semibold text-brand-gold">{inr(total)}</span>.
+                    Complete your payment of <span className="font-semibold text-brand-gold">{inr(total)}</span> via UPI.
                   </p>
                 </div>
 
                 <div className="text-center border border-[#1a1a1a] p-8 bg-surface max-w-sm mx-auto">
-                  <img
-                    src={UPI.staticQrImage || qr}
-                    alt="UPI QR Code"
-                    className="mx-auto h-64 w-64 border border-[#1a1a1a]/20 bg-white object-contain p-2 shadow-sm"
-                  />
-                  <p className="mt-4 font-body-sm text-secondary">Scan with Google Pay, PhonePe, Paytm or any UPI App</p>
+                  <p className="font-body-sm text-secondary font-medium mb-4">Pay via UPI VPA / ID</p>
                   
-                  <a href={upiLink(order)} className="btn-primary mt-4 w-full p-3 bg-brand-gold text-white font-label-caps text-label-caps block sm:hidden">
+                  <a href={upiLink(order)} className="btn-primary mt-2 w-full p-3 bg-brand-gold text-white font-label-caps text-label-caps block sm:hidden">
                     OPEN UPI APP TO PAY
                   </a>
 
@@ -560,14 +618,33 @@ export default function CheckoutPage() {
                         <div className="flex border border-primary bg-white h-7 items-center">
                           <button
                             onClick={() => setMetres(item.id, Math.max(item.minMetres, Number((metres - 0.5).toFixed(1))))}
-                            className="w-6 h-full flex items-center justify-center hover:bg-surface-variant"
+                            className="w-5 h-full flex items-center justify-center hover:bg-surface-variant"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
-                          <span className="px-2 font-index-num text-[11px]">{metres} m</span>
+                          <input
+                            type="number"
+                            min={item.minMetres || 0.5}
+                            step="0.5"
+                            value={metres}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (!isNaN(val) && val > 0) {
+                                setMetres(item.id, val);
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (isNaN(val) || val < (item.minMetres || 0.5)) {
+                                setMetres(item.id, item.minMetres || 0.5);
+                              }
+                            }}
+                            aria-label={`Metres for ${item.name}`}
+                            className="w-10 h-full text-center font-index-num text-[11px] bg-transparent focus:outline-none focus:bg-surface-variant [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
                           <button
                             onClick={() => setMetres(item.id, Number((metres + 0.5).toFixed(1)))}
-                            className="w-6 h-full flex items-center justify-center hover:bg-surface-variant border-l border-primary"
+                            className="w-5 h-full flex items-center justify-center hover:bg-surface-variant border-l border-primary"
                           >
                             <Plus className="h-3 w-3" />
                           </button>

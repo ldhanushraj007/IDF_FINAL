@@ -107,18 +107,35 @@ export default function CartDrawer() {
                                   onClick={() =>
                                     setMetres(item.id, Math.max(item.minMetres, Number((metres - 0.5).toFixed(1))))
                                   }
-                                  className="flex h-9 w-9 items-center justify-center text-[#1F0505]/40 hover:text-[#1F0505]"
+                                  className="flex h-9 w-8 items-center justify-center text-[#1F0505]/40 hover:text-[#1F0505]"
                                 >
                                   <Minus className="h-3.5 w-3.5" />
                                 </button>
-                                <span className="min-w-[3.2rem] text-center text-[12px] text-[#1F0505]">
-                                  {metres} m
-                                </span>
+                                <input
+                                  type="number"
+                                  min={item.minMetres || 0.5}
+                                  step="0.5"
+                                  value={metres}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    if (!isNaN(val) && val > 0) {
+                                      setMetres(item.id, val);
+                                    }
+                                  }}
+                                  onBlur={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    if (isNaN(val) || val < (item.minMetres || 0.5)) {
+                                      setMetres(item.id, item.minMetres || 0.5);
+                                    }
+                                  }}
+                                  aria-label={`Metres for ${item.name}`}
+                                  className="w-14 h-9 text-center text-[12px] text-[#1F0505] bg-transparent focus:outline-none focus:bg-[#1F0505]/5 font-medium border-x border-[#1F0505]/10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
                                 <button
                                   type="button"
                                   aria-label={`Add ${item.name}`}
                                   onClick={() => setMetres(item.id, Number((metres + 0.5).toFixed(1)))}
-                                  className="flex h-9 w-9 items-center justify-center text-[#1F0505]/40 hover:text-[#1F0505]"
+                                  className="flex h-9 w-8 items-center justify-center text-[#1F0505]/40 hover:text-[#1F0505]"
                                 >
                                   <Plus className="h-3.5 w-3.5" />
                                 </button>
@@ -140,22 +157,14 @@ export default function CartDrawer() {
 
                     {/* Upsell nudges */}
                     {(() => {
-                      const hasTulle = items.some(i => i.item.id === 'aurelia-tulle');
-                      const hasOrganza = items.some(i => i.item.id === 'noor-organza');
                       const nudgeMetres = totalMetres < 20 ? `Add ${20 - totalMetres}m more to unlock 15% off!`
                         : totalMetres < 50 ? `Add ${50 - totalMetres}m more to unlock 20% off!`
                         : totalMetres < 100 ? `Add ${100 - totalMetres}m more to unlock 25% off!`
-                        : null;
-                      const comboNudge = ((hasTulle && !hasOrganza) || (!hasTulle && hasOrganza))
-                        ? `Add ${hasTulle ? 'Noor Pearl Organza' : 'Aurelia Tulle'} to unlock 10% off both!`
                         : null;
                       return (
                         <div className="mt-4 space-y-1.5">
                           {nudgeMetres && (
                             <p className="text-[11px] text-[#1F0505]/40">💡 {nudgeMetres}</p>
-                          )}
-                          {comboNudge && (
-                            <p className="text-[11px] text-[#1F0505]/60">🎁 {comboNudge}</p>
                           )}
                         </div>
                       );
