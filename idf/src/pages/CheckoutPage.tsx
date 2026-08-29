@@ -196,26 +196,26 @@ export default function CheckoutPage() {
 
   return (
     <div className="grid-container w-full mx-auto max-w-[1600px] relative bg-surface border-x border-[#1a1a1a] min-h-screen flex flex-row">
-      {/* Left Sidebar */}
-      <div className="hairline-r relative flex flex-col items-center py-4 w-12 border-r border-[#1a1a1a] shrink-0">
+      {/* Left Sidebar (Hidden on mobile) */}
+      <div className="hairline-r relative hidden md:flex flex-col items-center py-4 w-12 border-r border-[#1a1a1a] shrink-0">
         <div className="font-index-num text-index-num mb-auto">01</div>
         <div className="font-label-caps text-label-caps tracking-widest text-secondary rotate-[-90deg] whitespace-nowrap mb-32 uppercase">CHECKOUT</div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow flex flex-col min-h-screen">
+      <div className="flex-grow flex flex-col min-h-screen min-w-0">
         {/* TopAppBar (Transactional) */}
-        <header className="flex justify-between items-center w-full px-margin-page py-6 border-b border-[#1a1a1a] relative bg-surface">
-          <Link to="/" className="font-headline-md text-headline-md tracking-widest text-primary text-center font-serif uppercase mx-auto">
-            IN DESIGN<br/><span className="text-sm tracking-[0.3em] text-brand-gold block font-sans">LUXURY FABRICS</span>
+        <header className="flex justify-between items-center w-full px-4 sm:px-8 py-4 border-b border-[#1a1a1a] bg-surface">
+          <Link to="/" className="font-headline-md text-base sm:text-xl md:text-2xl tracking-widest text-primary font-serif uppercase">
+            IN DESIGN<span className="text-[10px] sm:text-sm tracking-[0.3em] text-brand-gold block font-sans">LUXURY FABRICS</span>
           </Link>
-          <Link to="/" className="absolute right-margin-page font-label-caps text-label-caps flex items-center gap-2 hover:text-primary text-secondary transition-colors duration-200">
-            <span className="material-symbols-outlined text-[18px]">close</span> CANCEL
+          <Link to="/" className="font-label-caps text-[10px] sm:text-xs flex items-center gap-1 hover:text-primary text-secondary transition-colors duration-200 shrink-0">
+            <span className="material-symbols-outlined text-[16px] sm:text-[18px]">close</span> CANCEL
           </Link>
         </header>
 
         {/* Stepper Steps Header */}
-        <div className="border-b border-[#1a1a1a] bg-surface-bright py-6 px-margin-page">
+        <div className="border-b border-[#1a1a1a] bg-surface-bright py-4 sm:py-6 px-3 sm:px-8">
           <div className="flex items-center justify-between relative max-w-xl mx-auto">
             <div className="absolute top-1/2 left-0 right-0 h-[1px] -translate-y-1/2 bg-[#1a1a1a]/20 -z-0" />
             {[
@@ -227,9 +227,9 @@ export default function CheckoutPage() {
               const active = step === s.num;
               const completed = step > s.num;
               return (
-                <div key={s.num} className="relative z-10 flex flex-col items-center gap-2 bg-surface px-4">
+                <div key={s.num} className="relative z-10 flex flex-col items-center gap-1.5 bg-surface-bright px-2 sm:px-4">
                   <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-full font-index-num text-[12px] font-bold border transition-all ${
+                    className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full font-index-num text-[11px] sm:text-[12px] font-bold border transition-all ${
                       completed
                         ? 'bg-primary border-primary text-on-primary'
                         : active
@@ -237,10 +237,10 @@ export default function CheckoutPage() {
                           : 'border-[#1a1a1a]/20 bg-surface-container text-secondary'
                     }`}
                   >
-                    {completed ? <Check className="h-4 w-4" /> : s.num}
+                    {completed ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : s.num}
                   </div>
                   <span
-                    className={`text-[10px] font-label-caps tracking-widest uppercase hidden sm:block ${
+                    className={`text-[9px] sm:text-[10px] font-label-caps tracking-widest uppercase hidden sm:block ${
                       active ? 'text-primary font-bold' : completed ? 'text-secondary' : 'text-secondary/55'
                     }`}
                   >
@@ -255,7 +255,7 @@ export default function CheckoutPage() {
         {/* Checkout Panel */}
         <main className="flex-grow flex flex-col lg:flex-row w-full bg-surface-bright divide-y lg:divide-y-0 lg:divide-x divide-[#1a1a1a]">
           {/* Left Column: Interactive Form Steps (60% Width) */}
-          <div className="w-full lg:w-3/5 p-8 sm:p-12 space-y-12">
+          <div className="w-full lg:w-3/5 p-4 sm:p-8 lg:p-12 space-y-6 sm:space-y-12">
             {/* STEP 1: Details */}
             {step === 1 && (
               <div className="space-y-8">
@@ -542,7 +542,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* Right Column: Order Summary (40% Width) */}
-          <div className="w-full lg:w-2/5 p-8 sm:p-12 bg-surface flex flex-col gap-8">
+          <div className="w-full lg:w-2/5 p-4 sm:p-8 lg:p-12 bg-surface flex flex-col gap-6 sm:gap-8">
             <div className="flex justify-between items-baseline border-b border-[#1a1a1a] pb-2">
               <h2 className="font-headline-md text-[20px] font-serif uppercase">Order Summary</h2>
               <span className="font-label-caps text-label-caps text-secondary">{items.length} items</span>
