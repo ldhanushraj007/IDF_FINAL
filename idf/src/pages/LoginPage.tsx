@@ -99,7 +99,10 @@ export default function LoginPage() {
         setStep('admin_otp');
       } else {
         const r = await customerLoginApi(email.trim().toLowerCase(), password);
-        if (r.otpSent) {
+        if (r.token && r.user) {
+          await completeCustomAuthSession(r.token, { id: r.user.id, email: r.user.email, name: r.user.name, picture: '' });
+          navigate('/');
+        } else if (r.otpSent) {
           setSuccess(`Verification code sent to ${email}`);
           setStep('login_otp');
         }

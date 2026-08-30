@@ -182,7 +182,7 @@ function verifyOtp(body) {
   return { ok: true, token: tok, user: { id: String(d[0]), email: String(d[3]), name: String(d[1]) } };
 }
 
-// ── Customer Login / Send OTP ──────────────────────────────────────────────────
+// ── Customer Login (Direct password auth for existing signed up users) ───────────
 
 function loginSendOtp(body) {
   var email = String(body.email    || '').trim().toLowerCase();
@@ -197,16 +197,19 @@ function loginSendOtp(body) {
 
   if (sha256(pass) !== String(found.d[4])) return { ok: false, error: 'Incorrect password.' };
 
-  var otp    = otp6();
-  var expiry = new Date(Date.now() + OTP_EXPIRY_MIN * 60000).toISOString();
-  var sh     = sheet('Customers');
-  sh.getRange(found.row, 7).setValue(otp);
-  sh.getRange(found.row, 8).setValue(expiry);
+  var tok = token();
+  var tokExpiry = new Date(Date.now() + SESSION_TTL_DAYS * 86400000).toISOString();
+  var sh  = sheet('Customers');
+  sh.getRange(found.row, 7).setValue('');
+  sh.getRange(found.row, 8).setValue('');
+  sh.getRange(found.row, 9).setValue(tok + '|' + tokExpiry);
 
-  sendOtp(email, otp, 'Your IN DESIGN login code',
-    'Someone (hopefully you) is signing into IN DESIGN. Use this code to complete your login.');
-
-  return { ok: true, otpSent: true, message: 'Verification code sent to ' + email };
+  return {
+    ok: true,
+    directLogin: true,
+    token: tok,
+    user: { id: String(found.d[0]), email: String(found.d[3]), name: String(found.d[1]) }
+  };
 }
 
 // ── Session check ──────────────────────────────────────────────────────────────

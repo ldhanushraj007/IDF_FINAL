@@ -98,12 +98,19 @@ export async function customerVerifyOtpApi(email: string, code: string) {
 
 // ── Auth: Login ────────────────────────────────────────────────────────────────
 
-/** Validate password → sends OTP to the user's email */
+/** Validate password → direct login or optional OTP fallback */
 export async function customerLoginApi(email: string, password: string) {
   if (!isSheetsConfigured) throw new Error('Sheets backend not configured.');
   const r = await post('customer_login', { email, password });
   if (!r.ok) throw new Error(r.error || 'Login failed.');
-  return r as { ok: true; otpSent: boolean; message: string };
+  return r as {
+    ok: true;
+    directLogin?: boolean;
+    otpSent?: boolean;
+    token?: string;
+    user?: { id: string; email: string; name: string };
+    message?: string;
+  };
 }
 
 // ── Auth: Admin OTP ────────────────────────────────────────────────────────────

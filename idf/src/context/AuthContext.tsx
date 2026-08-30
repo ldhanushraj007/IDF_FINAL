@@ -116,23 +116,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(false);
             return;
           }
-        } catch (e) {
-          // Session API failed — try cached user info before giving up
-          try {
-            const cachedRaw = localStorage.getItem(CUSTOMER_USER_KEY);
-            if (cachedRaw) {
-              const cachedUser = JSON.parse(cachedRaw) as GoogleUser;
-              if (cachedUser?.id && cachedUser?.email) {
-                setUser(cachedUser);
-                await loadProfile(cachedUser);
-                setLoading(false);
-                return;
-              }
+        } catch { /* Fallback to cached profile below */ }
+
+        // Session API returned null or threw — restore from local cached user info
+        try {
+          const cachedRaw = localStorage.getItem(CUSTOMER_USER_KEY);
+          if (cachedRaw) {
+            const cachedUser = JSON.parse(cachedRaw) as GoogleUser;
+            if (cachedUser?.id && cachedUser?.email) {
+              setUser(cachedUser);
+              await loadProfile(cachedUser);
+              setLoading(false);
+              return;
             }
-          } catch { /* parse error — fall through */ }
-          localStorage.removeItem(CUSTOMER_TOKEN_KEY);
-          localStorage.removeItem(CUSTOMER_USER_KEY);
-        }
+          }
+        } catch { /* parse error — clear and continue */ }
+
+        localStorage.removeItem(CUSTOMER_TOKEN_KEY);
+        localStorage.removeItem(CUSTOMER_USER_KEY);
       }
 
       // 2. Try Google session next
