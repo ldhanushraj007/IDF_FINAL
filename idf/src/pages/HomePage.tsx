@@ -410,20 +410,14 @@ export default function HomePage() {
           >
             — From the Showroom Floor —
           </p>
-          {/* Large drop-cap style opening quote */}
+          {/* Editorial Pull Quote */}
           <blockquote
-            className="font-serif text-[28px] md:text-[40px] lg:text-[48px] text-[#1F0505] leading-[1.15]"
+            className="relative font-serif text-[22px] sm:text-[32px] md:text-[40px] lg:text-[46px] text-[#1F0505] leading-[1.25] md:leading-[1.18] px-2 sm:px-6"
             style={{ letterSpacing: '-0.01em' }}
           >
-            <span
-              className="float-left font-serif text-[80px] md:text-[100px] text-[#1F0505] leading-[0.72] mr-3 mt-1 font-medium"
-              aria-hidden="true"
-            >
-              "
-            </span>
-            Every fabric here has been chosen by hand,
-            inspected in natural light, and measured
-            against the discipline of the weaver's craft."
+            <span className="font-serif text-[#1F0505]/40 mr-1 sm:mr-2">“</span>
+            Every fabric here has been chosen by hand, inspected in natural light, and measured against the discipline of the weaver's craft.
+            <span className="font-serif text-[#1F0505]/40 ml-1 sm:ml-2">”</span>
           </blockquote>
           <div className="flex items-center justify-center gap-4 mt-8">
             <span className="h-px w-12 bg-[#1F0505]/20" />
