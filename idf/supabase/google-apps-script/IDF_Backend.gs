@@ -138,21 +138,18 @@ function signupSendOtp(body) {
   if (!name || !phone || !email || !pass) return { ok: false, error: 'All fields are required.' };
   if (pass.length < 6) return { ok: false, error: 'Password must be at least 6 characters.' };
 
+  var sh    = sheet('Customers');
+  var found = findByEmail(email);
+
+  if (found) {
+    return { ok: false, error: 'An account with this email already exists. Please sign in.' };
+  }
+
   var otp     = otp6();
   var expiry  = new Date(Date.now() + OTP_EXPIRY_MIN * 60000).toISOString();
   var hash    = sha256(pass);
-  var sh      = sheet('Customers');
-  var found   = findByEmail(email);
 
-  if (found) {
-    sh.getRange(found.row, 2).setValue(name);
-    sh.getRange(found.row, 3).setValue(phone);
-    sh.getRange(found.row, 5).setValue(hash);
-    sh.getRange(found.row, 7).setValue(otp);
-    sh.getRange(found.row, 8).setValue(expiry);
-  } else {
-    sh.appendRow([uuid(), name, phone, email, hash, new Date().toISOString(), otp, expiry, '', 'email']);
-  }
+  sh.appendRow([uuid(), name, phone, email, hash, new Date().toISOString(), otp, expiry, '', 'email']);
 
   sendOtp(email, otp, 'Verify your IN DESIGN account',
     'Welcome to IN DESIGN, ' + name + '! Please verify your email address to activate your account.');

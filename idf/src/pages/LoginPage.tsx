@@ -105,7 +105,8 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Check your email and password.');
+      const msg = err instanceof Error ? err.message : 'Login failed. Check your email and password.';
+      setError(msg);
     } finally {
       setBusy(false);
     }
@@ -161,7 +162,8 @@ export default function LoginPage() {
       setSuccess(`Verification code sent to ${email}`);
       setStep('signup_otp');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      const msg = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setError(msg);
     } finally {
       setBusy(false);
     }
@@ -339,7 +341,33 @@ export default function LoginPage() {
           <div className="px-8">
             {error && (
               <div className="mt-5 p-4 rounded-xl font-sans text-[11px] text-red-700 bg-red-50 border border-red-200 space-y-2.5">
-                <p>{error}</p>
+                <p className="font-medium">{error}</p>
+                
+                {/* Helpful quick actions for user flow */}
+                {error.toLowerCase().includes('already exists') && (
+                  <div className="pt-2 border-t border-red-200/80">
+                    <button
+                      type="button"
+                      onClick={() => { setStep('login'); clear(); }}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#1F0505] text-white font-bold text-[10px] uppercase tracking-wider hover:bg-[#1F0505]/90 transition-colors shadow-xs"
+                    >
+                      Switch to Sign In →
+                    </button>
+                  </div>
+                )}
+
+                {error.toLowerCase().includes('no account found') && (
+                  <div className="pt-2 border-t border-red-200/80">
+                    <button
+                      type="button"
+                      onClick={() => { setStep('signup'); clear(); }}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#1F0505] text-white font-bold text-[10px] uppercase tracking-wider hover:bg-[#1F0505]/90 transition-colors shadow-xs"
+                    >
+                      Create Account (Sign Up) →
+                    </button>
+                  </div>
+                )}
+
                 {(error.toLowerCase().includes('admin') || email.toLowerCase().includes('virtuosodhanush')) && (
                   <div className="pt-2 border-t border-red-200/80">
                     <Link
