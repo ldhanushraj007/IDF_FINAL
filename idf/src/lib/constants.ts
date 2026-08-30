@@ -9,7 +9,7 @@ export const BUSINESS = {
   phoneRaw: '+918884853153',
   whatsappNumber: '918884853153',
 
-  email: 'hello@indesignluxuryfabrics.com',
+  email: 'indesignluxuryfabrics@gmail.com',
 
   addressLine1: 'Shop No. 32, Ibrahim Sahib Street',
   addressLine2: 'Parallel to Commercial Street, Shivaji Nagar',
