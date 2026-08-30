@@ -280,15 +280,17 @@ function getProfile(body) {
   var found = findByEmail(String(body.userEmail || ''));
   if (!found) return { ok: false, error: 'not_found' };
   var d = found.d;
-  return { ok: true, data: { name: String(d[1]||''), phone: String(d[2]||''), email: String(d[3]||''), city: '', signup_method: String(d[9]||'email') } };
+  return { ok: true, data: { name: String(d[1]||''), phone: String(d[2]||''), email: String(d[3]||''), city: String(d[10]||''), address: String(d[11]||''), signup_method: String(d[9]||'email') } };
 }
 
 function upsertCustomer(body) {
   var found = findByEmail(String(body.userEmail || ''));
   if (!found) return { ok: false, error: 'not_found' };
   var sh = sheet('Customers');
-  if (body.name  !== undefined) sh.getRange(found.row, 2).setValue(body.name);
-  if (body.phone !== undefined) sh.getRange(found.row, 3).setValue(body.phone);
+  if (body.name    !== undefined) sh.getRange(found.row, 2).setValue(body.name);
+  if (body.phone   !== undefined) sh.getRange(found.row, 3).setValue(body.phone);
+  if (body.city    !== undefined) sh.getRange(found.row, 11).setValue(body.city);
+  if (body.address !== undefined) sh.getRange(found.row, 12).setValue(body.address);
   return { ok: true };
 }
 

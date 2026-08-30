@@ -17,6 +17,7 @@ export default function AccountPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -32,6 +33,7 @@ export default function AccountPage() {
       setName(profile.name);
       setPhone(profile.phone);
       setCity(profile.city);
+      setAddress(profile.address || '');
     }
   }, [profile]);
 
@@ -51,7 +53,7 @@ export default function AccountPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    await saveProfile({ name, phone, city });
+    await saveProfile({ name, phone, city, address });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -217,6 +219,17 @@ export default function AccountPage() {
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Bengaluru"
+                />
+              </div>
+
+              <div className="sm:col-span-2 flex flex-col gap-1.5">
+                <label className="font-sans text-[10px] font-bold tracking-[0.14em] text-[#1F0505]/60 uppercase">Delivery Address</label>
+                <textarea
+                  rows={2}
+                  className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl font-sans text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all resize-none"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Flat/House No., Street, Area, Pincode"
                 />
               </div>
 

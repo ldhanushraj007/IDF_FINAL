@@ -39,6 +39,7 @@ export interface CustomerProfile {
   phone:         string;
   email:         string;
   city:          string;
+  address?:      string;
   signup_method: string;
 }
 
@@ -136,7 +137,7 @@ export async function customerSessionApi(customerToken: string) {
 
 // ── Profile ────────────────────────────────────────────────────────────────────
 
-const EMPTY_PROFILE: CustomerProfile = { name: '', phone: '', email: '', city: '', signup_method: '' };
+const EMPTY_PROFILE: CustomerProfile = { name: '', phone: '', email: '', city: '', address: '', signup_method: '' };
 
 export async function fetchProfile(userId: string, userEmail: string): Promise<CustomerProfile | null> {
   if (!isSheetsConfigured || !userEmail) return null;
@@ -151,7 +152,14 @@ export async function upsertProfile(
   fields: Partial<CustomerProfile>,
 ): Promise<CustomerProfile | null> {
   if (!isSheetsConfigured) return null;
-  await post('upsert_customer', { userId, userEmail, name: fields.name, phone: fields.phone, city: fields.city });
+  await post('upsert_customer', {
+    userId,
+    userEmail,
+    name: fields.name,
+    phone: fields.phone,
+    city: fields.city,
+    address: fields.address,
+  });
   return fetchProfile(userId, userEmail);
 }
 
