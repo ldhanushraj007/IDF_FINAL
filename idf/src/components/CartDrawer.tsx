@@ -1,8 +1,10 @@
 // CartDrawer — slide-out tray; checkout navigates to /checkout route
 import { AnimatePresence, motion } from 'framer-motion';
-import { Minus, Plus, ShoppingBag, Trash2, X, MessageCircle } from 'lucide-react';
+import { Heart, Minus, Plus, ShoppingBag, Trash2, X, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
 import { inr, waLink } from '../lib/constants';
 
 export default function CartDrawer() {
@@ -10,6 +12,8 @@ export default function CartDrawer() {
     open, setOpen, items, subtotal, discount, shipping, total,
     isWholesale, isBulkOrder, totalMetres, distinctProducts, setMetres, remove,
   } = useCart();
+  const { has, toggle } = useWishlist();
+  const { user, requestSignIn } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -36,7 +40,17 @@ export default function CartDrawer() {
               <header className="flex items-center justify-between px-5 py-4"
                 style={{ borderBottom: '1px solid rgba(31,5,5,0.08)' }}
               >
-                <h2 className="font-serif text-xl text-[#1F0505]">Your Order</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="font-serif text-xl text-[#1F0505]">Your Order</h2>
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-1 font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1F0505]/60 hover:text-[#1F0505] bg-[#FFE6E9]/40 border border-[#1F0505]/15 px-2.5 py-1 rounded-full transition-colors"
+                  >
+                    <Heart className="h-3 w-3 text-[#1F0505]" strokeWidth={1.5} />
+                    Wishlist
+                  </Link>
+                </div>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
@@ -140,14 +154,37 @@ export default function CartDrawer() {
                                   <Plus className="h-3.5 w-3.5" />
                                 </button>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => remove(item.id)}
-                                aria-label={`Remove ${item.name}`}
-                                className="flex h-9 w-9 items-center justify-center text-[#1F0505]/20 transition-colors hover:text-red-500"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!user) {
+                                      requestSignIn();
+                                      return;
+                                    }
+                                    toggle(item.id);
+                                  }}
+                                  aria-label={has(item.id) ? `Remove ${item.name} from wishlist` : `Save ${item.name} to wishlist`}
+                                  title={has(item.id) ? "Saved in wishlist" : "Add to wishlist"}
+                                  className="flex h-9 w-9 items-center justify-center text-[#1F0505]/40 transition-colors hover:text-[#1F0505]"
+                                >
+                                  <Heart
+                                    className={`h-4 w-4 transition-all ${
+                                      has(item.id) ? 'fill-[#1F0505] text-[#1F0505]' : 'text-[#1F0505]/40'
+                                    }`}
+                                    strokeWidth={1.5}
+                                  />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => remove(item.id)}
+                                  aria-label={`Remove ${item.name}`}
+                                  title="Remove from cart"
+                                  className="flex h-9 w-9 items-center justify-center text-[#1F0505]/20 transition-colors hover:text-red-500"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
                             </div>
                           </div>
                           <p className="shrink-0 text-[13px] font-semibold text-[#1F0505]">{inr(lineTotal)}</p>
