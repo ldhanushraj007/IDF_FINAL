@@ -299,16 +299,12 @@ export default function HomePage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3" style={{ borderBottom: '1px solid #1F0505' }}>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 bg-white border-l border-[#1F0505]" style={{ borderBottom: '1px solid #1F0505' }}>
               {featured.map((item, i) => (
                 <Reveal
                   key={item.id}
                   delay={i * 0.06}
-                  className="group"
-                  style={{
-                    borderRight: (i % 3 !== 2) ? '1px solid #1F0505' : undefined,
-                    borderBottom: i < featured.length - 3 ? '1px solid #1F0505' : undefined,
-                  } as React.CSSProperties}
+                  className="group border-b border-r border-[#1F0505] flex flex-col"
                 >
                   {/* Product image */}
                   <div
