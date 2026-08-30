@@ -81,7 +81,7 @@ function ScrollToTop() {
 function SiteChrome() {
   const { authModalOpen, closeAuthModal } = useAuth();
   const { pathname } = useLocation();
-  const isLoginPage = pathname === '/login';
+  const isStandalonePage = pathname === '/login' || pathname === '/checkout';
 
   return (
     <>
@@ -93,9 +93,9 @@ function SiteChrome() {
         Skip to content
       </a>
       <Preloader />
-      {!isLoginPage && <ScrollProgress />}
-      {!isLoginPage && <OfferBar />}
-      {!isLoginPage && <Navbar />}
+      {!isStandalonePage && <ScrollProgress />}
+      {!isStandalonePage && <OfferBar />}
+      {!isStandalonePage && <Navbar />}
       <main id="main">
         <Suspense fallback={<RouteFallback />}>
           <AnimatePresence mode="wait">
@@ -127,8 +127,8 @@ function SiteChrome() {
           </AnimatePresence>
         </Suspense>
       </main>
-      {!isLoginPage && <Footer />}
-      {!isLoginPage && <FloatingWhatsApp />}
+      {!isStandalonePage && <Footer />}
+      {!isStandalonePage && <FloatingWhatsApp />}
       <CartDrawer />
       <PendingOrderBanner />
       <AuthModal open={authModalOpen} onClose={closeAuthModal} />

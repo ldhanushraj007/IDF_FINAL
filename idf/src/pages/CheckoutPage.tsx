@@ -192,9 +192,9 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="grid-container w-full mx-auto max-w-[1600px] relative bg-surface border-x border-[#1a1a1a] min-h-screen flex flex-row">
+    <div className="w-full mx-auto relative bg-surface min-h-screen flex flex-row overflow-x-hidden">
       {/* Left Sidebar (Hidden on mobile) */}
-      <div className="hairline-r relative hidden md:flex flex-col items-center py-4 w-12 border-r border-[#1a1a1a] shrink-0">
+      <div className="hairline-r relative hidden lg:flex flex-col items-center py-4 w-12 border-r border-[#1a1a1a] shrink-0">
         <div className="font-index-num text-index-num mb-auto">01</div>
         <div className="font-label-caps text-label-caps tracking-widest text-secondary rotate-[-90deg] whitespace-nowrap mb-32 uppercase">CHECKOUT</div>
       </div>
@@ -321,9 +321,9 @@ export default function CheckoutPage() {
                           <input
                             {...field('name')}
                             placeholder="Enter full name"
-                            className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                            className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all"
                           />
-                          {errors.name && <p className="mt-1 text-[11px] text-error">{errors.name}</p>}
+                          {errors.name && <p className="mt-1 text-[11px] text-red-600">{errors.name}</p>}
                         </div>
 
                         <div className="sm:col-span-2">
@@ -332,9 +332,9 @@ export default function CheckoutPage() {
                             {...field('phone')}
                             inputMode="numeric"
                             placeholder="10-digit number"
-                            className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                            className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all"
                           />
-                          {errors.phone && <p className="mt-1 text-[11px] text-error">{errors.phone}</p>}
+                          {errors.phone && <p className="mt-1 text-[11px] text-red-600">{errors.phone}</p>}
                         </div>
 
                         {customer.fulfilment === 'delivery' && (
@@ -345,18 +345,18 @@ export default function CheckoutPage() {
                                 {...field('address')}
                                 rows={2}
                                 placeholder="House/Apartment, Street name"
-                                className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                                className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all resize-none"
                               />
-                              {errors.address && <p className="mt-1 text-[11px] text-error">{errors.address}</p>}
+                              {errors.address && <p className="mt-1 text-[11px] text-red-600">{errors.address}</p>}
                             </div>
                             <div>
                               <label className="block font-label-caps text-label-caps mb-2 text-secondary">CITY</label>
                               <input
                                 {...field('city')}
                                 placeholder="e.g. Bangalore"
-                                className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                                className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all"
                               />
-                              {errors.city && <p className="mt-1 text-[11px] text-error">{errors.city}</p>}
+                              {errors.city && <p className="mt-1 text-[11px] text-red-600">{errors.city}</p>}
                             </div>
                             <div>
                               <label className="block font-label-caps text-label-caps mb-2 text-secondary">PINCODE</label>
@@ -364,9 +364,9 @@ export default function CheckoutPage() {
                                 {...field('pincode')}
                                 inputMode="numeric"
                                 placeholder="6-digit PIN"
-                                className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                                className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all"
                               />
-                              {errors.pincode && <p className="mt-1 text-[11px] text-error">{errors.pincode}</p>}
+                              {errors.pincode && <p className="mt-1 text-[11px] text-red-600">{errors.pincode}</p>}
                             </div>
                           </>
                         )}
@@ -377,7 +377,7 @@ export default function CheckoutPage() {
                             {...field('notes')}
                             rows={2}
                             placeholder="Color preference, tailoring requirement, urgency..."
-                            className="w-full border border-outline p-3 text-body-sm bg-transparent outline-none focus:border-primary"
+                            className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all resize-none"
                           />
                         </div>
                       </div>
@@ -427,9 +427,9 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => validate() && setStep(2)}
-                      className="btn-primary w-full p-4 bg-primary text-on-primary font-label-caps text-label-caps uppercase hover:bg-opacity-95 transition-colors text-center"
+                      className="btn btn-dark btn-sheen w-full py-4 text-[12px] tracking-[0.2em] font-semibold uppercase text-center rounded-xl"
                     >
-                      CONTINUE TO PAYMENT & REVIEW →
+                      Continue to Payment →
                     </button>
                   </div>
                 )}
