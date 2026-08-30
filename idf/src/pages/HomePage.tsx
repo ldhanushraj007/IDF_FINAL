@@ -423,7 +423,7 @@ export default function HomePage() {
             </span>
             Every fabric here has been chosen by hand,
             inspected in natural light, and measured
-            against the discipline of the weaver's craft.
+            against the discipline of the weaver's craft."
           </blockquote>
           <div className="flex items-center justify-center gap-4 mt-8">
             <span className="h-px w-12 bg-[#1F0505]/20" />
