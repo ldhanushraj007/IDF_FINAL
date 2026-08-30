@@ -23,9 +23,9 @@
 
 // ── CONFIG — Change SHARED_TOKEN before deploying ──────────────────────────────
 var SHARED_TOKEN    = 'idf-secret-2024';
-var ADMIN_EMAIL     = 'virtuosodhanush@gmail.com';
+var ADMIN_EMAIL     = 'indesignluxuryfabrics@gmail.com';
 var ADMIN_PASSWORD  = 'ADMIN3300';
-var ADMIN_OTP_TO    = 'virtuosodhanush@gmail.com';
+var ADMIN_OTP_TO    = 'indesignluxuryfabrics@gmail.com';
 var OTP_EXPIRY_MIN  = 10;
 var SESSION_TTL_DAYS = 30;
 

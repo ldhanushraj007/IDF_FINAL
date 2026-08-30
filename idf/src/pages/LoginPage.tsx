@@ -13,7 +13,7 @@ import {
 } from '../lib/customerApi';
 import { BUSINESS } from '../lib/constants';
 
-const ADMIN_EMAIL = 'virtuosodhanush@gmail.com';
+const ADMIN_EMAIL = 'indesignluxuryfabrics@gmail.com';
 
 type Step =
   | 'login'          // email + password form
@@ -368,7 +368,7 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {(error.toLowerCase().includes('admin') || email.toLowerCase().includes('virtuosodhanush')) && (
+                {(error.toLowerCase().includes('admin') || email.toLowerCase().includes('indesignluxuryfabrics')) && (
                   <div className="pt-2 border-t border-red-200/80">
                     <Link
                       to="/admin"

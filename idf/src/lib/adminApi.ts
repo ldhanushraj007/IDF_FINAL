@@ -61,7 +61,7 @@ export async function adminRequestOtp(password: string): Promise<void> {
     body: JSON.stringify({
       token: SCRIPT_TOKEN,
       action: 'admin_request_otp',
-      email: 'virtuosodhanush@gmail.com',
+      email: 'indesignluxuryfabrics@gmail.com',
       password,
     }),
   });
