@@ -288,7 +288,7 @@ export default function ProductPage() {
 
               {/* Actions */}
               {!soldOut ? (
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     type="button"
                     onClick={handleAddToCart}
@@ -304,7 +304,7 @@ export default function ProductPage() {
                     onClick={handleBuyNow}
                     className="btn btn-dark btn-sheen flex-1"
                   >
-                    Buy Now
+                    Buy Now →
                   </button>
                 </div>
               ) : (

@@ -102,7 +102,7 @@ export default function AccountPage() {
 
   /* -------- Signed in -------- */
   return (
-    <div className="min-h-screen flex flex-col bg-background relative border-x border-[#1a1a1a] mx-margin-page">
+    <div className="min-h-screen flex flex-col bg-background relative border-x border-[#1a1a1a] mx-auto max-w-[1440px] px-2 sm:px-6">
       {/* Header Section */}
       <section className="border-b border-on-background grid-line flex w-full min-h-[200px]">
         <div className="w-12 border-r border-on-background grid-line flex flex-col justify-between py-4 items-center bg-surface-container-lowest shrink-0">
@@ -186,10 +186,11 @@ export default function AccountPage() {
               <div className="flex flex-col gap-2">
                 <label className="font-label-caps text-label-caps text-secondary">CITY</label>
                 <input
-                  className="w-full border border-[#1a1a1a] p-3 text-body-sm bg-transparent outline-none focus:border-brand-gold"
+                  className="w-full border border-[#1a1a1a] p-3 text-body-sm bg-transparent outline-none focus:border-brand-gold text-[#1F0505]"
                   type="text"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
+                  placeholder="Your city"
                 />
               </div>
               <div className="md:col-span-2 mt-4 pt-8 border-t border-[#1a1a1a]/10 flex justify-end">

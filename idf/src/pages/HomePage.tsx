@@ -90,14 +90,14 @@ export default function HomePage() {
           >
             {/* Big kicker headline */}
             <div
-              className="px-8 pt-10 pb-6 text-center"
+              className="px-4 xs:px-8 pt-8 xs:pt-10 pb-6 text-center"
               style={rule}
             >
-              <p className="font-sans text-[9px] tracking-[0.35em] text-[#1F0505]/40 uppercase font-semibold mb-3">
+              <p className="font-sans text-[8px] xs:text-[9px] tracking-[0.35em] text-[#1F0505]/40 uppercase font-semibold mb-3">
                 — The Season's Edit —
               </p>
               <h1
-                className="font-serif text-[48px] md:text-[64px] lg:text-[72px] text-[#1F0505] leading-[0.92] font-medium"
+                className="font-serif text-[36px] xs:text-[48px] md:text-[64px] lg:text-[72px] text-[#1F0505] leading-[0.92] font-medium"
                 style={{ letterSpacing: '-0.02em' }}
               >
                 Where Fabric<br />

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import QRCode from 'qrcode';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -80,16 +79,7 @@ export default function CheckoutPage() {
     [orderId, customer, items, subtotal, discount, shipping, total, isWholesale, paid, reference],
   );
 
-  useEffect(() => {
-    if (step !== 2 || UPI.staticQrImage) return;
-    QRCode.toDataURL(upiLink(order), {
-      width: 450,
-      margin: 1,
-      color: { dark: '#1c0505', light: '#dec3b4' },
-    })
-      .then(setQr)
-      .catch(() => setQr(''));
-  }, [step, order]);
+
 
   useEffect(() => {
     if (!profile) return;

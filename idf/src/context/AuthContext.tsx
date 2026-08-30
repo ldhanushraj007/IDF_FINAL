@@ -3,6 +3,7 @@ import {
   isGoogleAuthConfigured,
   loadSession,
   persistSession,
+  persistUserInfo,
   clearSession,
   initGoogleAuth,
   type GoogleUser,
@@ -42,6 +43,7 @@ interface AuthValue {
 const Ctx = createContext<AuthValue | null>(null);
 
 const CUSTOMER_TOKEN_KEY = 'idf_customer_token';
+const CUSTOMER_USER_KEY = 'idf_customer_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<GoogleUser | null>(null);
@@ -66,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const decoded = decodeGoogleJwt(credential);
     if (!decoded) return;
     persistSession(credential);
+    persistUserInfo(decoded);
     setUser(decoded);
     setAuthModalOpen(false);
     // Create/update the Sheets customer row on first Google sign-in
@@ -80,6 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Set the session token and user info for custom email authentication
   const completeCustomAuthSession = async (token: string, customUser: GoogleUser) => {
     localStorage.setItem(CUSTOMER_TOKEN_KEY, token);
+    // Cache user info so session survives even if the session API is unreachable on reload
+    try {
+      localStorage.setItem(CUSTOMER_USER_KEY, JSON.stringify(customUser));
+    } catch { /* non-critical */ }
     setUser(customUser);
     setAuthModalOpen(false);
     await loadProfile(customUser);
@@ -96,23 +103,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const customUser = await customerSessionApi(custToken);
           if (customUser) {
-            setUser({
+            const restoredUser = {
               id: customUser.id,
               email: customUser.email,
               name: customUser.name,
               picture: '',
-            });
-            await loadProfile({
-              id: customUser.id,
-              email: customUser.email,
-              name: customUser.name,
-              picture: '',
-            });
+            };
+            // Update cached user info on successful session restore
+            try { localStorage.setItem(CUSTOMER_USER_KEY, JSON.stringify(restoredUser)); } catch {}
+            setUser(restoredUser);
+            await loadProfile(restoredUser);
             setLoading(false);
             return;
           }
         } catch (e) {
+          // Session API failed — try cached user info before giving up
+          try {
+            const cachedRaw = localStorage.getItem(CUSTOMER_USER_KEY);
+            if (cachedRaw) {
+              const cachedUser = JSON.parse(cachedRaw) as GoogleUser;
+              if (cachedUser?.id && cachedUser?.email) {
+                setUser(cachedUser);
+                await loadProfile(cachedUser);
+                setLoading(false);
+                return;
+              }
+            }
+          } catch { /* parse error — fall through */ }
           localStorage.removeItem(CUSTOMER_TOKEN_KEY);
+          localStorage.removeItem(CUSTOMER_USER_KEY);
         }
       }
 
@@ -174,6 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = () => {
     clearSession();
     localStorage.removeItem(CUSTOMER_TOKEN_KEY);
+    localStorage.removeItem(CUSTOMER_USER_KEY);
     setUser(null);
     setProfile(null);
   };

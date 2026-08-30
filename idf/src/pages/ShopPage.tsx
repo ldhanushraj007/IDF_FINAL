@@ -111,7 +111,7 @@ export default function ShopPage() {
             <p className="font-sans text-[9px] tracking-[0.3em] text-[#1F0505]/40 uppercase font-semibold mb-2">
               The Catalogue
             </p>
-            <h1 className="font-serif text-[40px] md:text-[60px] text-[#1F0505] leading-[0.95] tracking-tight">
+            <h1 className="font-serif text-[28px] xs:text-[36px] md:text-[60px] text-[#1F0505] leading-[0.95] tracking-tight">
               Shop<br />by the metre.
             </h1>
           </div>
@@ -235,7 +235,7 @@ export default function ShopPage() {
                 </button>
                 {catOpen && (
                   <div
-                    className="absolute left-0 top-full mt-2 bg-white z-[60] w-64 rounded-2xl p-2 shadow-2xl border border-[#1F0505]/20 max-h-80 overflow-y-auto"
+                    className="absolute left-0 top-full mt-2 bg-white z-[60] w-64 max-w-[calc(100vw-2rem)] rounded-2xl p-2 shadow-2xl border border-[#1F0505]/20 max-h-80 overflow-y-auto"
                   >
                     {CATEGORY_FILTERS.map((f, i) => {
                       const active = filter === f.id;
@@ -294,7 +294,7 @@ export default function ShopPage() {
 
           {/* ── Sort & Search toolbar ─────────────────────────────────────────── */}
           <div
-            className="px-5 md:px-8 py-3 flex flex-wrap items-center justify-between gap-3 bg-white sticky top-[44px] lg:top-[86px] z-20 border-b border-[#1F0505]/15"
+            className="px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-white sticky top-[56px] sm:top-[44px] lg:top-[86px] z-20 border-b border-[#1F0505]/15"
           >
             {/* Active filter label */}
             <div className="flex items-center gap-3 shrink-0">
@@ -339,7 +339,7 @@ export default function ShopPage() {
               </button>
               {sortOpen && (
                 <div
-                  className="absolute right-0 top-full mt-2 bg-white z-30 w-56 rounded-2xl p-1.5 shadow-xl border border-[#1F0505]/20 overflow-hidden"
+                  className="absolute right-0 top-full mt-2 bg-white z-30 w-56 max-w-[calc(100vw-2rem)] rounded-2xl p-1.5 shadow-xl border border-[#1F0505]/20 overflow-hidden"
                 >
                   {SORT_OPTIONS.map((o) => (
                     <button

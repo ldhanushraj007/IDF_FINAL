@@ -4,6 +4,7 @@ export default {
   theme: {
     extend: {
       screens: {
+        xs: '375px',
         touch: { raw: '(hover: none)' },
       },
       colors: {

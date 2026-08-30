@@ -151,7 +151,7 @@ export async function upsertProfile(
   fields: Partial<CustomerProfile>,
 ): Promise<CustomerProfile | null> {
   if (!isSheetsConfigured) return null;
-  await post('upsert_customer', { userId, userEmail, name: fields.name, phone: fields.phone });
+  await post('upsert_customer', { userId, userEmail, name: fields.name, phone: fields.phone, city: fields.city });
   return fetchProfile(userId, userEmail);
 }
 

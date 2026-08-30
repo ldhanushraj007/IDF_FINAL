@@ -6,12 +6,19 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    /* iOS safe-area support for notched devices */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
   html,
   body {
     overflow-x: clip;
     background-color: #FFFFFF;
     color: #1F0505;
+  }
+  /* Ensure main content doesn't create horizontal overflow */
+  #main {
+    overflow-x: clip;
+    min-width: 0;
   }
   h1,
   h2,

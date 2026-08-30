@@ -90,10 +90,10 @@ export default function ProductCard({ item, onQuickView }: ProductCardProps) {
           </span>
         </div>
 
-        {/* Badge — top right area */}
+        {/* Badge — top right area, pushed left of the wishlist heart */}
         {badge && !soldOut && (
           <span
-            className={`absolute top-3 right-10 px-2.5 py-1 font-sans text-[9px] font-bold tracking-[0.1em] uppercase ${
+            className={`absolute top-3 right-12 sm:right-10 px-2.5 py-1 font-sans text-[8px] sm:text-[9px] font-bold tracking-[0.1em] uppercase ${
               badge.dark ? 'bg-[#1F0505] text-white' : 'bg-[#FFE6E9] text-[#1F0505]'
             }`}
             style={{ border: '1px solid #1F0505' }}
@@ -183,7 +183,7 @@ export default function ProductCard({ item, onQuickView }: ProductCardProps) {
           type="button"
           onClick={onAddToCart}
           disabled={soldOut}
-          className={`mt-3 w-full py-2.5 font-sans text-[10px] font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 transition-all duration-200 ${
+          className={`mt-3 w-full py-3 sm:py-2.5 font-sans text-[10px] sm:text-[10px] font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 transition-all duration-200 min-h-[44px] ${
             soldOut
               ? 'text-[#1F0505]/25 cursor-not-allowed'
               : added

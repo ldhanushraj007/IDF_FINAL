@@ -37,10 +37,7 @@ export default function Footer() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
 
         {/* Col 1 — About */}
-        <div
-          className="px-6 md:px-8 py-10"
-          style={{ borderRight: '1px solid rgba(255,230,233,0.1)', borderBottom: '1px solid rgba(255,230,233,0.1)' }}
-        >
+        <div className="px-6 md:px-8 py-10 border-b border-[#FFE6E9]/10 md:border-r">
           <p className="font-sans text-[8px] tracking-[0.28em] text-white/30 uppercase font-bold mb-4">
             About
           </p>
@@ -73,10 +70,7 @@ export default function Footer() {
         </div>
 
         {/* Col 2 — Navigation */}
-        <div
-          className="px-6 md:px-8 py-10"
-          style={{ borderRight: '1px solid rgba(255,230,233,0.1)', borderBottom: '1px solid rgba(255,230,233,0.1)' }}
-        >
+        <div className="px-6 md:px-8 py-10 border-b border-[#FFE6E9]/10 lg:border-r">
           <p className="font-sans text-[8px] tracking-[0.28em] text-white/30 uppercase font-bold mb-4">
             Navigate
           </p>
@@ -96,10 +90,7 @@ export default function Footer() {
         </div>
 
         {/* Col 3 — Customer Care */}
-        <div
-          className="px-6 md:px-8 py-10"
-          style={{ borderRight: '1px solid rgba(255,230,233,0.1)', borderBottom: '1px solid rgba(255,230,233,0.1)' }}
-        >
+        <div className="px-6 md:px-8 py-10 border-b border-[#FFE6E9]/10 md:border-r">
           <p className="font-sans text-[8px] tracking-[0.28em] text-white/30 uppercase font-bold mb-4">
             Customer Care
           </p>
@@ -124,10 +115,7 @@ export default function Footer() {
         </div>
 
         {/* Col 4 — Contact */}
-        <div
-          className="px-6 md:px-8 py-10"
-          style={{ borderBottom: '1px solid rgba(255,230,233,0.1)' }}
-        >
+        <div className="px-6 md:px-8 py-10 border-b border-[#FFE6E9]/10">
           <p className="font-sans text-[8px] tracking-[0.28em] text-white/30 uppercase font-bold mb-4">
             Contact
           </p>

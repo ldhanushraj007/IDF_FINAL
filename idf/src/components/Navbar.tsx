@@ -94,7 +94,7 @@ export default function Navbar() {
             {EDITION_NUM}
           </span>
           {/* Right icons */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 pl-2 sm:pl-3 border-l border-[#1F0505]/15">
+          <div className="flex items-center gap-1 sm:gap-2.5 pl-2 sm:pl-3 border-l border-[#1F0505]/15">
             {/* Account */}
             <div className="relative" ref={accountRef}>
               {user ? (
@@ -126,7 +126,7 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute right-0 top-full mt-2 w-56 overflow-hidden bg-white shadow-xl rounded-xl z-[70]"
+                    className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] overflow-hidden bg-white shadow-xl rounded-xl z-[70]"
                     style={{ border: '1px solid #1F0505' }}
                   >
                     <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(31,5,5,0.1)' }}>
@@ -165,7 +165,7 @@ export default function Navbar() {
               type="button"
               onClick={() => setCartOpen(true)}
               aria-label={`Shopping bag — ${count} items`}
-              className="relative flex items-center justify-center p-1.5 rounded-full text-[#1F0505]/70 hover:text-[#1F0505] hover:bg-[#FFE6E9]/40 transition-colors"
+              className="relative flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:p-1.5 rounded-full text-[#1F0505]/70 hover:text-[#1F0505] hover:bg-[#FFE6E9]/40 transition-colors"
             >
               <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.5} />
               {count > 0 && (
@@ -180,7 +180,7 @@ export default function Navbar() {
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="flex items-center justify-center p-1.5 rounded-full text-[#1F0505]/70 hover:text-[#1F0505] hover:bg-[#FFE6E9]/40 lg:hidden ml-1"
+              className="flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:p-1.5 rounded-full text-[#1F0505]/70 hover:text-[#1F0505] hover:bg-[#FFE6E9]/40 lg:hidden ml-0.5"
             >
               <Menu className="h-5 w-5" />
             </button>
