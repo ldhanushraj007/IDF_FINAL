@@ -415,9 +415,9 @@ export default function HomePage() {
             className="relative font-serif text-[22px] sm:text-[32px] md:text-[40px] lg:text-[46px] text-[#1F0505] leading-[1.25] md:leading-[1.18] px-2 sm:px-6"
             style={{ letterSpacing: '-0.01em' }}
           >
-            <span className="font-serif text-[#1F0505]/40 mr-1 sm:mr-2">“</span>
+            <span className="font-serif font-bold text-[#1F0505] text-[1.2em] inline-block mr-1 sm:mr-2">“</span>
             Every fabric here has been chosen by hand, inspected in natural light, and measured against the discipline of the weaver's craft.
-            <span className="font-serif text-[#1F0505]/40 ml-1 sm:ml-2">”</span>
+            <span className="font-serif font-bold text-[#1F0505] text-[1.2em] inline-block ml-1 sm:ml-2">”</span>
           </blockquote>
           <div className="flex items-center justify-center gap-4 mt-8">
             <span className="h-px w-12 bg-[#1F0505]/20" />
