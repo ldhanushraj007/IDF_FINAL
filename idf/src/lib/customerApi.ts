@@ -6,8 +6,8 @@
 
 import type { Item } from '../data/catalog';
 
-const SCRIPT_URL   = import.meta.env.VITE_APPS_SCRIPT_URL  as string | undefined;
-const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined;
+const SCRIPT_URL   = (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined) || 'https://script.google.com/macros/s/AKfycbyE3T-eq_SvFbp0qmvfrlevVHmNIT3ka9pougCkHmz7lAsSF9aaNanNIebJmGh-9lcOsg/exec';
+const SCRIPT_TOKEN = (import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined) || 'idf-secret-2024';
 
 // Only true when a real deployed Apps Script URL exists (not a placeholder)
 export const isSheetsConfigured = Boolean(
