@@ -122,46 +122,26 @@ function exportCsv(filename: string, rows: Record<string, string | number | bool
  * ================================================================== */
 
 /**
- * OTP-based Admin Login (when Apps Script backend is deployed).
- * Step 1: enter admin password → OTP sent to indesignluxuryfabrics@gmail.com
- * Step 2: enter OTP → session token saved → panel unlocked
+ * Direct Admin Login (using Email + Admin Password).
  */
 function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
-  const [step, setStep]           = useState<'password' | 'otp'>('password');
+  const [email, setEmail]         = useState('indesignluxuryfabrics@gmail.com');
   const [password, setPassword]   = useState('');
   const [showPw, setShowPw]       = useState(false);
-  const [otpVal, setOtpVal]       = useState('');
   const [busy, setBusy]           = useState(false);
   const [error, setError]         = useState('');
-  const [info, setInfo]           = useState('');
 
-  // Step 1: validate password → send OTP
-  const handlePassword = async () => {
+  const handleLogin = async () => {
     setError('');
-    if (!password) return setError('Enter the admin password.');
+    if (!email) return setError('Enter admin email.');
+    if (!password) return setError('Enter admin password.');
     setBusy(true);
     try {
-      await adminRequestOtp(password);
-      setInfo('A 6-digit verification code was sent to virtuosodhanush@gmail.com');
-      setStep('otp');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Authentication failed.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // Step 2: verify OTP → unlock panel
-  const handleOtp = async () => {
-    setError('');
-    if (otpVal.length < 6) return setError('Enter the 6-digit code.');
-    setBusy(true);
-    try {
-      await adminVerifyOtp(otpVal.trim());
+      await adminDirectLogin(password, email);
       if (!checkIsAdmin()) throw new Error('Session not created.');
       onUnlocked();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Invalid code.');
+      setError(e instanceof Error ? e.message : 'Authentication failed.');
     } finally {
       setBusy(false);
     }
@@ -179,97 +159,70 @@ function SupabaseLogin({ onUnlocked }: { onUnlocked: () => void }) {
     </div>
   );
 
-  if (step === 'otp') {
-    return (
-      <div className="w-full max-w-md bg-[#180e0c]/90 border border-[#d4af37]/30 rounded-3xl p-8 shadow-2xl shadow-black/80 backdrop-blur-xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
-        <Header />
-        {info && (
-          <p className="mb-5 text-[11px] text-[#ffe6e9]/90 border border-[#d4af37]/30 bg-[#d4af37]/10 rounded-xl px-4 py-3 text-center leading-relaxed">
-            {info}
-          </p>
-        )}
-        <p className="mb-4 text-[11px] text-white/50 tracking-[0.2em] uppercase font-bold text-center">
-          Enter Verification Code
-        </p>
-        <div className="rounded-2xl border border-[#d4af37]/30 bg-black/40 focus-within:border-[#d4af37] focus-within:ring-2 focus-within:ring-[#d4af37]/20 transition-all overflow-hidden">
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            value={otpVal}
-            autoFocus
-            onChange={(e) => setOtpVal(e.target.value.replace(/\D/g, ''))}
-            onKeyDown={(e) => e.key === 'Enter' && handleOtp()}
-            placeholder="• • • • • •"
-            className="w-full bg-transparent px-4 py-3.5 text-center text-2xl tracking-[0.5em] text-[#d4af37] placeholder-white/20 outline-none font-bold"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={handleOtp}
-          disabled={busy}
-          className="mt-5 w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] font-bold text-[11px] tracking-[0.22em] uppercase shadow-lg hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-        >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify & Unlock →'}
-        </button>
-        {error && (
-          <p className="mt-4 text-[11px] text-red-300 border border-red-500/30 bg-red-950/40 rounded-xl px-4 py-2.5 text-center font-medium">
-            {error}
-          </p>
-        )}
-        <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={() => { setStep('password'); setError(''); setOtpVal(''); }}
-            className="text-[11px] text-white/40 hover:text-[#d4af37] transition-colors font-medium"
-          >
-            ← Resend / Change password
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full max-w-md bg-[#180e0c]/90 border border-[#d4af37]/30 rounded-3xl p-8 shadow-2xl shadow-black/80 backdrop-blur-xl relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent" />
       <Header />
       <p className="mb-4 text-[11px] text-white/50 tracking-[0.2em] uppercase font-bold text-center">
-        Sign In With Admin Password
+        Admin Portal Login
       </p>
-      <div className="rounded-2xl border border-[#d4af37]/30 bg-black/40 focus-within:border-[#d4af37] focus-within:ring-2 focus-within:ring-[#d4af37]/20 transition-all flex items-center overflow-hidden">
-        <input
-          type={showPw ? 'text' : 'password'}
-          value={password}
-          autoFocus
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handlePassword()}
-          placeholder="Admin password"
-          className="flex-1 bg-transparent px-4 py-3.5 text-[13px] text-white placeholder-white/30 outline-none"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPw(v => !v)}
-          aria-label={showPw ? 'Hide' : 'Show'}
-          className="px-4 text-white/40 hover:text-white transition-colors"
-        >
-          {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-[10px] font-bold tracking-[0.14em] text-[#d4af37]/80 uppercase mb-1.5">
+            Admin Email
+          </label>
+          <div className="rounded-2xl border border-[#d4af37]/30 bg-black/40 focus-within:border-[#d4af37] focus-within:ring-2 focus-within:ring-[#d4af37]/20 transition-all flex items-center overflow-hidden">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="indesignluxuryfabrics@gmail.com"
+              className="flex-1 bg-transparent px-4 py-3 text-[13px] text-white placeholder-white/30 outline-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-[10px] font-bold tracking-[0.14em] text-[#d4af37]/80 uppercase mb-1.5">
+            Admin Password
+          </label>
+          <div className="rounded-2xl border border-[#d4af37]/30 bg-black/40 focus-within:border-[#d4af37] focus-within:ring-2 focus-within:ring-[#d4af37]/20 transition-all flex items-center overflow-hidden">
+            <input
+              type={showPw ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              placeholder="Enter password"
+              className="flex-1 bg-transparent px-4 py-3 text-[13px] text-white placeholder-white/30 outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              aria-label={showPw ? 'Hide' : 'Show'}
+              className="px-4 text-white/40 hover:text-white transition-colors"
+            >
+              {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
       </div>
+
       <button
         type="button"
-        onClick={handlePassword}
+        onClick={handleLogin}
         disabled={busy}
-        className="mt-5 w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] font-bold text-[11px] tracking-[0.22em] uppercase shadow-lg hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+        className="mt-6 w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa8024] text-[#1F0505] font-bold text-[11px] tracking-[0.22em] uppercase shadow-lg hover:brightness-110 active:scale-[0.99] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
       >
-        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Verification Code →'}
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign In to Admin Portal →'}
       </button>
+
       {error && (
         <p className="mt-4 text-[11px] text-red-300 border border-red-500/30 bg-red-950/40 rounded-xl px-4 py-2.5 text-center font-medium">
           {error}
         </p>
       )}
+
       <div className="mt-8 border-t border-white/10 pt-4 text-center">
         <a href="/" className="text-[10px] text-white/40 hover:text-[#d4af37] tracking-[0.18em] uppercase font-bold transition-colors">
           ← Back to website

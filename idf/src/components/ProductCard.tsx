@@ -50,151 +50,93 @@ export default function ProductCard({ item, onQuickView }: ProductCardProps) {
 
   return (
     <article
-      className={`flex flex-col h-full bg-white group ${soldOut ? 'opacity-60' : ''}`}
+      className={`group flex flex-col h-full bg-white border border-[#1F1916]/10 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 ${soldOut ? 'opacity-65' : ''}`}
       aria-label={item.name}
     >
-      {/* ── Image ─────────────────────────────────────────────────── */}
-      <div
-        className="relative aspect-[3/4] overflow-hidden bg-[#f5f0ed]"
-        style={{ borderBottom: '1px solid #1F0505' }}
-      >
+      {/* Image Container */}
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#F5F0EB]">
         <Link to={`/shop/product/${item.id}`} className="block w-full h-full" tabIndex={soldOut ? -1 : 0}>
           <img
             src={item.image}
             alt={item.name}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
         </Link>
 
-        {/* Halftone grain on hover */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-30 transition-opacity duration-500"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(31,5,5,0.07) 1px, transparent 1px)',
-            backgroundSize: '5px 5px',
-          }}
-        />
-
-        {/* Stock badge — top left */}
-        <div className="absolute top-3 left-3">
-          <span
-            className={`flex items-center gap-1.5 px-2.5 py-1 font-sans text-[9px] font-bold tracking-[0.1em] uppercase bg-white ${
-              soldOut ? 'text-red-600' : 'text-[#1F0505]'
-            }`}
-            style={{ border: '1px solid #1F0505' }}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${soldOut ? 'bg-red-500' : 'bg-emerald-500'}`} />
-            {soldOut ? 'Out of Stock' : 'In Stock'}
-          </span>
-        </div>
-
-        {/* Badge — top right area, pushed left of the wishlist heart */}
+        {/* Badge */}
         {badge && !soldOut && (
-          <span
-            className={`absolute top-3 right-12 sm:right-10 px-2.5 py-1 font-sans text-[8px] sm:text-[9px] font-bold tracking-[0.1em] uppercase ${
-              badge.dark ? 'bg-[#1F0505] text-white' : 'bg-[#FFE6E9] text-[#1F0505]'
-            }`}
-            style={{ border: '1px solid #1F0505' }}
-          >
+          <span className="absolute top-2.5 left-2.5 px-2 py-0.5 bg-[#1F1916] text-white font-sans text-[8px] font-semibold tracking-wider uppercase rounded-xs">
             {badge.label}
           </span>
         )}
 
-        {/* Discount % */}
-        {hasDiscount && !soldOut && (
-          <span
-            className="absolute bottom-3 left-3 bg-[#1F0505] text-white px-2 py-0.5 font-sans text-[9px] font-bold tracking-[0.08em]"
-          >
-            -{discountPct}%
-          </span>
-        )}
-
-        {/* Wishlist button */}
+        {/* Wishlist Heart Button */}
         {enabled && (
           <button
             type="button"
             onClick={onHeart}
             aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-pressed={liked}
-            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white hover:bg-[#FFE6E9] transition-colors z-10"
-            style={{ border: '1px solid rgba(31,5,5,0.25)' }}
+            className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 shadow-sm flex items-center justify-center hover:bg-white transition-colors z-10"
           >
             <Heart
-              className={`h-4 w-4 transition-all ${liked ? 'fill-[#1F0505] text-[#1F0505]' : 'text-[#1F0505]/50'}`}
+              className={`h-3.5 w-3.5 transition-colors ${liked ? 'fill-red-500 text-red-500' : 'text-[#1F1916]/60'}`}
               strokeWidth={1.5}
             />
           </button>
         )}
 
-        {/* Quick View overlay on hover */}
+        {/* Quick View Button on Hover */}
         {onQuickView && !soldOut && (
           <button
             type="button"
             onClick={e => { e.preventDefault(); e.stopPropagation(); onQuickView(item); }}
-            className="absolute inset-x-0 bottom-0 py-3 bg-white/95 font-sans text-[10px] font-bold tracking-[0.2em] uppercase text-[#1F0505] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
-            style={{ borderTop: '1px solid #1F0505' }}
+            className="absolute inset-x-0 bottom-0 py-2.5 bg-white/95 text-[#1F1916] font-sans text-[9.5px] font-semibold tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 border-t border-[#1F1916]/10"
           >
             Quick View
           </button>
         )}
       </div>
 
-      {/* ── Info ──────────────────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 p-3 sm:p-4 bg-white">
-        {/* Category kicker */}
-        <span className="font-sans text-[7.5px] sm:text-[8px] tracking-[0.2em] text-[#1F0505]/40 uppercase font-bold mb-1 block">
+      {/* Product Details */}
+      <div className="flex flex-col flex-1 p-3.5 bg-white">
+        <span className="font-sans text-[8px] tracking-[0.2em] text-[#1F1916]/50 uppercase font-semibold mb-1">
           {item.category}
         </span>
 
-        {/* Product name */}
         <Link to={`/shop/product/${item.id}`}>
-          <h3 className="font-serif text-[14px] sm:text-[17px] text-[#1F0505] leading-tight sm:leading-snug hover:text-[#1F0505]/70 transition-colors mb-1.5 line-clamp-2">
+          <h3 className="font-serif text-[14px] text-[#1F1916] leading-snug hover:text-[#1F1916]/70 transition-colors line-clamp-1 font-medium mb-1">
             {item.name}
           </h3>
         </Link>
 
-        {/* Blurb (optional short description) */}
-        {item.blurb && (
-          <p className="font-sans text-[10px] sm:text-[11px] text-[#1F0505]/50 leading-snug sm:leading-relaxed line-clamp-2 mb-2 hidden sm:block">
-            {item.blurb}
-          </p>
-        )}
-
-        {/* Price row */}
-        <div
-          className="flex items-baseline gap-1.5 sm:gap-2 pt-2 sm:pt-3 mt-auto"
-          style={{ borderTop: '1px solid rgba(31,5,5,0.12)' }}
-        >
-          <span className="font-serif text-[15px] sm:text-[18px] font-medium text-[#1F0505]">
-            {inr(item.pricePerMetre)}
-          </span>
-          <span className="font-sans text-[8.5px] sm:text-[9px] text-[#1F0505]/35 tracking-wide">/&nbsp;m</span>
-          {hasDiscount && (
-            <span className="font-sans text-[9px] sm:text-[10px] text-[#1F0505]/30 line-through ml-auto">
-              {inr(item.mrp!)}
+        {/* Price & Add to Cart */}
+        <div className="flex items-center justify-between mt-auto pt-2.5 border-t border-[#1F1916]/8">
+          <div>
+            <span className="font-sans text-[13px] font-semibold text-[#1F1916]">
+              {inr(item.pricePerMetre)}
             </span>
-          )}
-        </div>
+            <span className="font-sans text-[9px] text-[#1F1916]/50 ml-0.5">/m</span>
+          </div>
 
-        {/* Add to cart / CTA */}
-        <button
-          type="button"
-          onClick={onAddToCart}
-          disabled={soldOut}
-          className={`mt-3 w-full py-3 sm:py-2.5 font-sans text-[10px] sm:text-[10px] font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 transition-all duration-200 min-h-[44px] ${
-            soldOut
-              ? 'text-[#1F0505]/25 cursor-not-allowed'
-              : added
-              ? 'bg-[#1F0505] text-white'
-              : 'text-[#1F0505] hover:bg-[#1F0505] hover:text-white'
-          }`}
-          style={{ border: '1px solid #1F0505' }}
-        >
-          <ShoppingBag className="h-3.5 w-3.5" strokeWidth={1.5} />
-          {soldOut ? 'Out of Stock' : added ? 'Added ✓' : 'Add to Cart'}
-        </button>
+          <button
+            type="button"
+            onClick={onAddToCart}
+            disabled={soldOut}
+            className={`px-3 py-1.5 rounded-md font-sans text-[9px] font-semibold tracking-wider uppercase transition-colors flex items-center gap-1.5 ${
+              soldOut
+                ? 'bg-[#1F1916]/10 text-[#1F1916]/30 cursor-not-allowed'
+                : added
+                ? 'bg-emerald-600 text-white'
+                : 'bg-[#1F1916] text-white hover:bg-black'
+            }`}
+          >
+            <ShoppingBag className="h-3 w-3" strokeWidth={1.5} />
+            {soldOut ? 'Sold' : added ? 'Added' : 'Add'}
+          </button>
+        </div>
       </div>
     </article>
   );

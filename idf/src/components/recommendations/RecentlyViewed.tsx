@@ -29,7 +29,7 @@ export default function RecentlyViewed({ excludeId, limit = 4 }: Props) {
   return (
     <div className="w-full">
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {recentItems.map((item, i) => (
           <Reveal key={item.id} delay={i * 0.05}>
             <ProductCard item={item} />

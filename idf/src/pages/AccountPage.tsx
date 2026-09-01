@@ -8,6 +8,7 @@ import { fetchMyOrders, type OrderHistoryRow } from '../lib/customerApi';
 import { BUSINESS, inr } from '../lib/constants';
 import AuthGate from '../components/AuthGate';
 import ProductCard from '../components/ProductCard';
+import LoginPage from './LoginPage';
 
 export default function AccountPage() {
   const { enabled, user, profile, loading: authLoading, saveProfile, signOut } = useAuth();
@@ -86,20 +87,9 @@ export default function AccountPage() {
     );
   }
 
-  /* -------- Not signed in -------- */
+  /* -------- Not signed in → Render Sign In / Sign Up page -------- */
   if (!user) {
-    return (
-      <div className="flex min-h-[70vh] flex-col items-center justify-center bg-ivory px-6 pt-24">
-        <div className="w-full max-w-xs text-center">
-          <User className="mx-auto h-8 w-8 text-gold-dark" strokeWidth={1.5} />
-          <h1 className="mt-3 font-serif text-2xl text-ink">Sign in to view your account</h1>
-          <p className="mt-2 text-[13.5px] text-muted">Your orders and wishlist live here.</p>
-          <div className="mt-6">
-            <AuthGate compact />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoginPage />;
   }
 
   return (

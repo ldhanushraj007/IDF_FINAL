@@ -72,16 +72,32 @@ export default function ReviewsPage() {
   };
 
   return (
-    <>
-      {/* Header Banner */}
-      <section className="bg-[#FFE6E9] py-16 md:py-24 px-6 md:px-12">
-        <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="bg-[#FAF7F5] text-[#1F1916] min-h-screen">
+      {/* Header Banner with Full-Bleed Silk Background */}
+      <section className="bg-[#FAF7F5] py-12 md:py-16 px-6 border-b border-[#1F1916]/10 relative overflow-hidden">
+        {/* Full-Bleed Right Background Image */}
+        <div className="absolute right-0 top-0 w-full md:w-3/4 h-[420px] z-0 overflow-hidden pointer-events-none">
+          <img
+            src="/images/reviews-bg.jpg"
+            alt="Champagne Silk Fold Background"
+            className="w-full h-full object-cover object-right-top scale-[1.24] origin-top-left"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/images/collections/bridal.jpg';
+            }}
+          />
+          {/* Left-to-Right Fade Mask */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FAF7F5] via-[#FAF7F5]/50 to-transparent pointer-events-none" />
+          {/* Top-to-Bottom Fade Mask */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F5]/40 via-transparent to-[#FAF7F5] pointer-events-none" />
+        </div>
+
+        <div className="max-w-[1340px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
           <div>
-            <span className="kicker-dark">What our customers say</span>
-            <h1 className="mt-3 font-serif text-[40px] md:text-[60px] text-[#1F0505] leading-[0.95] tracking-tight">
-              Client Reviews
+            <span className="text-[10px] font-sans tracking-[0.25em] text-[#1F1916]/50 uppercase font-semibold">REVIEWS</span>
+            <h1 className="mt-2 font-serif text-[42px] md:text-[68px] text-[#1F1916] font-light leading-tight">
+              Loved by<br />Our Clients
             </h1>
-            <p className="mt-4 text-[14px] text-[#1F0505]/60 max-w-[480px] leading-relaxed">
+            <p className="mt-4 text-[14px] text-[#1F1916]/70 max-w-[480px] leading-relaxed font-sans">
               The trust of our clients is the fabric of our heritage. Read verified testimonials or leave your own review.
             </p>
           </div>
@@ -89,7 +105,7 @@ export default function ReviewsPage() {
           <button
             type="button"
             onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[#1F0505] text-white text-[11px] font-sans font-bold tracking-[0.16em] uppercase hover:bg-[#1F0505]/90 transition-all shadow-md shrink-0"
+            className="flex items-center gap-2.5 px-7 py-3.5 bg-[#1F1916] text-white text-[11px] font-sans font-semibold tracking-[0.2em] uppercase hover:bg-black transition-all shadow-sm shrink-0"
           >
             <MessageSquarePlus className="h-4 w-4" />
             {showForm ? 'Close Form' : 'Write a Review'}
@@ -310,6 +326,6 @@ export default function ReviewsPage() {
           )}
         </div>
       </section>
-    </>
+    </div>
   );
 }

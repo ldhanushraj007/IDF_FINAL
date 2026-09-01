@@ -54,12 +54,11 @@ export const UPI = {
 
 /**
  * Payment.
- *
- * Right now the site takes UPI only (QR code + deep link — no gateway account
- * needed). Card and net banking are switched on later by connecting Razorpay:
- * that needs a Razorpay merchant account (business KYC) and a small checkout
- * integration, both easy to add without touching anything else here.
  */
+export const RAZORPAY = {
+  keyId: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TWJWqNswp8gSw8',
+  enabled: Boolean(import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TWJWqNswp8gSw8'),
+} as const;
 
 /** Order settings. */
 export const ORDER = {
@@ -132,6 +131,7 @@ export const NAV_LINKS = [
   { href: '/about', label: 'About Us' },
   { href: '/collections', label: 'Collections' },
   { href: '/shop', label: 'Shop' },
+  { href: '/lookbook', label: 'Lookbook' },
   { href: '/reviews', label: 'Reviews' },
   { href: '/visit', label: 'Visit' },
   { href: '/contact', label: 'Contact Us' },

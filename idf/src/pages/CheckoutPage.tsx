@@ -4,7 +4,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   Check,
-  Copy,
+  CreditCard,
+  Loader2,
   MessageCircle,
   Minus,
   Plus,
@@ -20,15 +21,16 @@ import { useCatalog } from '../context/CatalogContext';
 import {
   newOrderId,
   ownerMessage,
-  upiLink,
   waOrderLink,
   type Customer,
   type OrderPayload,
+  type PayMethod,
 } from '../lib/order';
 import { clearPending, writePending } from '../lib/pendingOrder';
-import { saveOrder } from '../lib/customerApi';
+import { createRazorpayOrder, verifyRazorpayPayment, saveOrder } from '../lib/customerApi';
+import { openRazorpayCheckout } from '../lib/razorpay';
 import { trackInteraction } from '../lib/useTrackInteraction';
-import { ORDER, UPI, inr } from '../lib/constants';
+import { ORDER, inr } from '../lib/constants';
 import AuthGate from '../components/AuthGate';
 
 const EMPTY: Customer = {
@@ -54,12 +56,17 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [customer, setCustomer] = useState<Customer>(EMPTY);
-  const [errors, setErrors] = useState<Partial<Record<keyof Customer, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof Customer, string>> & { payment?: string }>({});
   const [orderId, setOrderId] = useState(newOrderId);
+  const [payMethod, setPayMethod] = useState<PayMethod>('razorpay');
   const [paid, setPaid] = useState(false);
-  const [reference, setReference] = useState('');
-  const [qr, setQr] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [razorpayDetails, setRazorpayDetails] = useState<{
+    orderId?: string;
+    paymentId?: string;
+    signature?: string;
+  }>({});
+
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [msgCopied, setMsgCopied] = useState(false);
 
   const order = useMemo<OrderPayload>(
@@ -72,14 +79,15 @@ export default function CheckoutPage() {
       shipping,
       total,
       isWholesale,
-      method: paid ? 'upi' : 'later',
+      method: payMethod,
       paid,
-      reference: reference.trim(),
+      reference: razorpayDetails.paymentId || '',
+      razorpayOrderId: razorpayDetails.orderId,
+      razorpayPaymentId: razorpayDetails.paymentId,
+      razorpaySignature: razorpayDetails.signature,
     }),
-    [orderId, customer, items, subtotal, discount, shipping, total, isWholesale, paid, reference],
+    [orderId, customer, items, subtotal, discount, shipping, total, isWholesale, payMethod, paid, razorpayDetails],
   );
-
-
 
   useEffect(() => {
     if (!profile) return;
@@ -111,17 +119,92 @@ export default function CheckoutPage() {
       setCustomer((c) => ({ ...c, [k]: ev.target.value })),
   });
 
-  const inputClass = (k: keyof Customer) =>
-    `w-full rounded-[3px] border bg-night/50 px-4 py-3.5 text-[14px] text-ivory placeholder-ivory/35 outline-none transition-colors focus:border-gold ${
-      errors[k] ? 'border-maroon' : 'border-gold/20'
-    }`;
+  const handleRazorpayPay = async () => {
+    setErrors({});
+    setIsProcessingPayment(true);
 
-  const openWhatsApp = () => {
-    const link = waOrderLink(order);
+    try {
+      // 1. Create Razorpay order on backend
+      const amountPaise = Math.round(total * 100);
+      const email = user?.email || `${customer.phone}@idlluxuryfabrics.com`;
+      const rzpOrder = await createRazorpayOrder(amountPaise, orderId, email);
+
+      // 2. Open Razorpay Modal
+      await openRazorpayCheckout({
+        amount: rzpOrder.amount,
+        orderId: rzpOrder.order_id,
+        name: 'IN DESIGN Luxury Fabrics',
+        description: `Order ${orderId}`,
+        customerName: customer.name,
+        customerEmail: email,
+        customerPhone: customer.phone,
+        onSuccess: async (response) => {
+          try {
+            // 3. Verify signature on backend
+            await verifyRazorpayPayment(
+              response.razorpay_payment_id,
+              response.razorpay_order_id,
+              response.razorpay_signature
+            );
+
+            setPaid(true);
+            setPayMethod('razorpay');
+            setRazorpayDetails({
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+            });
+
+            // 4. Save Order and proceed to Step 3
+            proceedToWhatsApp({
+              ...order,
+              paid: true,
+              method: 'razorpay',
+              reference: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+          } catch (err: any) {
+            setErrors({ payment: err.message || 'Payment signature verification failed.' });
+          } finally {
+            setIsProcessingPayment(false);
+          }
+        },
+        onDismiss: () => {
+          setIsProcessingPayment(false);
+          setErrors({ payment: 'Payment cancelled by user. Please try again to complete order.' });
+        },
+        onError: (err: any) => {
+          setIsProcessingPayment(false);
+          setErrors({ payment: err.description || 'Razorpay Payment Failed.' });
+        },
+      });
+    } catch (err: any) {
+      setIsProcessingPayment(false);
+      setErrors({ payment: err.message || 'Failed to initiate Razorpay order.' });
+    }
+  };
+
+  const handlePayAtStore = () => {
+    setPaid(false);
+    setPayMethod('pay_at_store');
+    setRazorpayDetails({});
+
+    proceedToWhatsApp({
+      ...order,
+      paid: false,
+      method: 'pay_at_store',
+      reference: '',
+    });
+  };
+
+  const proceedToWhatsApp = (finalOrder: OrderPayload) => {
+    const link = waOrderLink(finalOrder);
     writePending({
-      orderId,
-      total,
-      message: ownerMessage(order),
+      orderId: finalOrder.orderId,
+      total: finalOrder.total,
+      message: ownerMessage(finalOrder),
       waLink: link,
       createdAt: Date.now(),
       attempts: 1,
@@ -134,20 +217,23 @@ export default function CheckoutPage() {
     if (accountsEnabled && user) {
       saveProfile({ name: customer.name, phone: customer.phone, city: customer.city });
       saveOrder(user.id, user.email, {
-        orderCode: orderId,
-        items,
-        subtotal,
-        discount,
-        shipping,
-        total,
+        orderCode: finalOrder.orderId,
+        items: finalOrder.items,
+        subtotal: finalOrder.subtotal,
+        discount: finalOrder.discount,
+        shipping: finalOrder.shipping,
+        total: finalOrder.total,
         requirement: customer.notes,
         fulfilment: customer.fulfilment,
         address: customer.address,
         city: customer.city,
         pincode: customer.pincode,
-        paymentMethod: paid ? 'upi' : 'later',
-        paid,
-        paymentReference: reference.trim(),
+        paymentMethod: finalOrder.method,
+        paid: finalOrder.paid,
+        paymentReference: finalOrder.reference,
+        razorpayOrderId: finalOrder.razorpayOrderId,
+        razorpayPaymentId: finalOrder.razorpayPaymentId,
+        razorpaySignature: finalOrder.razorpaySignature,
       });
     }
 
@@ -210,14 +296,16 @@ export default function CheckoutPage() {
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back
             </button>
-            <Link to="/" className="flex items-center gap-2 group">
-              <span className="font-serif text-[20px] sm:text-[24px] font-bold text-[#1F0505] tracking-tight">
-                IN DESIGN
-              </span>
-              <span className="hidden sm:inline-block h-3 w-px bg-[#1F0505]/20" />
-              <span className="hidden sm:inline-block font-sans text-[9px] font-semibold tracking-[0.25em] text-[#1F0505]/50 uppercase">
-                Luxury Fabrics
-              </span>
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <img src="/images/logo/logo-mark.png" alt="IN DESIGN Logo" className="h-7 sm:h-8 w-auto object-contain" />
+              <div className="flex flex-col">
+                <span className="font-serif text-[18px] sm:text-[22px] tracking-[0.15em] text-[#1F1916] uppercase font-light leading-none">
+                  IN DESIGN
+                </span>
+                <span className="font-sans text-[7px] sm:text-[8px] tracking-[0.3em] text-[#1F1916]/50 uppercase mt-0.5 font-semibold">
+                  LUXURY FABRICS
+                </span>
+              </div>
             </Link>
           </div>
 
@@ -398,6 +486,17 @@ export default function CheckoutPage() {
                             className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all resize-none"
                           />
                         </div>
+
+                        {/* Continue to Payment Button directly after delivery fields */}
+                        <div className="sm:col-span-2 mt-4">
+                          <button
+                            type="button"
+                            onClick={() => validate() && setStep(2)}
+                            className="btn btn-dark btn-sheen w-full py-4 text-[12px] tracking-[0.2em] font-semibold uppercase text-center rounded-xl shadow-md cursor-pointer hover:bg-black transition-colors"
+                          >
+                            Continue to Payment →
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -439,14 +538,6 @@ export default function CheckoutPage() {
                         </div>
                       </div>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={() => validate() && setStep(2)}
-                      className="btn btn-dark btn-sheen w-full py-4 text-[12px] tracking-[0.2em] font-semibold uppercase text-center rounded-xl shadow-md"
-                    >
-                      Continue to Payment →
-                    </button>
                   </div>
                 )}
               </div>
@@ -465,76 +556,92 @@ export default function CheckoutPage() {
                   </p>
                 </div>
 
-                <div className="border border-[#1F0505]/15 rounded-2xl p-6 bg-[#FAFAFA] text-center space-y-4 max-w-md mx-auto">
-                  <p className="font-sans text-[11px] font-bold tracking-[0.14em] text-[#1F0505]/60 uppercase">Direct UPI Business VPA</p>
-                  
-                  <a
-                    href={upiLink(order)}
-                    className="btn btn-dark btn-sheen w-full py-3 text-[11px] font-bold tracking-[0.14em] uppercase block sm:hidden rounded-xl"
-                  >
-                    Open UPI App to Pay
-                  </a>
+                {errors.payment && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-[13px] flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+                    <span>{errors.payment}</span>
+                  </div>
+                )}
 
-                  <div className="flex items-center justify-center">
+                {customer.fulfilment === 'delivery' ? (
+                  <div className="space-y-6">
+                    <div className="p-5 border border-[#1F0505]/15 rounded-2xl bg-[#FAFAFA] space-y-3">
+                      <div className="flex items-center gap-3">
+                        <CreditCard className="h-5 w-5 text-[#1F0505]" />
+                        <h3 className="font-sans text-[14px] font-bold text-[#1F0505]">Pay Online via Razorpay</h3>
+                      </div>
+                      <p className="font-sans text-[12px] text-[#1F0505]/60 leading-relaxed">
+                        Pay securely using Cards, UPI (GPay, PhonePe, Paytm), Netbanking, or Wallets. Payment must be completed to place delivery orders.
+                      </p>
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => {
-                        navigator.clipboard?.writeText(UPI.vpa);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 1800);
-                      }}
-                      className="inline-flex items-center gap-2 border border-[#1F0505]/20 bg-white px-5 py-2.5 rounded-full font-mono text-[13px] font-bold text-[#1F0505] hover:bg-[#FFE6E9]/40 transition-colors"
+                      disabled={isProcessingPayment}
+                      onClick={handleRazorpayPay}
+                      className="btn btn-dark btn-sheen w-full py-4 text-[12px] font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 rounded-xl shadow-md disabled:opacity-50"
                     >
-                      {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-                      <span>VPA: {UPI.vpa}</span>
+                      {isProcessingPayment ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Initiating Razorpay...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="h-4 w-4" />
+                          Pay {inr(total)} with Razorpay
+                        </>
+                      )}
                     </button>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        disabled={isProcessingPayment}
+                        onClick={handleRazorpayPay}
+                        className="p-5 rounded-2xl border-2 border-[#1F0505] bg-[#FFE6E9]/40 hover:bg-[#FFE6E9]/70 transition-all text-left flex flex-col justify-between gap-3 shadow-xs"
+                      >
+                        <div className="flex justify-between items-center">
+                          <CreditCard className="h-6 w-6 text-[#1F0505]" />
+                          <span className="text-[10px] font-bold tracking-[0.14em] uppercase bg-[#1F0505] text-white px-2 py-0.5 rounded-full">Recommended</span>
+                        </div>
+                        <div>
+                          <h4 className="font-sans text-[14px] font-bold text-[#1F0505]">Pay Online Now</h4>
+                          <p className="font-sans text-[11px] text-[#1F0505]/60 mt-1">UPI, Cards, Netbanking via Razorpay</p>
+                        </div>
+                        <div className="font-sans text-[12px] font-bold text-[#1F0505] mt-2 flex items-center gap-1">
+                          Pay {inr(total)} →
+                        </div>
+                      </button>
 
-                <div className="space-y-4 pt-4 border-t border-[#1F0505]/10">
-                  <label className="flex items-start gap-3 border border-[#1F0505]/15 p-4 rounded-xl bg-white cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={paid}
-                      onChange={(e) => setPaid(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#1F0505]/30 text-[#1F0505] focus:ring-[#1F0505] accent-[#1F0505]"
-                    />
-                    <span className="font-sans text-[13px] text-[#1F0505]">
-                      I have completed the UPI payment of <strong className="font-bold">{inr(total)}</strong>.
-                    </span>
-                  </label>
-
-                  {paid && (
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-sans text-[10px] font-bold tracking-[0.14em] text-[#1F0505]/60 uppercase">UPI Transaction Reference ID</label>
-                      <input
-                        value={reference}
-                        onChange={(e) => setReference(e.target.value)}
-                        placeholder="Enter 12-digit UPI reference ID"
-                        className="w-full border border-[#1F0505]/20 p-3.5 rounded-xl font-mono text-[13px] text-[#1F0505] bg-white outline-none focus:border-[#1F0505] focus:ring-1 focus:ring-[#1F0505] transition-all"
-                      />
+                      <button
+                        type="button"
+                        disabled={isProcessingPayment}
+                        onClick={handlePayAtStore}
+                        className="p-5 rounded-2xl border-2 border-[#1F0505]/20 hover:border-[#1F0505] bg-white transition-all text-left flex flex-col justify-between gap-3"
+                      >
+                        <Store className="h-6 w-6 text-[#1F0505]/70" />
+                        <div>
+                          <h4 className="font-sans text-[14px] font-bold text-[#1F0505]">Pay at Store</h4>
+                          <p className="font-sans text-[11px] text-[#1F0505]/60 mt-1">Pay when picking up at Commercial St.</p>
+                        </div>
+                        <div className="font-sans text-[12px] font-bold text-[#1F0505] mt-2 flex items-center gap-1">
+                          Reserve & Pay at Store →
+                        </div>
+                      </button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                <div className="flex flex-col gap-3">
-                  <button
-                    type="button"
-                    onClick={openWhatsApp}
-                    className="btn btn-dark btn-sheen w-full py-4 text-[11px] font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 rounded-xl"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    {paid ? 'Send Order via WhatsApp' : 'Place Order — Pay at Showroom'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="w-full text-center font-sans text-[11px] font-semibold text-[#1F0505]/50 hover:text-[#1F0505] py-2 transition-colors"
-                  >
-                    ← Edit Address & Details
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="w-full text-center font-sans text-[11px] font-semibold text-[#1F0505]/50 hover:text-[#1F0505] py-2 transition-colors block"
+                >
+                  ← Edit Address & Details
+                </button>
               </div>
             )}
 
@@ -701,6 +808,17 @@ export default function CheckoutPage() {
                 <span>{inr(total)}</span>
               </div>
             </div>
+
+            {/* Step 1 Continue to Payment Sidebar Button */}
+            {step === 1 && (
+              <button
+                type="button"
+                onClick={() => validate() && setStep(2)}
+                className="w-full py-4 bg-[#1F1916] text-white hover:bg-black transition-colors font-sans text-[12px] font-semibold tracking-[0.2em] uppercase rounded-xl shadow-md cursor-pointer"
+              >
+                Continue to Payment →
+              </button>
+            )}
 
             {/* Trust Footer */}
             <div className="space-y-2 font-sans text-[11px] text-[#1F0505]/50 pt-2">

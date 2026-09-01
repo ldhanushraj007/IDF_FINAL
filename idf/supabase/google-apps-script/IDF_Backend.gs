@@ -29,6 +29,9 @@ var ADMIN_OTP_TO    = 'indesignluxuryfabrics@gmail.com';
 var OTP_EXPIRY_MIN  = 10;
 var SESSION_TTL_DAYS = 30;
 
+var RAZORPAY_KEY_ID     = 'rzp_test_TWJWqNswp8gSw8';
+var RAZORPAY_KEY_SECRET = 'g5ByotCXDb0XFMPuWM7eUJGX';
+
 // ── Entry point ────────────────────────────────────────────────────────────────
 
 function doPost(e) {
@@ -47,8 +50,11 @@ function doPost(e) {
       case 'customer_session':     result = checkSession(body);        break;
       case 'admin_request_otp':    result = adminRequestOtp(body);     break;
       case 'admin_verify_otp':     result = adminVerifyOtp(body);      break;
+      case 'admin_direct_login':   result = adminDirectLogin(body);    break;
       case 'get_profile':          result = getProfile(body);          break;
       case 'upsert_customer':      result = upsertCustomer(body);      break;
+      case 'create_razorpay_order': result = createRazorpayOrderBackend(body); break;
+      case 'verify_razorpay_payment': result = verifyRazorpayPaymentBackend(body); break;
       case 'save_order':           result = saveOrder(body);           break;
       case 'get_my_orders':        result = getMyOrders(body);         break;
       case 'get_wishlist':         result = getWishlist(body);         break;
@@ -83,7 +89,7 @@ function sheet(name) {
     sh = ss.insertSheet(name);
     var headers = {
       Customers: ['id','name','phone','email','password_hash','created_at','otp','otp_expiry','session_token','signup_method'],
-      Orders:    ['id','customer_email','order_code','item_names','subtotal','discount','shipping','total','paid','txn_id','created_at','fulfilment','address','city','pincode','payment_method','notes'],
+      Orders:    ['id','customer_email','order_code','item_names','subtotal','discount','shipping','total','paid','txn_id','created_at','fulfilment','address','city','pincode','payment_method','notes','razorpay_order_id','razorpay_payment_id','razorpay_signature'],
       Wishlist:  ['customer_email','product_ids'],
       AdminOtp:  ['otp','otp_expiry','session_token'],
     };
@@ -274,6 +280,28 @@ function adminVerifyOtp(body) {
   return { ok: true, isAdmin: true, token: tok, user: { id: 'admin', email: ADMIN_EMAIL, name: 'Admin' } };
 }
 
+function adminDirectLogin(body) {
+  var email = String(body.email    || '').trim().toLowerCase();
+  var pass  = String(body.password || '');
+
+  if (email !== ADMIN_EMAIL.toLowerCase() || pass !== ADMIN_PASSWORD) {
+    return { ok: false, error: 'Invalid admin email or password.' };
+  }
+
+  var tok = token();
+  var tokExpiry = new Date(Date.now() + SESSION_TTL_DAYS * 86400000).toISOString();
+  var sh = sheet('AdminOtp');
+  if (sh.getLastRow() < 2) {
+    sh.appendRow(['', '', tok + '|' + tokExpiry]);
+  } else {
+    sh.getRange(2,1).setValue('');
+    sh.getRange(2,2).setValue('');
+    sh.getRange(2,3).setValue(tok + '|' + tokExpiry);
+  }
+
+  return { ok: true, isAdmin: true, token: tok, user: { id: 'admin', email: ADMIN_EMAIL, name: 'Admin' } };
+}
+
 // ── Profile ────────────────────────────────────────────────────────────────────
 
 function getProfile(body) {
@@ -294,6 +322,76 @@ function upsertCustomer(body) {
   return { ok: true };
 }
 
+// ── Razorpay Integration ──────────────────────────────────────────────────────
+
+function createRazorpayOrderBackend(body) {
+  var amount = Number(body.amountPaise || 0);
+  if (!amount || amount < 100) {
+    return { ok: false, error: 'Amount must be at least 100 paise (₹1)' };
+  }
+
+  var payload = {
+    amount: amount,
+    currency: body.currency || 'INR',
+    receipt: body.receipt || ('rcpt_' + Date.now()),
+    notes: {
+      orderCode: body.orderCode || '',
+      userEmail: body.userEmail || ''
+    }
+  };
+
+  var authHeader = 'Basic ' + Utilities.base64Encode(RAZORPAY_KEY_ID + ':' + RAZORPAY_KEY_SECRET);
+  var options = {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'Authorization': authHeader },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+
+  try {
+    var response = UrlFetchApp.fetch('https://api.razorpay.com/v1/orders', options);
+    var code = response.getResponseCode();
+    var resData = JSON.parse(response.getContentText());
+
+    if (code >= 200 && code < 300) {
+      return {
+        ok: true,
+        order_id: resData.id,
+        amount: resData.amount,
+        currency: resData.currency
+      };
+    } else {
+      return { ok: false, error: resData.error ? resData.error.description : 'Razorpay API Error' };
+    }
+  } catch (err) {
+    return { ok: false, error: 'Failed to contact Razorpay: ' + err.toString() };
+  }
+}
+
+function verifyRazorpayPaymentBackend(body) {
+  var paymentId = String(body.razorpay_payment_id || '').trim();
+  var orderId   = String(body.razorpay_order_id   || '').trim();
+  var signature = String(body.razorpay_signature  || '').trim();
+
+  if (!paymentId || !orderId || !signature) {
+    return { ok: false, error: 'Missing paymentId, orderId, or signature for verification' };
+  }
+
+  // HMAC-SHA256(order_id + "|" + payment_id, secret)
+  var textToSign = orderId + '|' + paymentId;
+  var signatureBytes = Utilities.computeHmacSha256Signature(textToSign, RAZORPAY_KEY_SECRET);
+  var generatedSignature = signatureBytes.map(function(b) {
+    return ('0' + (b & 0xFF).toString(16)).slice(-2);
+  }).join('');
+
+  if (generatedSignature !== signature) {
+    return { ok: false, error: 'Signature mismatch. Payment verification failed.' };
+  }
+
+  return { ok: true, verified: true, paymentId: paymentId, orderId: orderId };
+}
+
 // ── Orders ─────────────────────────────────────────────────────────────────────
 
 function saveOrder(body) {
@@ -303,9 +401,10 @@ function saveOrder(body) {
   sheet('Orders').appendRow([
     uuid(), email, o.orderCode||'', items,
     o.subtotal||0, o.discount||0, o.shipping||0, o.total||0,
-    o.paid ? 'YES':'NO', o.paymentReference||'',
+    o.paid ? 'YES':'NO', o.paymentReference||o.razorpayPaymentId||'',
     new Date().toISOString(),
-    o.fulfilment||'', o.address||'', o.city||'', o.pincode||'', o.paymentMethod||'', o.notes||''
+    o.fulfilment||'', o.address||'', o.city||'', o.pincode||'', o.paymentMethod||'', o.notes||'',
+    o.razorpayOrderId||'', o.razorpayPaymentId||'', o.razorpaySignature||''
   ]);
   return { ok: true };
 }

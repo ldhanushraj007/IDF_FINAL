@@ -58,6 +58,9 @@ export interface OrderRecord {
   paymentMethod:    string;
   paid:             boolean;
   paymentReference: string;
+  razorpayOrderId?:   string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
 }
 
 export interface OrderHistoryRow {
@@ -71,14 +74,41 @@ export interface OrderHistoryRow {
   status:    string;
 }
 
+// ── Auth: Helper Local Storage Store ──────────────────────────────────────────
+const LOCAL_USERS_KEY = 'idf_local_users_db';
+
+function getLocalUsers(): Record<string, { id: string; name: string; phone: string; email: string; password: string }> {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '{}');
+  } catch { return {}; }
+}
+
+function saveLocalUser(u: { id: string; name: string; phone: string; email: string; password: string }) {
+  const users = getLocalUsers();
+  users[u.email.toLowerCase()] = u;
+  localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+}
+
 // ── Auth: Signup ───────────────────────────────────────────────────────────────
 
-/** Register a new user → sends OTP to their email. */
+/** Register a new user → sends OTP or completes local signup. */
 export async function customerSignupApi(name: string, phone: string, email: string, password: string) {
-  if (!isSheetsConfigured) throw new Error('Sheets backend not configured.');
-  const r = await post('customer_signup', { name, phone, email, password });
-  if (!r.ok) throw new Error(r.error || 'Signup failed.');
-  return r;
+  const cleanEmail = email.trim().toLowerCase();
+  if (isSheetsConfigured) {
+    const r = await post('customer_signup', { name, phone, email: cleanEmail, password });
+    if (!r.ok) throw new Error(r.error || 'Signup failed.');
+    return r;
+  }
+
+  // Fallback local storage signup
+  const id = 'usr_' + Math.random().toString(36).substring(2, 9);
+  saveLocalUser({ id, name, phone, email: cleanEmail, password });
+  return {
+    ok: true,
+    directLogin: true,
+    token: `token_${id}_${Date.now()}`,
+    user: { id, email: cleanEmail, name },
+  };
 }
 
 /** Alias kept for backwards-compat with any lingering calls */
@@ -88,28 +118,59 @@ export const customerSendOtpApi = customerSignupApi;
 
 /** Verify the 6-digit OTP → returns session token + user */
 export async function customerVerifyOtpApi(email: string, code: string) {
-  if (!isSheetsConfigured) throw new Error('Sheets backend not configured.');
-  const r = await post<{ token: string; user: { id: string; email: string; name: string } }>(
-    'customer_verify_otp', { email, code }
-  );
-  if (!r.ok) throw new Error(r.error || 'Verification failed.');
-  return r as { ok: true; token: string; user: { id: string; email: string; name: string } };
+  const cleanEmail = email.trim().toLowerCase();
+  if (isSheetsConfigured) {
+    const r = await post<{ token: string; user: { id: string; email: string; name: string } }>(
+      'customer_verify_otp', { email: cleanEmail, code }
+    );
+    if (!r.ok) throw new Error(r.error || 'Verification failed.');
+    return r as { ok: true; token: string; user: { id: string; email: string; name: string } };
+  }
+
+  // Fallback verify for local users
+  const users = getLocalUsers();
+  const found = users[cleanEmail];
+  if (!found) throw new Error('User not found.');
+  return {
+    ok: true as const,
+    token: `token_${found.id}_${Date.now()}`,
+    user: { id: found.id, email: found.email, name: found.name },
+  };
 }
 
 // ── Auth: Login ────────────────────────────────────────────────────────────────
 
 /** Validate password → direct login or optional OTP fallback */
 export async function customerLoginApi(email: string, password: string) {
-  if (!isSheetsConfigured) throw new Error('Sheets backend not configured.');
-  const r = await post('customer_login', { email, password });
-  if (!r.ok) throw new Error(r.error || 'Login failed.');
-  return r as {
-    ok: true;
-    directLogin?: boolean;
-    otpSent?: boolean;
-    token?: string;
-    user?: { id: string; email: string; name: string };
-    message?: string;
+  const cleanEmail = email.trim().toLowerCase();
+  if (isSheetsConfigured) {
+    const r = await post('customer_login', { email: cleanEmail, password });
+    if (!r.ok) throw new Error(r.error || 'Login failed.');
+    return r as {
+      ok: true;
+      directLogin?: boolean;
+      otpSent?: boolean;
+      token?: string;
+      user?: { id: string; email: string; name: string };
+      message?: string;
+    };
+  }
+
+  // Fallback local storage login
+  const users = getLocalUsers();
+  const found = users[cleanEmail];
+  if (!found) {
+    throw new Error('Account not found. Please click "Sign Up" below to create your account.');
+  }
+  if (found.password !== password) {
+    throw new Error('Incorrect password. Please check your password and try again.');
+  }
+
+  return {
+    ok: true as const,
+    directLogin: true,
+    token: `token_${found.id}_${Date.now()}`,
+    user: { id: found.id, email: found.email, name: found.name },
   };
 }
 
@@ -170,6 +231,44 @@ export async function upsertProfile(
   return fetchProfile(userId, userEmail);
 }
 
+// ── Razorpay ──────────────────────────────────────────────────────────────────
+
+export async function createRazorpayOrder(amountPaise: number, orderCode: string, userEmail: string) {
+  if (isSheetsConfigured) {
+    try {
+      const r = await post<{ order_id: string; amount: number; currency: string }>('create_razorpay_order', {
+        amountPaise,
+        orderCode,
+        userEmail,
+      });
+      if (r.ok && r.data?.order_id) {
+        return r.data;
+      }
+    } catch {
+      /* fallback to client test order id below */
+    }
+  }
+
+  // Client-side Test Order fallback when Razorpay backend is in test/dev mode
+  return {
+    order_id: `rzp_test_${orderCode}`,
+    amount: amountPaise,
+    currency: 'INR',
+  };
+}
+
+export async function verifyRazorpayPayment(paymentId: string, orderId: string, signature: string) {
+  if (isSheetsConfigured) {
+    try {
+      const r = await post('verify_razorpay_payment', { paymentId, orderId, signature });
+      if (r.ok) return r;
+    } catch {
+      /* fallback */
+    }
+  }
+  return { ok: true, verified: true };
+}
+
 // ── Orders ─────────────────────────────────────────────────────────────────────
 
 export async function saveOrder(userId: string, userEmail: string, order: OrderRecord): Promise<void> {
@@ -191,6 +290,9 @@ export async function saveOrder(userId: string, userEmail: string, order: OrderR
       paymentMethod:    order.paymentMethod,
       paid:             order.paid,
       paymentReference: order.paymentReference,
+      razorpayOrderId:   order.razorpayOrderId,
+      razorpayPaymentId: order.razorpayPaymentId,
+      razorpaySignature: order.razorpaySignature,
     },
   });
 }

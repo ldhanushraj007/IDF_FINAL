@@ -12,8 +12,8 @@
   html,
   body {
     overflow-x: clip;
-    background-color: #FFFFFF;
-    color: #1F0505;
+    background-color: #FAF7F5;
+    color: #1F1916;
   }
   /* Ensure main content doesn't create horizontal overflow */
   #main {
@@ -26,10 +26,10 @@
     text-wrap: balance;
   }
   body {
-    @apply font-sans antialiased selection:bg-[#1F0505] selection:text-white;
+    @apply font-sans antialiased selection:bg-[#1F1916] selection:text-white;
   }
   :focus-visible {
-    @apply outline-none ring-2 ring-[#1F0505]/40 ring-offset-2 ring-offset-white transition-all duration-300;
+    @apply outline-none ring-2 ring-[#1F1916]/40 ring-offset-2 ring-offset-white transition-all duration-300;
   }
 
   /* Override WebKit input autofill background (prevent ugly blue background) */
@@ -37,7 +37,7 @@
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-text-fill-color: #1F0505 !important;
+    -webkit-text-fill-color: #1F1916 !important;
     -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
     transition: background-color 5000s ease-in-out 0s;
   }
@@ -54,7 +54,7 @@
   select option:active,
   select option:checked {
     background-color: #d4af37 !important;
-    color: #1F0505 !important;
+    color: #1F1916 !important;
   }
 }
 
@@ -68,21 +68,21 @@
 
   /* ── Kickers / Labels ─────────────────────────────────────────────── */
   .kicker {
-    @apply text-[11px] font-semibold uppercase tracking-[0.34em] text-[#1F0505]/60;
+    @apply text-[11px] font-semibold uppercase tracking-[0.34em] text-[#1F1916]/60;
   }
   .kicker-dark {
-    @apply text-[11px] font-semibold uppercase tracking-[0.34em] text-[#1F0505];
+    @apply text-[11px] font-semibold uppercase tracking-[0.34em] text-[#1F1916];
   }
   .kicker-light {
     @apply text-[11px] font-semibold uppercase tracking-[0.34em] text-white/80;
   }
 
-  /* ── Section Alternation (Blush / White visual rhythm) ────────────── */
+  /* ── Section Alternation (Cream / White visual rhythm) ────────────── */
   .section-white {
     @apply bg-white;
   }
   .section-blush {
-    @apply bg-[#FFE6E9];
+    @apply bg-[#FAF7F5];
   }
 
   /* ── Buttons ──────────────────────────────────────────────────────── */
@@ -90,13 +90,13 @@
     @apply relative inline-flex items-center justify-center gap-2 overflow-hidden px-7 py-3.5 text-[12px] font-semibold uppercase tracking-[0.2em] transition-all duration-500 ease-lux active:scale-[0.98];
   }
   .btn-dark {
-    @apply bg-[#1F0505] text-white hover:bg-[#3a0a0a] hover:shadow-[0_12px_28px_-10px_rgba(31,5,5,0.3)] hover:-translate-y-0.5;
+    @apply bg-[#1F1916] text-white hover:bg-black hover:shadow-md hover:-translate-y-0.5;
   }
   .btn-blush {
-    @apply bg-[#FFE6E9] text-[#1F0505] hover:bg-[#f5ced2] hover:-translate-y-0.5;
+    @apply bg-[#E8E2DB] text-[#1F1916] hover:bg-[#DCD5CC] hover:-translate-y-0.5;
   }
   .btn-outline {
-    @apply border border-[#1F0505]/20 text-[#1F0505] hover:border-[#1F0505] hover:bg-[#1F0505] hover:text-white hover:-translate-y-0.5;
+    @apply border border-[#1F1916]/20 text-[#1F1916] hover:border-[#1F1916] hover:bg-[#1F1916] hover:text-white hover:-translate-y-0.5;
   }
   .btn-outline-light {
     @apply border border-white/40 text-white hover:border-white hover:bg-white hover:text-[#1F0505] hover:-translate-y-0.5;

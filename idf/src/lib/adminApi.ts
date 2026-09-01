@@ -83,6 +83,20 @@ export async function adminVerifyOtp(code: string): Promise<void> {
   else throw new Error('No session token returned.');
 }
 
+/** Direct 1-step login using email and password without OTP */
+export async function adminDirectLogin(password: string, email: string = 'indesignluxuryfabrics@gmail.com'): Promise<void> {
+  if (!isAdminConfigured) throw new Error('Backend not configured.');
+  const res = await fetch(SCRIPT_URL!, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ token: SCRIPT_TOKEN, action: 'admin_direct_login', email, password }),
+  });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'Admin authentication failed.');
+  if (json.token) setAdminToken(json.token);
+  else throw new Error('No session token returned.');
+}
+
 /** Legacy: single-step username/password (used before OTP was added) */
 export async function adminLogin(username: string, password: string): Promise<string> {
   if (!isAdminConfigured) throw new Error('Backend not configured.');

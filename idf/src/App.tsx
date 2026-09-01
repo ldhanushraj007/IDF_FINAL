@@ -26,6 +26,7 @@ import { useAuth } from './context/AuthContext';
 const ShopPage = lazy(() => import('./pages/ShopPage'));
 const ProductPage = lazy(() => import('./pages/ProductPage'));
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'));
+const LookbookPage = lazy(() => import('./pages/LookbookPage'));
 const ReviewsPage = lazy(() => import('./pages/ReviewsPage'));
 const VisitPage = lazy(() => import('./pages/VisitPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
@@ -112,6 +113,7 @@ function SiteChrome() {
                 <Route path="/shop/:category" element={<ShopPage />} />
                 <Route path="/shop/product/:id" element={<ProductPage />} />
                 <Route path="/collections" element={<CollectionsPage />} />
+                <Route path="/lookbook" element={<LookbookPage />} />
                 <Route path="/reviews" element={<ReviewsPage />} />
                 <Route path="/visit" element={<VisitPage />} />
                 <Route path="/contact" element={<ContactPage />} />

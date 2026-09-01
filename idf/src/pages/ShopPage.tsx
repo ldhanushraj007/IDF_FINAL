@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, ChevronDown } from 'lucide-react';
 import { type Tag } from '../data/catalog';
 import { useCatalog } from '../context/CatalogContext';
@@ -41,6 +41,7 @@ export default function ShopPage() {
 
   const [filter, setFilter] = useState<FilterType>(urlCategory || 'all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [maxPrice, setMaxPrice] = useState<number>(20000);
   const [sort, setSort]     = useState<SortKey>('newest');
   const [sortOpen, setSortOpen] = useState(false);
   const [catOpen, setCatOpen]   = useState(false);
@@ -88,6 +89,12 @@ export default function ShopPage() {
         list = catalog.filter(i => i.tags.includes(filter as Tag));
       }
     }
+
+    // Filter by max price
+    if (maxPrice < 20000) {
+      list = list.filter(i => i.pricePerMetre <= maxPrice);
+    }
+
     switch (sort) {
       case 'price-asc':   return [...list].sort((a, b) => a.pricePerMetre - b.pricePerMetre);
       case 'price-desc':  return [...list].sort((a, b) => b.pricePerMetre - a.pricePerMetre);
@@ -95,41 +102,59 @@ export default function ShopPage() {
       case 'featured':    return [...list].sort((a, b) => b.tags.length - a.tags.length);
       default:            return list;
     }
-  }, [filter, sort, catalog, searchQuery]);
+  }, [filter, sort, catalog, searchQuery, maxPrice]);
 
   const activeLabel = CATEGORY_FILTERS.find(f => f.id === filter)?.label ?? 'All Fabrics';
 
   return (
-    <>
-      {/* ── Page header ─────────────────────────────────────────────── */}
-      <section
-        className="bg-white px-5 md:px-10 lg:px-12 py-8 md:py-12"
-        style={{ borderBottom: '2px solid #1F0505' }}
-      >
-        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <p className="font-sans text-[9px] tracking-[0.3em] text-[#1F0505]/40 uppercase font-semibold mb-2">
-              The Catalogue
-            </p>
-            <h1 className="font-serif text-[28px] xs:text-[36px] md:text-[60px] text-[#1F0505] leading-[0.95] tracking-tight">
-              Shop<br />by the metre.
-            </h1>
+    <div className="bg-[#FAF7F5] text-[#1F1916] min-h-screen">
+      {/* Breadcrumb Header */}
+      <div className="w-full max-w-[1440px] mx-auto px-5 md:px-10 lg:px-12 pt-6 pb-2 text-[11px] font-sans tracking-[0.2em] uppercase text-[#1F1916]/60">
+        <a href="/" className="hover:text-[#1F1916] transition-colors">HOME</a>
+        <span className="mx-2">/</span>
+        <span className="font-semibold text-[#1F1916]">SHOP</span>
+      </div>
+
+      {/* ── Bridal Edit Hero Banner (Exact match to Image 4 when filter === 'bridal' or header area) ─────────────────────────────── */}
+      {filter === 'bridal' ? (
+        <section className="bg-[#FAF7F5] px-6 md:px-12 py-12 md:py-16 border-b border-[#1F1916]/10 relative overflow-hidden">
+          <div className="max-w-[1340px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            {/* Left Content */}
+            <div className="z-10">
+              <span className="font-sans text-[11px] font-bold tracking-[0.25em] text-[#1F1916]/50 uppercase block mb-3">
+                BRIDAL EDIT
+              </span>
+              <h1 className="font-serif text-[42px] sm:text-[54px] md:text-[64px] text-[#1F1916] font-light leading-[1.05] mb-4">
+                For the day<br />that begins<br />forever.
+              </h1>
+              <div className="w-14 h-[2px] bg-[#C5A059] mb-6" />
+              <p className="text-[14px] md:text-[15px] text-[#1F1916]/75 max-w-md leading-relaxed font-sans mb-8">
+                Hand-embroidered tulles, pearl organzas, and heirloom silks chosen for the most significant garment a woman will ever wear.
+              </p>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center bg-[#1F1916] text-white hover:bg-black transition-colors px-8 py-3.5 text-[11px] font-sans font-semibold tracking-[0.2em] uppercase shadow-md group"
+              >
+                <span>EXPLORE BRIDAL EDIT</span>
+                <span className="ml-3 group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </button>
+            </div>
+
+            {/* Right Blended Image Container */}
+            <div className="relative w-full h-[320px] md:h-[420px] rounded-2xl overflow-hidden shadow-sm bg-[#E8E2DB] border border-[#1F1916]/10">
+              <img
+                src="/images/collections/bridal.jpg"
+                alt="Bridal Organza Fabric with Cherry Blossom"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/fabrics/f01.jpg';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#FAF7F5]/50 via-transparent to-transparent pointer-events-none" />
+            </div>
           </div>
-          <div className="flex flex-wrap gap-6 md:gap-10">
-            {[
-              { n: '01', label: 'Premium Fabrics' },
-              { n: '02', label: 'Cut to Order' },
-              { n: '03', label: 'Ships Nationwide' },
-              { n: '04', label: 'Secure UPI Pay' },
-            ].map(f => (
-              <div key={f.n} className="flex items-start gap-2.5" style={{ borderLeft: '2px solid #1F0505', paddingLeft: '10px' }}>
-                <span className="font-sans text-[8px] text-[#1F0505]/30 font-bold mt-0.5">{f.n}</span>
-                <span className="font-sans text-[10px] tracking-[0.14em] text-[#1F0505] font-semibold uppercase">{f.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* ── Bulk order banner ───────────────────────────────────────── */}
       {isBulkOrder && (
@@ -156,69 +181,122 @@ export default function ShopPage() {
         </div>
       )}
 
-      {/* ── Main layout: sidebar + content ──────────────────────────── */}
-      <div className="flex min-h-screen bg-white" style={{ borderTop: '1px solid #1F0505' }}>
+      {/* ── Main layout: sidebar + content (Exact match to Image 3) ──────────────────────────── */}
+      <div className="flex min-h-screen bg-[#FAF7F5]">
 
         {/* ════════════════════════════════════════════════════════════
-            LEFT SIDEBAR — Category Index (Desktop Floating Curved Card)
+            LEFT SIDEBAR — Category, Colour & Price Filters (Matching Image 3)
         ════════════════════════════════════════════════════════════ */}
         <aside
-          className="hidden lg:flex flex-col w-[230px] xl:w-[250px] shrink-0 sticky top-[100px] self-start h-fit my-4 ml-5 mr-3 p-3 bg-white border border-[#1F0505]/20 rounded-2xl shadow-sm"
-          aria-label="Filter by category"
+          className="hidden lg:flex flex-col w-[260px] shrink-0 border-r border-[#1F1916]/10 p-8 sticky top-[80px] h-fit"
+          aria-label="Filter sidebar"
         >
-          {/* Sidebar header */}
-          <div className="px-4 py-2.5 bg-[#1F0505] rounded-xl text-center mb-2">
-            <span className="font-sans text-[9px] tracking-[0.3em] text-[#FFE6E9] uppercase font-bold">
-              Browse By
-            </span>
+          {/* Breadcrumb Header on Top Left */}
+          <div className="text-[11px] font-sans tracking-[0.2em] uppercase text-[#1F1916]/60 mb-8">
+            <Link to="/" className="hover:text-[#1F1916] transition-colors">HOME</Link>
+            <span className="mx-2">/</span>
+            <span className="font-semibold text-[#1F1916]">SHOP</span>
           </div>
 
-          {/* Category list */}
-          <nav className="flex flex-col gap-0.5">
-            {CATEGORY_FILTERS.map((f, i) => {
-              const active = filter === f.id;
-              const prevGroup = i > 0 ? CATEGORY_FILTERS[i - 1].group : undefined;
-              const showDivider = f.group && f.group !== prevGroup && i > 0;
+          <span className="font-sans text-[10px] font-bold tracking-[0.25em] uppercase text-[#1F1916]/40 mb-4 block">
+            FILTER BY
+          </span>
 
-              return (
-                <div key={f.id}>
-                  {showDivider && (
-                    <div className="px-3 py-1 bg-[#FFE6E9]/60 rounded-lg text-center my-1.5 border border-[#1F0505]/10">
-                      <span className="font-sans text-[8px] tracking-[0.28em] text-[#1F0505]/70 uppercase font-bold">
-                        {f.group}
-                      </span>
-                    </div>
-                  )}
+          {/* Category List */}
+          <div className="mb-8">
+            <h4 className="font-sans text-[11px] font-bold tracking-[0.18em] uppercase text-[#1F1916] mb-3">
+              CATEGORY
+            </h4>
+            <nav className="flex flex-col space-y-2">
+              {[
+                { id: 'all', label: 'All Fabrics' },
+                { id: 'bridal', label: 'Bridal' },
+                { id: 'heritage', label: 'Heritage Weaves' },
+                { id: 'silks', label: 'Silks' },
+                { id: 'organza', label: 'Organza' },
+                { id: 'tulle', label: 'Tulle' },
+                { id: 'brocades', label: 'Brocades' },
+                { id: 'embroidered', label: 'Embroidered' },
+                { id: 'couture', label: 'Couture' },
+              ].map((cat) => {
+                const active = filter === cat.id;
+                return (
                   <button
+                    key={cat.id}
                     type="button"
-                    onClick={() => handleFilterChange(f.id)}
-                    className={`w-full text-left px-4 py-2.5 rounded-xl font-sans text-[10px] font-bold tracking-[0.14em] uppercase transition-all duration-200 flex items-center justify-between group ${
-                      active
-                        ? 'bg-[#1F0505] text-white shadow-sm'
-                        : 'text-[#1F0505]/80 hover:bg-[#FFE6E9]/60 hover:text-[#1F0505]'
+                    onClick={() => handleFilterChange(cat.id)}
+                    className={`text-left font-sans text-[12px] transition-colors ${
+                      active ? 'font-bold text-[#1F1916]' : 'text-[#1F1916]/60 hover:text-[#1F1916]'
                     }`}
-                    aria-current={active ? 'true' : undefined}
                   >
-                    <span>{f.label}</span>
-                    {active && <span className="text-[#FFE6E9] text-[10px]">→</span>}
+                    {cat.label}
                   </button>
-                </div>
-              );
-            })}
-          </nav>
+                );
+              })}
+            </nav>
+          </div>
 
-          {/* Sidebar footer */}
-          <div className="px-4 py-3 mt-2 border-t border-[#1F0505]/10 text-center">
-            <p className="font-sans text-[8px] tracking-[0.18em] text-[#1F0505]/40 uppercase font-medium">
-              {BUSINESS.city} · Est. 2009
-            </p>
+          {/* Price Range Slider (Interactive) */}
+          <div>
+            <h4 className="font-sans text-[11px] font-bold tracking-[0.18em] uppercase text-[#1F1916] mb-3">
+              PRICE
+            </h4>
+            <div className="flex items-center justify-between text-[11px] font-sans text-[#1F1916]/70 mb-2">
+              <span>₹0</span>
+              <span className="font-semibold text-[#1F1916]">
+                {maxPrice >= 20000 ? '₹20,000+' : `Up to ₹${maxPrice.toLocaleString('en-IN')}`}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="1000"
+              max="20000"
+              step="500"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              className="w-full accent-[#1F1916] cursor-pointer"
+            />
           </div>
         </aside>
 
         {/* ════════════════════════════════════════════════════════════
-            RIGHT CONTENT — Toolbar + Grid
+            RIGHT CONTENT — Toolbar + 3-Column Grid
         ════════════════════════════════════════════════════════════ */}
-        <div className="flex-1 min-w-0 flex flex-col">
+        <div className="flex-1 min-w-0 p-6 md:p-10">
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#1F1916]/10">
+            <h1 className="font-serif text-[28px] md:text-[34px] font-light text-[#1F1916] uppercase tracking-wide">
+              SHOP ALL
+            </h1>
+
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortRef}>
+              <button
+                type="button"
+                onClick={() => setSortOpen((v) => !v)}
+                className="flex items-center gap-2 font-sans text-[11px] tracking-[0.15em] uppercase text-[#1F1916]/70 hover:text-[#1F1916] font-semibold"
+              >
+                <span>SORT BY {SORT_OPTIONS.find((s) => s.id === sort)?.label}</span>
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+              {sortOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-[#1F1916]/10 rounded-xl shadow-lg z-30 p-1">
+                  {SORT_OPTIONS.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => {
+                        setSort(s.id);
+                        setSortOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 font-sans text-[11px] tracking-[0.1em] uppercase hover:bg-[#FAF7F5] rounded-lg transition-colors"
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* ── Mobile horizontal category tabs (Curved pills + All Categories Dropdown) ───────── */}
           <div className="lg:hidden p-3 bg-white/90 backdrop-blur-md border-b border-[#1F0505]/15 relative z-30">
@@ -292,103 +370,28 @@ export default function ShopPage() {
             </div>
           </div>
 
-          {/* ── Sort & Search toolbar ─────────────────────────────────────────── */}
-          <div
-            className="px-4 md:px-8 py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-white sticky top-[56px] sm:top-[44px] lg:top-[86px] z-20 border-b border-[#1F0505]/15"
-          >
-            {/* Active filter label */}
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="font-sans text-[11px] font-bold tracking-[0.18em] text-[#1F0505] uppercase px-4 py-1.5 rounded-full bg-[#FFE6E9]/40 border border-[#1F0505]/20">
-                {activeLabel}
-              </span>
-              <span className="font-sans text-[10px] text-[#1F0505]/50 font-medium hidden sm:inline">
-                {items.length} {items.length === 1 ? 'fabric' : 'fabrics'}
-              </span>
-            </div>
 
-            {/* Search Input Bar */}
-            <div className="relative flex-1 max-w-xs md:max-w-sm">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#1F0505]/40 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search fabrics by name or material..."
-                className="w-full pl-9 pr-8 py-2 rounded-full border border-[#1F0505]/20 bg-[#FAFAFA] text-[11px] font-medium text-[#1F0505] placeholder-[#1F0505]/40 outline-none focus:border-[#1F0505] focus:bg-white transition-all shadow-sm"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1F0505]/40 hover:text-[#1F0505] text-[11px] font-bold"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-
-            {/* Sort dropdown */}
-            <div className="relative" ref={sortRef}>
-              <button
-                type="button"
-                onClick={() => setSortOpen(v => !v)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full font-sans text-[10px] font-bold tracking-[0.14em] uppercase text-[#1F0505] bg-white border border-[#1F0505]/20 hover:bg-[#FFE6E9]/40 transition-all shadow-sm"
-              >
-                Sort: {SORT_OPTIONS.find(s => s.id === sort)?.label}
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {sortOpen && (
-                <div
-                  className="absolute right-0 top-full mt-2 bg-white z-30 w-56 max-w-[calc(100vw-2rem)] rounded-2xl p-1.5 shadow-xl border border-[#1F0505]/20 overflow-hidden"
-                >
-                  {SORT_OPTIONS.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => { setSort(o.id); setSortOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 rounded-xl font-sans text-[10px] font-bold uppercase tracking-[0.12em] transition-all ${
-                        sort === o.id
-                          ? 'bg-[#1F0505] text-white shadow-sm'
-                          : 'text-[#1F0505]/80 hover:bg-[#FFE6E9]/50'
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* ── Product Grid ─────────────────────────────────────────── */}
-          <section className="flex-1 bg-white">
+          <section className="flex-1 bg-[#FAF7F5]">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-32 gap-4 px-6 text-center">
-                <p className="font-serif text-[28px] text-[#1F0505]">No fabrics found</p>
-                <p className="font-sans text-[13px] text-[#1F0505]/40">
+                <p className="font-serif text-[28px] text-[#1F1916]">No fabrics found</p>
+                <p className="font-sans text-[13px] text-[#1F1916]/50">
                   Try a different category or clear the filter.
                 </p>
                 <button
                   type="button"
                   onClick={() => handleFilterChange('all')}
-                  className="font-sans text-[10px] font-bold tracking-[0.18em] uppercase px-6 py-3 text-[#1F0505] hover:bg-[#1F0505] hover:text-white transition-colors mt-2"
-                  style={{ border: '2px solid #1F0505' }}
+                  className="font-sans text-[11px] font-bold tracking-[0.18em] uppercase px-6 py-3 border border-[#1F1916] text-[#1F1916] hover:bg-[#1F1916] hover:text-white transition-colors mt-2"
                 >
                   View All Fabrics
                 </button>
               </div>
             ) : (
-              <div
-                className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 bg-white border-l border-[#1F0505]"
-                style={{ borderBottom: '1px solid #1F0505' }}
-              >
-                {items.map((item, i) => (
-                  <div
-                    key={item.id}
-                    className="border-b border-r border-[#1F0505] flex flex-col"
-                  >
-                    <ProductCard item={item} onQuickView={setQuickViewItem} />
-                  </div>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 py-4">
+                {items.map((item) => (
+                  <ProductCard key={item.id} item={item} onQuickView={setQuickViewItem} />
                 ))}
               </div>
             )}
@@ -400,6 +403,6 @@ export default function ShopPage() {
       {quickViewItem && (
         <QuickViewModal item={quickViewItem} onClose={() => setQuickViewItem(null)} />
       )}
-    </>
+    </div>
   );
 }

@@ -13,13 +13,10 @@ export interface Customer {
 
 /**
  * How the customer chose to pay.
- *  upi   — scanned the QR / opened a UPI app
- *  later — reserving now, settling at the showroom
- *
- * Card, net banking and wallets arrive together with the Razorpay
- * integration — see UPI section of HANDOVER.md.
+ *  razorpay     — paid via Razorpay (card, UPI, netbanking, wallet)
+ *  pay_at_store — reserving now, settling at showroom (store pickup only)
  */
-export type PayMethod = 'upi' | 'later';
+export type PayMethod = 'razorpay' | 'pay_at_store' | 'upi' | 'later';
 
 export interface OrderPayload {
   orderId: string;
@@ -32,8 +29,11 @@ export interface OrderPayload {
   isWholesale: boolean;
   method: PayMethod;
   paid: boolean;
-  /** UPI transaction ID, if the customer entered one — helps the shop reconcile. */
+  /** UPI or Razorpay transaction ID */
   reference: string;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
 }
 
 /** Short human-readable order reference, e.g. IDLF-4F92. */
@@ -60,12 +60,17 @@ export function ownerMessage(o: OrderPayload) {
       ? 'Pickup at showroom'
       : `${o.customer.address}, ${o.customer.city} – ${o.customer.pincode}`;
 
-  const payment = o.paid ? `PAID by UPI to ${UPI.vpa}` : 'To be settled at the showroom';
+  let payment = 'To be settled at the showroom';
+  if (o.method === 'razorpay' || o.paid) {
+    payment = `PAID Online via Razorpay`;
+  } else if (o.method === 'pay_at_store') {
+    payment = `Pay at Store upon pickup`;
+  }
 
   return [
     `*NEW ORDER PLACED* — ${o.orderId}`,
     ``,
-    `Order is been placed from ${o.customer.phone}. Here is the requirement:`,
+    `Order has been placed from ${o.customer.phone}. Here is the requirement:`,
     ``,
     `*Customer:* ${o.customer.name}`,
     `*Contact:* ${o.customer.phone}`,
@@ -80,7 +85,8 @@ export function ownerMessage(o: OrderPayload) {
     `*TOTAL: ${inr(o.total)}*`,
     ``,
     `*Payment:* ${payment}`,
-    o.paid && o.reference ? `*Transaction ID:* ${o.reference}` : '',
+    o.razorpayPaymentId ? `*Razorpay Payment ID:* ${o.razorpayPaymentId}` : (o.reference ? `*Txn ID:* ${o.reference}` : ''),
+    o.razorpayOrderId ? `*Razorpay Order ID:* ${o.razorpayOrderId}` : '',
     o.customer.notes ? `\n*Notes:* ${o.customer.notes}` : '',
     ``,
     `— sent from ${BUSINESS.name} website`,

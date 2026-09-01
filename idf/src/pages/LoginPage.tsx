@@ -221,41 +221,6 @@ export default function LoginPage() {
     );
   }
 
-  // ── Backend not yet deployed — show setup notice ─────────────────────────────
-  if (!isSheetsConfigured) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col" style={{ borderTop: '2px solid #1F0505' }}>
-        <div className="flex items-center justify-between px-6 md:px-12 py-4" style={{ borderBottom: '1px solid #1F0505' }}>
-          <Link to="/" className="flex items-center gap-3">
-            <img src="/images/logo/logo-mark.png" alt="" className="h-8 w-auto" />
-            <div>
-              <div className="font-serif text-[17px] tracking-[0.14em] text-[#1F0505] uppercase font-medium">In Design</div>
-              <div className="font-sans text-[7px] tracking-[0.32em] text-[#1F0505]/40 uppercase mt-0.5">Luxury Fabrics</div>
-            </div>
-          </Link>
-          <Link to="/" className="font-sans text-[9px] tracking-[0.2em] text-[#1F0505]/50 uppercase font-semibold hover:text-[#1F0505] transition-colors">← Back to Shop</Link>
-        </div>
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-[440px] bg-white p-8" style={{ border: '1px solid #1F0505' }}>
-            <p className="font-sans text-[9px] tracking-[0.28em] text-[#1F0505]/40 uppercase font-bold mb-3">Setup Required</p>
-            <h1 className="font-serif text-[26px] text-[#1F0505] mb-4">Backend not configured</h1>
-            <p className="font-sans text-[13px] text-[#1F0505]/60 leading-relaxed mb-6">
-              The Google Sheets backend hasn't been deployed yet. Customer accounts, OTP login, and order storage won't work until the Apps Script is deployed and the URL is set in <code className="bg-[#1F0505]/5 px-1.5 py-0.5 font-mono text-[12px]">.env.local</code>.
-            </p>
-            <div className="p-4 font-mono text-[11px] text-[#1F0505]/70 leading-relaxed space-y-1" style={{ border: '1px solid rgba(31,5,5,0.15)', background: '#FAFAFA' }}>
-              <p className="font-sans text-[8px] tracking-[0.22em] uppercase font-bold text-[#1F0505]/40 mb-2">Steps</p>
-              <p>1. Deploy <strong>IDF_Backend.gs</strong> to Google Apps Script</p>
-              <p>2. Set <strong>VITE_APPS_SCRIPT_URL</strong> in <strong>.env.local</strong></p>
-              <p>3. Restart dev server: <strong>npm run dev</strong></p>
-            </div>
-            <Link to="/" className="mt-6 block text-center font-sans text-[10px] tracking-[0.14em] text-[#1F0505]/40 hover:text-[#1F0505] transition-colors uppercase">
-              Continue browsing as guest →
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const isOtpStep = step === 'login_otp' || step === 'signup_otp' || step === 'admin_otp';
 
