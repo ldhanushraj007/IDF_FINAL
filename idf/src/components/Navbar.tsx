@@ -66,14 +66,21 @@ export default function Navbar() {
           EST. 2009
         </span>
 
-        {/* Center: Brand Name */}
-        <Link to="/" className="flex flex-col items-center text-center mx-auto sm:mx-0">
-          <span className="font-serif text-[24px] sm:text-[28px] tracking-[0.18em] text-[#1F1916] uppercase font-light leading-none">
-            IN DESIGN
-          </span>
-          <span className="font-sans text-[8px] sm:text-[9px] tracking-[0.35em] text-[#1F1916]/50 uppercase mt-1 font-semibold">
-            LUXURY FABRICS
-          </span>
+        {/* Center: Brand Logo & Name */}
+        <Link to="/" className="flex items-center gap-3 mx-auto sm:mx-0 group">
+          <img
+            src="/images/logo/logo-mark.png"
+            alt="IN DESIGN Luxury Fabrics Logo"
+            className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="flex flex-col text-left">
+            <span className="font-serif text-[22px] sm:text-[26px] tracking-[0.18em] text-[#1F1916] uppercase font-light leading-none">
+              IN DESIGN
+            </span>
+            <span className="font-sans text-[8px] sm:text-[9px] tracking-[0.35em] text-[#1F1916]/50 uppercase mt-1 font-semibold">
+              LUXURY FABRICS
+            </span>
+          </div>
         </Link>
 
         {/* Right: BENGALURU, INDIA */}

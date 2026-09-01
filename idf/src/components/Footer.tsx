@@ -8,7 +8,12 @@ export default function Footer() {
     <footer className="w-full bg-[#191514] text-white">
       {/* ── Brand masthead strip ─────────────────────────────────────── */}
       <div className="w-full max-w-[1340px] mx-auto px-6 md:px-12 py-6 border-b border-white/10 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3 group">
+          <img
+            src="/images/logo/logo-mark.png"
+            alt="In Design Luxury Fabrics Logo"
+            className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
+          />
           <div>
             <div className="font-serif text-[20px] tracking-[0.14em] text-white uppercase font-light">
               In Design
@@ -17,7 +22,7 @@ export default function Footer() {
               Luxury Fabrics
             </div>
           </div>
-        </div>
+        </Link>
         <span className="font-sans text-[10px] tracking-[0.2em] text-white/40 uppercase hidden md:block">
           Est. 2009 — {BUSINESS.city}
         </span>
