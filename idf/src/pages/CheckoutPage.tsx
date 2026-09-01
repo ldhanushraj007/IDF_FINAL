@@ -255,7 +255,7 @@ export default function CheckoutPage() {
     setCustomer(EMPTY);
     setStep(1);
     setPaid(false);
-    setReference('');
+    setRazorpayDetails({});
     setOrderId(newOrderId());
     navigate('/');
   };

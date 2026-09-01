@@ -57,6 +57,7 @@ import { isAdminConfigured } from '../lib/adminApi';
 import {
   adminRequestOtp,
   adminVerifyOtp,
+  adminDirectLogin,
   checkIsAdmin,
   adminSignOut,
   fetchProducts,
