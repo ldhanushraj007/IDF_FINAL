@@ -89,9 +89,11 @@ export default function CheckoutModal({ open, onClose }: Props) {
     if (!profile) return;
     setCustomer((c) => ({
       ...c,
-      name: c.name || profile.name,
-      phone: c.phone || profile.phone.replace(/^\+91/, ''),
-      city: c.city || profile.city,
+      name: c.name || profile.name || '',
+      phone: c.phone || (profile.phone ? profile.phone.replace(/^\+91/, '') : '') || '',
+      city: c.city || profile.city || '',
+      address: c.address || profile.address || '',
+      pincode: c.pincode || (profile.address ? profile.address.match(/\b\d{6}\b/)?.[0] || '' : ''),
     }));
   }, [profile]);
 
@@ -431,20 +433,29 @@ export default function CheckoutModal({ open, onClose }: Props) {
                     <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
                     <div>
                       <p className="text-[14px] font-semibold text-ivory">
-                        One last step — press Send in WhatsApp
+                        One last step — transmit your order on WhatsApp
                       </p>
                       <p className="mt-1.5 text-[13px] leading-relaxed text-ivory/65">
-                        WhatsApp has opened with your order typed out, but the message is not sent
-                        until you press the send button yourself. Until then the showroom has not
-                        received anything.
+                        Tap the green button below to open WhatsApp with your prefilled order text and press send.
                       </p>
                     </div>
                   </div>
+
+                  <a
+                    href={waOrderLink(order)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white py-3.5 px-4 rounded-[2px] font-sans text-[13px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all text-center"
+                  >
+                    <MessageCircle className="h-5 w-5 fill-current shrink-0" />
+                    <span>Send Order on WhatsApp Now</span>
+                  </a>
 
                   <button type="button" onClick={confirmSent} className="btn btn-gold btn-sheen w-full">
                     <Check className="h-4 w-4" />
                     Yes — I pressed Send
                   </button>
+
 
                   <div className="space-y-2.5 rounded-[3px] border border-ivory/15 p-4">
                     <p className="text-[12px] uppercase tracking-[0.16em] text-ivory/45">

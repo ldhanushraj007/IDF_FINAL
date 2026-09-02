@@ -6,7 +6,7 @@
 
 import type { Item } from '../data/catalog';
 
-const SCRIPT_URL   = (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined) || 'https://script.google.com/macros/s/AKfycbyE3T-eq_SvFbp0qmvfrlevVHmNIT3ka9pougCkHmz7lAsSF9aaNanNIebJmGh-9lcOsg/exec';
+const SCRIPT_URL   = (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined) || 'https://script.google.com/macros/s/AKfycby09nJMMirlhbEaOcKUwvDpYPXyCgkb2FvW7ggBZLzJxT-19utU2xaHhPITbSYaf4Ek4w/exec';
 const SCRIPT_TOKEN = (import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined) || 'idf-secret-2024';
 
 // Only true when a real deployed Apps Script URL exists (not a placeholder)
@@ -64,14 +64,24 @@ export interface OrderRecord {
 }
 
 export interface OrderHistoryRow {
-  id:        string;
-  orderCode: string;
-  itemNames: string;
-  total:     number;
-  paid:      boolean;
-  txnId:     string;
-  createdAt: string;
-  status:    string;
+  id:            string;
+  orderCode:     string;
+  itemNames:     string;
+  subtotal?:     number;
+  discount?:     number;
+  shipping?:     number;
+  total:         number;
+  paid:          boolean;
+  txnId:         string;
+  createdAt:     string;
+  rawCreatedAt?: string;
+  fulfilment?:   string;
+  address?:      string;
+  city?:         string;
+  pincode?:      string;
+  paymentMethod?: string;
+  notes?:        string;
+  status:        string;
 }
 
 // ── Auth: Helper Local Storage Store ──────────────────────────────────────────
@@ -301,13 +311,18 @@ export async function fetchMyOrders(userId: string, userEmail: string): Promise<
   if (!isSheetsConfigured || !userEmail) return [];
   const r = await post<OrderHistoryRow[]>('get_my_orders', { userId, userEmail });
   if (!r.ok || !r.data) return [];
-  return r.data.map((row, i) => ({
-    ...row,
-    id: String(i),
-    createdAt: row.createdAt
-      ? new Date(row.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-      : '—',
-  }));
+  return r.data.map((row, i) => {
+    const rawTime = row.createdAt || '';
+    const formattedDate = rawTime
+      ? new Date(rawTime).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })
+      : '—';
+    return {
+      ...row,
+      id: String(i),
+      rawCreatedAt: rawTime,
+      createdAt: formattedDate,
+    };
+  });
 }
 
 // ── Wishlist ───────────────────────────────────────────────────────────────────

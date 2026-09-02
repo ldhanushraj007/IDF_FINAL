@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ListOrdered, Loader2, LogOut, Save, User } from 'lucide-react';
+import { CheckCircle2, Clock, CreditCard, Heart, ListOrdered, Loader2, LogOut, MapPin, MessageCircle, Save, ShoppingBag, User, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCatalog } from '../context/CatalogContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -9,6 +9,28 @@ import { BUSINESS, inr } from '../lib/constants';
 import AuthGate from '../components/AuthGate';
 import ProductCard from '../components/ProductCard';
 import LoginPage from './LoginPage';
+
+function getCancelInfo(rawCreatedAt?: string, createdAtStr?: string) {
+  if (!rawCreatedAt && !createdAtStr) return { canCancel: false, text: '' };
+  const dt = new Date(rawCreatedAt || createdAtStr || '');
+  if (isNaN(dt.getTime())) return { canCancel: false, text: '' };
+
+  const elapsedMs = Date.now() - dt.getTime();
+  const fourHoursMs = 4 * 60 * 60 * 1000;
+  if (elapsedMs < 0 || elapsedMs >= fourHoursMs) {
+    return { canCancel: false, text: '' };
+  }
+
+  const remainingMs = fourHoursMs - elapsedMs;
+  const totalMins = Math.floor(remainingMs / (60 * 1000));
+  const hrs = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  return {
+    canCancel: true,
+    timeLeftStr: hrs > 0 ? `${hrs}h ${mins}m left` : `${mins}m left`,
+  };
+}
+
 
 export default function AccountPage() {
   const { enabled, user, profile, loading: authLoading, saveProfile, signOut } = useAuth();
@@ -259,34 +281,94 @@ export default function AccountPage() {
                 </Link>
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-[#1F0505]/15">
-                <table className="w-full text-left font-sans min-w-[550px]">
-                  <thead>
-                    <tr className="bg-[#FFE6E9]/40 border-b border-[#1F0505]/15 font-sans text-[10px] font-bold tracking-[0.14em] uppercase text-[#1F0505]/70">
-                      <th className="py-3.5 px-5">Order Code</th>
-                      <th className="py-3.5 px-5">Date</th>
-                      <th className="py-3.5 px-5 text-right">Total Amount</th>
-                      <th className="py-3.5 px-5 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#1F0505]/10 text-[13px]">
-                    {orders.map((o) => (
-                      <tr key={o.id} className="hover:bg-[#FAFAFA] transition-colors">
-                        <td className="py-4 px-5 font-medium text-[#1F0505]">{o.orderCode}</td>
-                        <td className="py-4 px-5 text-[#1F0505]/60">{o.createdAt}</td>
-                        <td className="py-4 px-5 text-right font-semibold text-[#1F0505]">{inr(o.total)}</td>
-                        <td className="py-4 px-5 text-right">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.1em] ${
-                            o.paid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${o.paid ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                            {o.paid ? 'Paid' : 'Pending'}
+              <div className="space-y-6">
+                {orders.map((o) => {
+                  const cancelInfo = getCancelInfo(o.rawCreatedAt, o.createdAt);
+                  const cancelMsg = `Hi IN DESIGN Luxury Fabrics,\n\nI would like to CANCEL my order *${o.orderCode}* placed on ${o.createdAt}.\n\nOrder Details:\n- Items: ${o.itemNames || 'Fabrics'}\n- Amount: ${inr(o.total)}\n- Payment: ${o.paymentMethod || (o.paid ? 'Paid Online' : 'Pay at Store')}\n\nPlease confirm cancellation. Thank you.`;
+                  const cancelWaLink = `https://wa.me/${BUSINESS.whatsappNumber}?text=${encodeURIComponent(cancelMsg)}`;
+
+                  let paymentLabel = 'Pay at Store';
+                  if (o.paymentMethod === 'razorpay' || o.paid) paymentLabel = 'Online Payment (Razorpay)';
+                  else if (o.paymentMethod === 'upi') paymentLabel = 'Direct UPI Payment';
+                  else if (o.paymentMethod) paymentLabel = o.paymentMethod;
+
+                  return (
+                    <div key={o.id} className="bg-[#FAFAFA] rounded-2xl border border-[#1F0505]/15 p-5 sm:p-6 shadow-xs space-y-4 hover:border-[#1F0505]/30 transition-all">
+                      {/* Top Bar: Code, Date, Status */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#1F0505]/10">
+                        <div>
+                          <span className="font-mono text-[14px] font-bold text-[#1F0505] tracking-wide">
+                            #{o.orderCode}
                           </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          <div className="flex items-center gap-1.5 text-[11px] text-[#1F0505]/60 mt-0.5">
+                            <Clock className="h-3.5 w-3.5 text-[#1F0505]/40 shrink-0" />
+                            <span>Ordered on {o.createdAt}</span>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.1em] ${
+                          o.paid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${o.paid ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                          {o.paid ? 'Paid' : 'Pending'}
+                        </span>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] font-sans">
+                        <div className="flex items-start gap-2.5 text-[#1F0505]/80 bg-white p-3 rounded-xl border border-[#1F0505]/10">
+                          <ShoppingBag className="h-4 w-4 text-[#1F0505]/50 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#1F0505]/40 block">Items</span>
+                            <span className="font-medium text-[#1F0505]">{o.itemNames || 'Custom Fabric Order'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-2.5 text-[#1F0505]/80 bg-white p-3 rounded-xl border border-[#1F0505]/10">
+                          <CreditCard className="h-4 w-4 text-[#1F0505]/50 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#1F0505]/40 block">Mode of Payment</span>
+                            <span className="font-medium text-[#1F0505]">{paymentLabel}</span>
+                          </div>
+                        </div>
+
+                        {(o.address || o.city) && (
+                          <div className="sm:col-span-2 flex items-start gap-2.5 text-[#1F0505]/80 bg-white p-3 rounded-xl border border-[#1F0505]/10">
+                            <MapPin className="h-4 w-4 text-[#1F0505]/50 shrink-0 mt-0.5" />
+                            <div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#1F0505]/40 block">Delivery Location</span>
+                              <span className="font-medium text-[#1F0505]">{o.address ? `${o.address}, ${o.city || ''} ${o.pincode || ''}` : o.city}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bottom Row: Total & Cancellation Action */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#1F0505]/10">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#1F0505]/40 block">Total Amount</span>
+                          <span className="font-serif text-[22px] font-bold text-[#1F0505]">{inr(o.total)}</span>
+                        </div>
+
+                        {cancelInfo.canCancel ? (
+                          <a
+                            href={cancelWaLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition-all active:scale-[0.98]"
+                          >
+                            <XCircle className="h-4 w-4 shrink-0 text-red-600" />
+                            <span>Cancel Order ({cancelInfo.timeLeftStr})</span>
+                          </a>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                            Order Placed ✓
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </section>

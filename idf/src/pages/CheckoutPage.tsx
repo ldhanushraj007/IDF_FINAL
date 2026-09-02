@@ -93,9 +93,11 @@ export default function CheckoutPage() {
     if (!profile) return;
     setCustomer((c) => ({
       ...c,
-      name: c.name || profile.name,
-      phone: c.phone || profile.phone.replace(/^\+91/, ''),
-      city: c.city || profile.city,
+      name: c.name || profile.name || '',
+      phone: c.phone || (profile.phone ? profile.phone.replace(/^\+91/, '') : '') || '',
+      city: c.city || profile.city || '',
+      address: c.address || profile.address || '',
+      pincode: c.pincode || (profile.address ? profile.address.match(/\b\d{6}\b/)?.[0] || '' : ''),
     }));
   }, [profile]);
 
@@ -215,7 +217,12 @@ export default function CheckoutPage() {
     });
 
     if (accountsEnabled && user) {
-      saveProfile({ name: customer.name, phone: customer.phone, city: customer.city });
+      saveProfile({
+        name: customer.name,
+        phone: customer.phone,
+        city: customer.city,
+        address: customer.fulfilment === 'delivery' ? customer.address : profile?.address,
+      });
       saveOrder(user.id, user.email, {
         orderCode: finalOrder.orderId,
         items: finalOrder.items,
@@ -242,7 +249,12 @@ export default function CheckoutPage() {
   };
 
   const retryWhatsApp = () => {
-    window.open(waOrderLink(order), '_blank', 'noopener');
+    const waUrl = waOrderLink(order);
+    window.open(waUrl, '_blank', 'noopener');
+    // Fallback for mobile browsers blocking popups
+    setTimeout(() => {
+      window.location.href = waUrl;
+    }, 500);
   };
 
   const confirmSent = () => {
@@ -653,28 +665,39 @@ export default function CheckoutPage() {
                   <div>
                     <h3 className="font-serif text-[20px] text-[#1F0505]">One final step required</h3>
                     <p className="font-sans text-[13px] text-[#1F0505]/70 mt-1">
-                      WhatsApp has launched with your order requirement pre-filled. Please press <strong>Send</strong> inside WhatsApp to transmit your order directly to our Commercial Street team.
+                      Click the green button below to transmit your order directly to our Commercial Street WhatsApp team.
                     </p>
                   </div>
                 </div>
 
+                {/* Primary Direct WhatsApp Link Button (Works 100% on Mobile) */}
+                <a
+                  href={waOrderLink(order)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white py-4 px-6 rounded-xl font-sans text-[13px] font-bold uppercase tracking-wider shadow-md flex items-center justify-center gap-2.5 transition-all text-center active:scale-[0.98]"
+                >
+                  <MessageCircle className="h-5 w-5 fill-current shrink-0" />
+                  <span>Send Order on WhatsApp Now</span>
+                </a>
+
                 <button
                   type="button"
                   onClick={confirmSent}
-                  className="btn btn-dark btn-sheen w-full py-4 text-[11px] font-bold tracking-[0.16em] uppercase flex items-center justify-center gap-2 rounded-xl"
+                  className="w-full bg-[#1F0505] text-white hover:bg-[#1F0505]/90 py-3.5 px-6 rounded-xl font-sans text-[11px] font-bold tracking-[0.14em] uppercase flex items-center justify-center gap-2 transition-all"
                 >
-                  <Check className="h-4 w-4" />
+                  <Check className="h-4 w-4 text-emerald-400" />
                   Yes — I Pressed Send in WhatsApp
                 </button>
 
                 <div className="border border-[#1F0505]/15 rounded-xl p-5 space-y-3 bg-[#FAFAFA]">
-                  <p className="font-sans text-[10px] font-bold tracking-[0.14em] text-[#1F0505]/60 uppercase">Didn't open automatically?</p>
+                  <p className="font-sans text-[10px] font-bold tracking-[0.14em] text-[#1F0505]/60 uppercase">Having trouble opening WhatsApp?</p>
                   <button
                     type="button"
                     onClick={retryWhatsApp}
                     className="w-full border border-[#1F0505]/30 py-3 rounded-xl font-sans text-[11px] font-bold uppercase tracking-[0.1em] text-[#1F0505] hover:bg-[#1F0505] hover:text-white transition-colors flex items-center justify-center gap-2"
                   >
-                    <MessageCircle className="h-4 w-4" /> Re-open WhatsApp
+                    <MessageCircle className="h-4 w-4" /> Re-open WhatsApp Direct
                   </button>
                   <button
                     type="button"
@@ -690,6 +713,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
             )}
+
 
             {/* STEP 4: Success */}
             {step === 4 && (

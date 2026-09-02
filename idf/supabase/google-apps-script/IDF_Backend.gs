@@ -425,6 +425,12 @@ function getMyOrders(body) {
       paid:      String(data[i][8])==='YES',
       txnId:     String(data[i][9]||''),
       createdAt: String(data[i][10]||''),
+      fulfilment: String(data[i][11]||''),
+      address:   String(data[i][12]||''),
+      city:      String(data[i][13]||''),
+      pincode:   String(data[i][14]||''),
+      paymentMethod: String(data[i][15]||''),
+      notes:     String(data[i][16]||''),
       status:    String(data[i][8])==='YES' ? 'Paid' : 'Pending',
     });
   }
