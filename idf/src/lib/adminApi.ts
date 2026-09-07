@@ -218,6 +218,34 @@ export async function setOrderStatus(id: string, order_status?: string, payment_
   await adminPost('set_order_status', { id, order_status, payment_status });
 }
 
+export interface CustomerRow {
+  id?: string;
+  name: string;
+  phone: string;
+  email: string;
+  city: string;
+  signup_method: string;
+  created_at?: string;
+}
+
+export async function fetchCustomers(): Promise<CustomerRow[]> {
+  try {
+    const data = await adminPost<any[]>('fetch_customers');
+    return (data || []).map((c) => ({
+      id: c.id || c.userId || c.user_id,
+      name: c.name || 'Walk-in',
+      phone: c.phone || '',
+      email: c.email || c.userEmail || c.user_email || '—',
+      city: c.city || 'Bengaluru',
+      signup_method: c.signup_method || c.signupMethod || 'Online Checkout',
+      created_at: c.created_at || c.createdAt || new Date().toISOString(),
+    }));
+  } catch (err) {
+    console.warn('fetch_customers backend endpoint fallback:', err);
+    return [];
+  }
+}
+
 export async function addManualCustomer(customer: any): Promise<void> {
   await adminPost('upsert_customer', {
     userId: `cust-${Math.random().toString(36).slice(2, 7)}`,

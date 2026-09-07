@@ -69,10 +69,12 @@ import {
   addManualReview,
   fetchOrders,
   setOrderStatus,
+  fetchCustomers,
   addManualCustomer,
   addManualOrder,
   type AdminReviewRow,
   type AdminOrderRow,
+  type CustomerRow,
 } from '../lib/adminApi';
 import { ADMIN_STATIC_PIN, BUSINESS, ORDER, UPI, inr } from '../lib/constants';
 import { DEFAULT_CATEGORIES, type CategoryConfig } from '../lib/categories';
@@ -313,6 +315,7 @@ export default function AdminPanel() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [liveReviews, setLiveReviews] = useState<AdminReviewRow[]>([]);
   const [orders, setOrders] = useState<AdminOrderRow[]>([]);
+  const [backendCustomers, setBackendCustomers] = useState<CustomerRow[]>([]);
   const [categories, setCategories] = useState<CategoryConfig[]>(DEFAULT_CATEGORIES);
 
   // UI state
@@ -336,8 +339,8 @@ export default function AdminPanel() {
     setDataLoading(true);
 
     if (isAdminConfigured) {
-      Promise.all([fetchProducts(), fetchOffer(), fetchAllReviews(), fetchOrders()])
-        .then(([prods, off, revs, ords]) => {
+      Promise.all([fetchProducts(), fetchOffer(), fetchAllReviews(), fetchOrders(), fetchCustomers()])
+        .then(([prods, off, revs, ords, custs]) => {
           // If the sheet has no products, fallback to default local CATALOG
           const activeProds = prods.length > 0 ? prods : CATALOG;
           setItems(activeProds);
@@ -345,6 +348,7 @@ export default function AdminPanel() {
           setOffer(off);
           setLiveReviews(revs);
           setOrders(ords);
+          setBackendCustomers(custs);
           if (prods.length === 0) {
             setDirty(true); // Mark as dirty so user can hit "Publish Live" to sync defaults
           }
@@ -492,22 +496,42 @@ export default function AdminPanel() {
     localStorage.setItem('idf_admin_theme', dark ? 'dark' : 'light');
   };
 
-  // Extract all unique customers from orders for customer list (registry fallback)
+  // Comprehensive merged customer list from direct database records + order history
   const customerList = useMemo(() => {
     const registry: Record<string, { name: string; phone: string; email: string; city: string; signup_method: string }> = {};
-    orders.forEach((o) => {
-      if (o.customers?.phone) {
-        registry[o.customers.phone] = {
-          name: o.customers.name || 'Walk-in',
-          phone: o.customers.phone,
-          email: o.customers.email || 'walkin@idf.com',
-          city: o.city || 'Bengaluru',
-          signup_method: o.payment_method === 'Cash' ? 'Manual Registry' : 'Online checkout',
+
+    // 1. First populate backend customers
+    backendCustomers.forEach((c) => {
+      const key = c.phone || c.email || c.name;
+      if (key) {
+        registry[key] = {
+          name: c.name || 'Walk-in',
+          phone: c.phone || '—',
+          email: c.email || '—',
+          city: c.city || 'Bengaluru',
+          signup_method: c.signup_method || 'Online Account',
         };
       }
     });
+
+    // 2. Merge customer details from orders
+    orders.forEach((o) => {
+      if (o.customers?.phone || o.customers?.email || o.customers?.name) {
+        const key = o.customers.phone || o.customers.email || o.customers.name;
+        if (!registry[key] || registry[key].name === 'Walk-in') {
+          registry[key] = {
+            name: o.customers.name || 'Walk-in',
+            phone: o.customers.phone || '—',
+            email: o.customers.email || 'walkin@idf.com',
+            city: o.city || 'Bengaluru',
+            signup_method: o.payment_method === 'Cash' ? 'Manual Registry' : 'Online Checkout',
+          };
+        }
+      }
+    });
+
     return Object.values(registry);
-  }, [orders]);
+  }, [backendCustomers, orders]);
 
   return (
     <div className={`flex min-h-screen transition-colors duration-300 ${darkMode ? 'bg-[#0d0806] text-ivory' : 'bg-[#f7f4f0] text-night'}`}>

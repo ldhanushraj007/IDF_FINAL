@@ -61,7 +61,9 @@ function doPost(e) {
       case 'toggle_wishlist':      result = toggleWishlist(body);      break;
       case 'get_catalog':          result = getCatalog(body);          break;
       case 'save_catalog':         result = saveCatalog(body);         break;
+      case 'fetch_reviews':
       case 'get_reviews':          result = getReviews(body);          break;
+      case 'fetch_customers':      result = fetchCustomersBackend(body); break;
       case 'submit_review':       result = submitReview(body);       break;
       default: result = { ok: false, error: 'unknown_action: ' + action };
     }
@@ -543,4 +545,23 @@ function submitReview(body) {
 
   sh.appendRow([id, name, city, rating, text, product, dateStr, status]);
   return { ok: true, id: id };
+}
+
+function fetchCustomersBackend(body) {
+  var sh = sheet('Customers');
+  if (sh.getLastRow() < 2) return { ok: true, data: [] };
+  var data = sh.getDataRange().getValues();
+  var list = [];
+  for (var i = 1; i < data.length; i++) {
+    var r = data[i];
+    list.push({
+      id: String(r[0] || ''),
+      name: String(r[1] || 'Walk-in'),
+      phone: String(r[2] || ''),
+      email: String(r[3] || ''),
+      created_at: String(r[5] || ''),
+      signup_method: String(r[9] || 'email')
+    });
+  }
+  return { ok: true, data: list };
 }
