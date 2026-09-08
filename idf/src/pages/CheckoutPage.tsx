@@ -216,6 +216,9 @@ export default function CheckoutPage() {
       trackInteraction(line.item.id, 'purchase');
     });
 
+    const customerEmail = user?.email || (customer.phone ? `${customer.phone.replace(/[^0-9]/g, '')}@idf-customer.com` : 'guest@idf-customer.com');
+    const customerId = user?.id || `guest-${Date.now().toString(36)}`;
+
     if (accountsEnabled && user) {
       saveProfile({
         name: customer.name,
@@ -223,26 +226,27 @@ export default function CheckoutPage() {
         city: customer.city,
         address: customer.fulfilment === 'delivery' ? customer.address : profile?.address,
       });
-      saveOrder(user.id, user.email, {
-        orderCode: finalOrder.orderId,
-        items: finalOrder.items,
-        subtotal: finalOrder.subtotal,
-        discount: finalOrder.discount,
-        shipping: finalOrder.shipping,
-        total: finalOrder.total,
-        requirement: customer.notes,
-        fulfilment: customer.fulfilment,
-        address: customer.address,
-        city: customer.city,
-        pincode: customer.pincode,
-        paymentMethod: finalOrder.method,
-        paid: finalOrder.paid,
-        paymentReference: finalOrder.reference,
-        razorpayOrderId: finalOrder.razorpayOrderId,
-        razorpayPaymentId: finalOrder.razorpayPaymentId,
-        razorpaySignature: finalOrder.razorpaySignature,
-      });
     }
+
+    saveOrder(customerId, customerEmail, {
+      orderCode: finalOrder.orderId,
+      items: finalOrder.items,
+      subtotal: finalOrder.subtotal,
+      discount: finalOrder.discount,
+      shipping: finalOrder.shipping,
+      total: finalOrder.total,
+      requirement: customer.notes,
+      fulfilment: customer.fulfilment,
+      address: customer.address,
+      city: customer.city,
+      pincode: customer.pincode,
+      paymentMethod: finalOrder.method,
+      paid: finalOrder.paid,
+      paymentReference: finalOrder.reference,
+      razorpayOrderId: finalOrder.razorpayOrderId,
+      razorpayPaymentId: finalOrder.razorpayPaymentId,
+      razorpaySignature: finalOrder.razorpaySignature,
+    });
 
     window.open(link, '_blank', 'noopener');
     setStep(3);

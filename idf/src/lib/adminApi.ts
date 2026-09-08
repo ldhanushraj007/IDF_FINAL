@@ -120,25 +120,51 @@ interface ProductRow {
 }
 
 const rowToItem = (r: any): Item => ({
-  id: r.id, name: r.name, category: r.category as Item['category'],
-  composition: r.composition, width: r.width, pricePerMetre: r.pricePerMetre,
-  ...(r.mrp ? { mrp: r.mrp } : {}), minMetres: r.minMetres,
-  stock: r.stock as Item['stock'], tags: r.tags as Item['tags'],
-  image: r.image, ...(r.gallery?.length ? { gallery: r.gallery } : {}),
-  blurb: r.blurb, ...(r.details ? { details: r.details } : {}),
-  suggestedGarmentIds: Array.isArray(r.suggestedGarmentIds)
-    ? r.suggestedGarmentIds
-    : typeof r.suggestedGarmentIds === 'string' && r.suggestedGarmentIds.trim()
-      ? r.suggestedGarmentIds.split('|').map((s: string) => s.trim()).filter(Boolean)
+  id: String(r.id || ''),
+  name: String(r.name || ''),
+  category: (r.category || 'Contemporary') as Item['category'],
+  categoryId: r.categoryId || r.category_id || undefined,
+  composition: String(r.composition || ''),
+  width: String(r.width || '44 in'),
+  pricePerMetre: Number(r.pricePerMetre ?? r.price_per_metre ?? 0),
+  ...(r.mrp ? { mrp: Number(r.mrp) } : {}),
+  minMetres: Number(r.minMetres ?? r.min_metres ?? 0.5),
+  stock: (r.stock || 'in') as Item['stock'],
+  tags: (Array.isArray(r.tags)
+    ? r.tags
+    : typeof r.tags === 'string'
+      ? r.tags.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
+      : ['new-arrival']) as Item['tags'],
+  image: String(r.image || '/images/fabrics/f01.jpg'),
+  ...(r.gallery?.length ? { gallery: Array.isArray(r.gallery) ? r.gallery : String(r.gallery).split(/[|,]/) } : {}),
+  blurb: String(r.blurb || ''),
+  ...(r.details ? { details: String(r.details) } : {}),
+  suggestedGarmentIds: Array.isArray(r.suggestedGarmentIds ?? r.suggested_garment_ids)
+    ? (r.suggestedGarmentIds ?? r.suggested_garment_ids)
+    : typeof (r.suggestedGarmentIds ?? r.suggested_garment_ids) === 'string' && (r.suggestedGarmentIds ?? r.suggested_garment_ids).trim()
+      ? (r.suggestedGarmentIds ?? r.suggested_garment_ids).split('|').map((s: string) => s.trim()).filter(Boolean)
       : undefined,
   hidden: Boolean(r.hidden),
 });
 
 const itemToRow = (i: Item) => ({
-  id: i.id, name: i.name, category: i.category, composition: i.composition,
-  width: i.width, price_per_metre: i.pricePerMetre, mrp: i.mrp ?? null,
-  min_metres: i.minMetres, stock: i.stock, tags: i.tags, image: i.image,
-  gallery: i.gallery ?? [], blurb: i.blurb, details: i.details ?? '',
+  id: i.id,
+  name: i.name,
+  category: i.category,
+  category_id: i.categoryId || '',
+  composition: i.composition,
+  width: i.width,
+  pricePerMetre: i.pricePerMetre,
+  price_per_metre: i.pricePerMetre,
+  mrp: i.mrp ?? null,
+  minMetres: i.minMetres,
+  min_metres: i.minMetres,
+  stock: i.stock,
+  tags: i.tags,
+  image: i.image,
+  gallery: i.gallery ?? [],
+  blurb: i.blurb,
+  details: i.details ?? '',
   suggested_garment_ids: i.suggestedGarmentIds ?? [],
   hidden: Boolean(i.hidden),
 });
@@ -154,14 +180,76 @@ export async function fetchOffer(): Promise<Offer> {
 }
 
 import { saveLocalCatalogCache } from './catalogSource';
+import { DEFAULT_CATEGORIES, type CategoryConfig } from './categories';
 
-export async function publishProducts(items: Item[], offer: Offer): Promise<void> {
-  saveLocalCatalogCache(items, offer);
+export async function publishProducts(items: Item[], offer: Offer): Promise<Item[]> {
+  // 1. Post to canonical database (Google Sheets backend)
+  await adminPost('save_catalog', { items: items.map(itemToRow), offer });
+
+  // 2. Fetch fresh canonical verification from the server
+  let freshCatalog = items;
   try {
-    await adminPost('save_catalog', { items: items.map(itemToRow), offer });
-  } catch (e) {
-    console.warn('Backend save_catalog failed (static mode or script error), saved to local catalog cache:', e);
+    const fresh = await fetchProducts();
+    if (fresh.length > 0) freshCatalog = fresh;
+  } catch (err) {
+    console.warn('Post-save verification fetch failed:', err);
   }
+
+  // 3. Invalidate & update storefront cache with verified data
+  saveLocalCatalogCache(freshCatalog, offer);
+  return freshCatalog;
+}
+
+export async function fetchProductById(id: string): Promise<Item | null> {
+  if (!id) return null;
+  if (isAdminConfigured) {
+    try {
+      const res = await adminPost<{ item: any }>('get_product', { id });
+      if (res && res.item) {
+        return rowToItem(res.item);
+      }
+    } catch (err) {
+      console.warn('Direct get_product failed, falling back to full catalog fetch:', err);
+    }
+  }
+  const products = await fetchProducts();
+  return products.find((p) => p.id === id) || null;
+}
+
+export async function saveProduct(item: Item, offer?: Offer): Promise<Item> {
+  // 1. Write the update to the SAME row in Google Sheets (match by unique product ID)
+  if (isAdminConfigured) {
+    try {
+      await adminPost('save_product', { item: itemToRow(item) });
+    } catch (err) {
+      console.warn('save_product endpoint error, falling back to publishProducts:', err);
+      const all = await fetchProducts().catch(() => []);
+      const updatedAll = all.some(p => p.id === item.id)
+        ? all.map(p => p.id === item.id ? item : p)
+        : [item, ...all];
+      const verified = await publishProducts(updatedAll, offer || { active: false, headline: '', detail: '' });
+      return verified.find(p => p.id === item.id) || item;
+    }
+  }
+
+  // 2. Fetch fresh canonical verification from the server to ensure row actually landed
+  let freshCatalog: Item[] = [];
+  try {
+    freshCatalog = await fetchProducts();
+  } catch (err) {
+    console.warn('Verification fetch failed:', err);
+  }
+
+  const verified = freshCatalog.find(p => p.id === item.id) || item;
+
+  // 3. Invalidate/refresh storefront's live cache immediately (reflects on /shop without waiting for 45s poll)
+  if (freshCatalog.length > 0) {
+    saveLocalCatalogCache(freshCatalog, offer);
+  } else {
+    saveLocalCatalogCache([item], offer);
+  }
+
+  return verified;
 }
 
 // ── Admin Reviews ─────────────────────────────────────────────────────────────
@@ -174,9 +262,9 @@ export interface AdminReviewRow {
 export async function fetchAllReviews(): Promise<AdminReviewRow[]> {
   const data = await adminPost<any[]>('fetch_reviews');
   return (data || []).map((r) => ({
-    id: r.id, name: r.name, city: r.city, rating: r.rating, text: r.review_text,
-    date: new Date(r.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
-    status: r.status, userEmail: r.user_email,
+    id: r.id, name: r.name, city: r.city, rating: r.rating, text: r.review_text || r.text || '',
+    date: new Date(r.created_at || Date.now()).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
+    status: r.status, userEmail: r.user_email || '',
   }));
 }
 
@@ -205,13 +293,37 @@ export interface AdminOrderRow {
 }
 
 export async function fetchOrders(): Promise<AdminOrderRow[]> {
-  const data = await adminPost<any[]>('fetch_orders');
-  return (data || []).map((o) => ({
-    ...o,
-    items: o.items.map((line: any) => ({
-      item: { name: line.item.name }, metres: line.metres, lineTotal: line.lineTotal || 0,
-    })),
-  }));
+  try {
+    const res = await adminPost<any>('fetch_orders');
+    const rawList = Array.isArray(res) ? res : (res?.data || []);
+    return rawList.map((o: any) => ({
+      ...o,
+      items: (o.items || []).map((line: any) => ({
+        item: { name: line.item?.name || 'Fabric' },
+        metres: Number(line.metres || 1),
+        lineTotal: Number(line.lineTotal || 0),
+      })),
+    }));
+  } catch (err) {
+    console.error('CRITICAL: fetch_orders failed from Google Sheets backend:', err);
+    throw err; // Fail loudly instead of silently returning empty
+  }
+}
+
+export async function reconcileDatabaseConflicts(): Promise<{ ok: boolean; report: any[] }> {
+  return await adminPost('reconcile_conflicts');
+}
+
+export async function auditDatabase(): Promise<{
+  ok: boolean;
+  sheets: Array<{ name: string; rows: number; cols: number }>;
+  conflictTabs: Array<{ name: string; rows: number }>;
+  ordersRawCount: number;
+  catalogRawCount: number;
+  customersRawCount: number;
+  reviewsRawCount: number;
+}> {
+  return await adminPost('audit_database');
 }
 
 export async function setOrderStatus(id: string, order_status?: string, payment_status?: string): Promise<void> {
@@ -248,9 +360,12 @@ export async function fetchCustomers(): Promise<CustomerRow[]> {
 
 export async function addManualCustomer(customer: any): Promise<void> {
   await adminPost('upsert_customer', {
-    userId: `cust-${Math.random().toString(36).slice(2, 7)}`,
-    userEmail: customer.email, name: customer.name, phone: customer.phone,
-    city: customer.city, signupMethod: customer.signup_method,
+    userId: `cust-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    userEmail: customer.email,
+    name: customer.name,
+    phone: customer.phone,
+    city: customer.city,
+    signupMethod: customer.signup_method || 'Manual Registry',
   });
 }
 
@@ -259,13 +374,52 @@ export async function addManualOrder(order: AdminOrderRow): Promise<void> {
     userId: 'cust-walkin',
     userEmail: order.customers?.email || 'walkin@idf.com',
     order: {
-      orderCode: order.order_code, customerName: order.customers?.name || '',
-      phone: order.customers?.phone || '', fulfilment: order.fulfilment,
-      address: order.address, city: order.city, pincode: order.pincode,
+      orderCode: order.order_code,
+      customerName: order.customers?.name || 'Walk-in',
+      phone: order.customers?.phone || '',
+      fulfilment: order.fulfilment,
+      address: order.address,
+      city: order.city,
+      pincode: order.pincode,
       items: order.items.map((i) => ({ name: i.item.name, metres: i.metres, lineTotal: i.lineTotal })),
-      subtotal: order.subtotal, discount: order.discount, shipping: order.shipping,
-      total: order.total, notes: order.requirement, paymentMethod: order.payment_method,
-      paid: order.paid, paymentReference: order.payment_reference,
+      subtotal: order.subtotal,
+      discount: order.discount,
+      shipping: order.shipping,
+      total: order.total,
+      notes: order.requirement,
+      paymentMethod: order.payment_method,
+      paid: order.paid,
+      paymentReference: order.payment_reference,
+      orderStatus: order.order_status,
     },
   });
+}
+
+// ── Admin Categories ──────────────────────────────────────────────────────────
+
+export async function fetchCategories(): Promise<CategoryConfig[]> {
+  try {
+    const data = await adminPost<CategoryConfig[]>('get_categories');
+    return data && data.length > 0 ? data : DEFAULT_CATEGORIES;
+  } catch (err) {
+    return DEFAULT_CATEGORIES;
+  }
+}
+
+export async function saveCategories(categories: CategoryConfig[]): Promise<void> {
+  await adminPost('save_categories', { categories });
+}
+
+// ── Admin Settings ────────────────────────────────────────────────────────────
+
+export async function fetchSettings(): Promise<Record<string, any>> {
+  try {
+    return await adminPost<Record<string, any>>('get_settings');
+  } catch (err) {
+    return {};
+  }
+}
+
+export async function saveSettings(settings: Record<string, any>): Promise<void> {
+  await adminPost('save_settings', { settings });
 }
