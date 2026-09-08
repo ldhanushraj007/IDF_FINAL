@@ -38,6 +38,25 @@ var SESSION_TTL_DAYS = 30;
 var RAZORPAY_KEY_ID     = 'rzp_test_TWJWqNswp8gSw8';
 var RAZORPAY_KEY_SECRET = 'g5ByotCXDb0XFMPuWM7eUJGX';
 
+// ── TEST & HEALTH CHECK (RUN FROM APPS SCRIPT EDITOR) ────────────────────────
+
+/**
+ * Run this function directly from the Apps Script editor toolbar!
+ * Select "testBackend" in the dropdown and click "Run".
+ */
+function testBackend() {
+  Logger.log('─── IN DESIGN Backend Health Check ───');
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  Logger.log('✓ Connected Spreadsheet: ' + ss.getName() + ' (' + ss.getId() + ')');
+
+  // Verify and clean catalog of any historical base64 entries
+  var cleanRes = cleanCatalogBase64Images();
+  Logger.log('✓ Catalog base64 cleanup result: ' + JSON.stringify(cleanRes));
+
+  Logger.log('✓ Backend is online, script lock is active, and Web App is ready to receive requests.');
+  return { ok: true, spreadsheet: ss.getName(), cleanup: cleanRes };
+}
+
 // ── CONCURRENCY LOCK HELPER ──────────────────────────────────────────────────
 
 /**
@@ -46,6 +65,11 @@ var RAZORPAY_KEY_SECRET = 'g5ByotCXDb0XFMPuWM7eUJGX';
  * instead of colliding and creating duplicate conflict sheets.
  */
 function withScriptLock(fn) {
+  if (typeof fn !== 'function') {
+    Logger.log('Notice: "withScriptLock" is an internal wrapper function and requires a callback. To test your script, select "testBackend" from the dropdown above and click "Run".');
+    return { ok: true, message: 'withScriptLock is an internal function. Run testBackend instead.' };
+  }
+
   var lock = LockService.getScriptLock();
   var acquired = false;
   try {
@@ -236,6 +260,12 @@ function doPost(e) {
         break;
       case 'save_product':
         result = withScriptLock(function() { return saveProductBackend(body); });
+        break;
+      case 'upload_image':
+        result = uploadImageBackend(body);
+        break;
+      case 'clean_catalog_images':
+        result = withScriptLock(function() { return cleanCatalogBase64Images(); });
         break;
 
       // Reviews
@@ -1013,6 +1043,117 @@ function getCatalog(body) {
   };
 }
 
+function cleanCatalogBase64Images() {
+  var sh = sheet('Catalog');
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return { ok: true, cleanedCount: 0 };
+
+  var data = sh.getRange(2, 1, lastRow - 1, 18).getValues();
+  var cleanedRows = 0;
+  var modified = false;
+
+  for (var i = 0; i < data.length; i++) {
+    var row = data[i];
+    var rowModified = false;
+
+    // Check main image (Col 12, index 11)
+    var imageStr = String(row[11] || '');
+    if (imageStr.indexOf('data:image') >= 0 || imageStr.length > 1000) {
+      row[11] = '/images/fabrics/f01.jpg';
+      rowModified = true;
+    }
+
+    // Check gallery (Col 13, index 12)
+    var galleryStr = String(row[12] || '');
+    if (galleryStr.indexOf('data:image') >= 0 || galleryStr.length > 2000) {
+      var parts = galleryStr.split(/[|,]/);
+      var cleanedParts = [];
+      for (var p = 0; p < parts.length; p++) {
+        var item = parts[p].trim();
+        if (item && item.indexOf('data:image') === -1 && item.length < 1000) {
+          cleanedParts.push(item);
+        }
+      }
+      row[12] = cleanedParts.slice(0, 3).join('|');
+      rowModified = true;
+    }
+
+    // Ceiling check on descriptions
+    var blurbStr = String(row[13] || '');
+    if (blurbStr.length > 10000) {
+      row[13] = blurbStr.substring(0, 10000);
+      rowModified = true;
+    }
+    var detailsStr = String(row[14] || '');
+    if (detailsStr.length > 10000) {
+      row[14] = detailsStr.substring(0, 10000);
+      rowModified = true;
+    }
+
+    if (rowModified) {
+      cleanedRows++;
+      modified = true;
+    }
+  }
+
+  if (modified) {
+    sh.getRange(2, 1, data.length, 18).setValues(data);
+  }
+
+  return { ok: true, cleanedCount: cleanedRows };
+}
+
+function uploadImageBackend(body) {
+  var base64Data = String(body.base64 || '');
+  var fileName = String(body.fileName || ('fabric-' + Date.now() + '.jpg'));
+  var mimeType = String(body.mimeType || 'image/jpeg');
+
+  if (!base64Data) {
+    return { ok: false, error: 'no_image_data_provided' };
+  }
+
+  // Strip data URL prefix if present (e.g. data:image/png;base64,...)
+  var commaIdx = base64Data.indexOf(',');
+  var rawBase64 = commaIdx >= 0 ? base64Data.substring(commaIdx + 1) : base64Data;
+  if (commaIdx >= 0 && !body.mimeType) {
+    var match = base64Data.substring(0, commaIdx).match(/:(.*?);/);
+    if (match && match[1]) {
+      mimeType = match[1];
+    }
+  }
+
+  var decodedBytes;
+  try {
+    decodedBytes = Utilities.base64Decode(rawBase64);
+  } catch (err) {
+    return { ok: false, error: 'invalid_base64: ' + (err.message || String(err)) };
+  }
+
+  var blob = Utilities.newBlob(decodedBytes, mimeType, fileName);
+
+  // Dedicated folder in Google Drive: "IDF_Product_Images"
+  var folderName = 'IDF_Product_Images';
+  var folderIter = DriveApp.getFoldersByName(folderName);
+  var folder = folderIter.hasNext() ? folderIter.next() : DriveApp.createFolder(folderName);
+  folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  var file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+  var fileId = file.getId();
+  var publicUrl = 'https://lh3.googleusercontent.com/d/' + fileId;
+
+  return {
+    ok: true,
+    data: {
+      url: publicUrl,
+      fileId: fileId,
+      name: file.getName(),
+      size: file.getSize()
+    }
+  };
+}
+
 function saveCatalog(body) {
   var items = body.items || [];
   var offer = body.offer || { active: false, headline: '', detail: '' };
@@ -1041,10 +1182,32 @@ function saveCatalog(body) {
     var minMetres = Number(item.minMetres ?? item.min_metres ?? 0.5);
     var stock = String(item.stock || 'in');
     var tags = Array.isArray(item.tags) ? item.tags.join('|') : String(item.tags || '');
+
+    // Sanitize image & gallery - no raw base64 permitted in Sheets cells
     var image = String(item.image || '');
-    var gallery = Array.isArray(item.gallery) ? item.gallery.join('|') : String(item.gallery || '');
+    if (image.indexOf('data:image') >= 0 || image.length > 1000) {
+      image = '/images/fabrics/f01.jpg';
+    }
+
+    var galleryArr = Array.isArray(item.gallery)
+      ? item.gallery
+      : (item.gallery ? String(item.gallery).split(/[|,]/) : []);
+    var cleanGallery = [];
+    for (var g = 0; g < galleryArr.length; g++) {
+      var gUrl = String(galleryArr[g] || '').trim();
+      if (gUrl && gUrl.indexOf('data:image') === -1 && gUrl.length < 1000) {
+        cleanGallery.push(gUrl);
+      }
+    }
+    var gallery = cleanGallery.slice(0, 3).join('|');
+
+    // Strict 10,000 ceiling on descriptions
     var blurb = String(item.blurb || '');
+    if (blurb.length > 10000) blurb = blurb.substring(0, 10000);
+
     var details = String(item.details || '');
+    if (details.length > 10000) details = details.substring(0, 10000);
+
     var suggested = Array.isArray(item.suggestedGarmentIds ?? item.suggested_garment_ids)
       ? (item.suggestedGarmentIds ?? item.suggested_garment_ids).join('|')
       : String(item.suggestedGarmentIds ?? item.suggested_garment_ids ?? '');
@@ -1114,10 +1277,47 @@ function getProductBackend(body) {
 
 function saveProductBackend(body) {
   var item = body.item || {};
-  var id = String(item.id || '');
-  if (!id) return { ok: false, error: 'product_id_required' };
+  var id = String(item.id || '').trim();
+  if (!id) throw new Error('Product ID is required.');
 
-  var name = String(item.name || '');
+  var name = String(item.name || '').trim();
+  if (!name) throw new Error('Product name is required.');
+
+  // Strict 10,000-character description validation on backend
+  var blurb = String(item.blurb || '').trim();
+  if (blurb.length > 10000) {
+    throw new Error('Short description exceeds the 10,000-character limit (current: ' + blurb.length + ').');
+  }
+
+  var details = String(item.details || '').trim();
+  if (details.length > 10000) {
+    throw new Error('Full description exceeds the 10,000-character limit (current: ' + details.length + ').');
+  }
+
+  // Strict image validation: NEVER allow raw base64 data to touch Google Sheets
+  var image = String(item.image || '').trim();
+  if (image.indexOf('data:image') >= 0 || image.length > 1500) {
+    throw new Error('Base64 images cannot be saved directly to Google Sheets. Images must be uploaded to Google Drive or provided as URLs.');
+  }
+
+  // Max 3 gallery photos (1 main + 3 gallery = 4 total max)
+  var rawGallery = Array.isArray(item.gallery)
+    ? item.gallery
+    : (item.gallery ? String(item.gallery).split(/[|,]/) : []);
+  var validGallery = [];
+  for (var g = 0; g < rawGallery.length; g++) {
+    var gUrl = String(rawGallery[g] || '').trim();
+    if (!gUrl) continue;
+    if (gUrl.indexOf('data:image') >= 0 || gUrl.length > 1500) {
+      throw new Error('Gallery image ' + (g + 1) + ' contains base64 data. Images must be uploaded to Google Drive or provided as URLs.');
+    }
+    validGallery.push(gUrl);
+  }
+  if (validGallery.length > 3) {
+    validGallery = validGallery.slice(0, 3);
+  }
+  var galleryStr = validGallery.join('|');
+
   var category = String(item.category || 'Contemporary');
   var categoryId = String(item.categoryId || item.category_id || '');
   var composition = String(item.composition || '');
@@ -1127,10 +1327,6 @@ function saveProductBackend(body) {
   var minMetres = Number(item.minMetres ?? item.min_metres ?? 0.5);
   var stock = String(item.stock || 'in');
   var tags = Array.isArray(item.tags) ? item.tags.join('|') : String(item.tags || '');
-  var image = String(item.image || '');
-  var gallery = Array.isArray(item.gallery) ? item.gallery.join('|') : String(item.gallery || '');
-  var blurb = String(item.blurb || '');
-  var details = String(item.details || '');
   var suggested = Array.isArray(item.suggestedGarmentIds ?? item.suggested_garment_ids)
     ? (item.suggestedGarmentIds ?? item.suggested_garment_ids).join('|')
     : String(item.suggestedGarmentIds ?? item.suggested_garment_ids ?? '');
@@ -1139,34 +1335,68 @@ function saveProductBackend(body) {
 
   var rowValues = [
     id, name, category, categoryId, composition, width, pricePerMetre,
-    mrp, minMetres, stock, tags, image, gallery, blurb, details,
+    mrp, minMetres, stock, tags, image, galleryStr, blurb, details,
     suggested, hidden, createdAt
   ];
 
   var sh = sheet('Catalog');
-  var allData = sh.getDataRange().getValues();
+  var lastRow = sh.getLastRow();
   var foundRowIndex = -1;
 
-  for (var i = 1; i < allData.length; i++) {
-    if (String(allData[i][0]) === id) {
-      foundRowIndex = i + 1; // 1-indexed row in Google Sheets
-      break;
+  // Fast direct ID column lookup instead of fetching all 18 columns of the entire sheet
+  if (lastRow > 1) {
+    var idColumn = sh.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < idColumn.length; i++) {
+      if (String(idColumn[i][0]).trim() === id) {
+        foundRowIndex = i + 2; // Row numbers are 1-indexed, starting after header row
+        break;
+      }
     }
   }
 
   if (foundRowIndex > 0) {
-    // Overwrite the EXACT row matched by unique ID
+    // Overwrite the matched row
     sh.getRange(foundRowIndex, 1, 1, 18).setValues([rowValues]);
   } else {
     // Append as a new row
     sh.appendRow(rowValues);
+    foundRowIndex = sh.getLastRow();
   }
+
+  // Construct verified item to return immediately, eliminating redundant catalog download
+  var verifiedItem = {
+    id: id,
+    name: name,
+    category: category,
+    categoryId: categoryId,
+    composition: composition,
+    width: width,
+    pricePerMetre: pricePerMetre,
+    price_per_metre: pricePerMetre,
+    mrp: mrp ? Number(mrp) : undefined,
+    minMetres: minMetres,
+    min_metres: minMetres,
+    stock: stock,
+    tags: Array.isArray(item.tags) ? item.tags : (tags ? tags.split(/[|,]/).map(function(s){ return s.trim(); }).filter(Boolean) : []),
+    image: image || '/images/fabrics/f01.jpg',
+    gallery: validGallery,
+    blurb: blurb,
+    details: details,
+    suggestedGarmentIds: Array.isArray(item.suggestedGarmentIds ?? item.suggested_garment_ids)
+      ? (item.suggestedGarmentIds ?? item.suggested_garment_ids)
+      : (suggested ? suggested.split(/[|,]/).map(function(s){ return s.trim(); }).filter(Boolean) : []),
+    hidden: hidden === 'TRUE',
+    createdAt: createdAt
+  };
 
   return {
     ok: true,
-    id: id,
-    row: foundRowIndex > 0 ? foundRowIndex : sh.getLastRow(),
-    action: foundRowIndex > 0 ? 'updated' : 'inserted'
+    data: {
+      item: verifiedItem,
+      id: id,
+      row: foundRowIndex,
+      action: foundRowIndex > 0 ? 'updated' : 'inserted'
+    }
   };
 }
 

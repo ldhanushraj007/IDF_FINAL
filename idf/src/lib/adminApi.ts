@@ -32,22 +32,36 @@ async function adminPost<T = unknown>(
   action: string,
   payload: Record<string, unknown> = {},
   requireAdminToken = true,
+  timeoutMs = 18000,
 ): Promise<T> {
   if (!isAdminConfigured) throw new Error('Backend not configured.');
   const body: Record<string, unknown> = { token: SCRIPT_TOKEN, action, ...payload };
   if (requireAdminToken) body.adminToken = getAdminToken() || '';
 
-  const res  = await fetch(SCRIPT_URL!, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(body),
-  });
-  const json = await res.json();
-  if (!json.ok) {
-    if (json.error === 'unauthorized_admin') clearAdminToken();
-    throw new Error(json.error || 'Request failed');
+  const controller = new AbortController();
+  const timerId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(SCRIPT_URL!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const json = await res.json();
+    if (!json.ok) {
+      if (json.error === 'unauthorized_admin') clearAdminToken();
+      throw new Error(json.error || 'Request failed');
+    }
+    return json.data as T;
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      throw new Error(`Request timed out after ${Math.round(timeoutMs / 1000)} seconds. Google Sheets may be busy.`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timerId);
   }
-  return json.data as T;
 }
 
 // ── Admin Auth: OTP-based (when Apps Script is deployed) ──────────────────────
@@ -216,11 +230,56 @@ export async function fetchProductById(id: string): Promise<Item | null> {
   return products.find((p) => p.id === id) || null;
 }
 
+export async function uploadProductImage(file: File): Promise<string> {
+  if (!isAdminConfigured) {
+    throw new Error('Google Apps Script backend is not configured.');
+  }
+
+  // Convert file to base64 data URI to send to Apps Script DriveApp
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (e) => reject(new Error('Failed to read image file: ' + e));
+    reader.readAsDataURL(file);
+  });
+
+  const res = await adminPost<{ url: string; fileId: string }>(
+    'upload_image',
+    {
+      base64: base64Data,
+      fileName: file.name,
+      mimeType: file.type || 'image/jpeg',
+    },
+    true,
+    30000 // 30s timeout for image upload to Drive
+  );
+
+  if (!res || !res.url) {
+    throw new Error('Google Drive upload did not return a public image URL.');
+  }
+
+  return res.url;
+}
+
+export async function cleanLegacyBase64Images(): Promise<{ cleanedCount: number }> {
+  return await adminPost<{ cleanedCount: number }>('clean_catalog_images');
+}
+
 export async function saveProduct(item: Item, offer?: Offer): Promise<Item> {
+  let verifiedItem: Item = item;
+
   // 1. Write the update to the SAME row in Google Sheets (match by unique product ID)
   if (isAdminConfigured) {
     try {
-      await adminPost('save_product', { item: itemToRow(item) });
+      const res = await adminPost<{ item: any; row: number; action: string }>(
+        'save_product',
+        { item: itemToRow(item) },
+        true,
+        20000
+      );
+      if (res && res.item) {
+        verifiedItem = rowToItem(res.item);
+      }
     } catch (err) {
       console.warn('save_product endpoint error, falling back to publishProducts:', err);
       const all = await fetchProducts().catch(() => []);
@@ -232,24 +291,22 @@ export async function saveProduct(item: Item, offer?: Offer): Promise<Item> {
     }
   }
 
-  // 2. Fetch fresh canonical verification from the server to ensure row actually landed
-  let freshCatalog: Item[] = [];
+  // 2. Refresh local storefront cache immediately without full re-fetch lag
   try {
-    freshCatalog = await fetchProducts();
-  } catch (err) {
-    console.warn('Verification fetch failed:', err);
+    const cached = await fetchProducts().catch(() => []);
+    if (cached.length > 0) {
+      const updatedList = cached.some((p) => p.id === verifiedItem.id)
+        ? cached.map((p) => (p.id === verifiedItem.id ? verifiedItem : p))
+        : [verifiedItem, ...cached];
+      saveLocalCatalogCache(updatedList, offer);
+    } else {
+      saveLocalCatalogCache([verifiedItem], offer);
+    }
+  } catch {
+    saveLocalCatalogCache([verifiedItem], offer);
   }
 
-  const verified = freshCatalog.find(p => p.id === item.id) || item;
-
-  // 3. Invalidate/refresh storefront's live cache immediately (reflects on /shop without waiting for 45s poll)
-  if (freshCatalog.length > 0) {
-    saveLocalCatalogCache(freshCatalog, offer);
-  } else {
-    saveLocalCatalogCache([item], offer);
-  }
-
-  return verified;
+  return verifiedItem;
 }
 
 // ── Admin Reviews ─────────────────────────────────────────────────────────────

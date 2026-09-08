@@ -27,7 +27,7 @@ import {
   type Category,
 } from '../data/catalog';
 import { DEFAULT_CATEGORIES, type CategoryConfig } from '../lib/categories';
-import { fetchProductById } from '../lib/adminApi';
+import { fetchProductById, uploadProductImage } from '../lib/adminApi';
 
 interface Props {
   productId?: string | null;
@@ -72,7 +72,9 @@ export default function AddProductModal({
   const [sheetFetchedItem, setSheetFetchedItem] = useState<Item | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveTimedOut, setSaveTimedOut] = useState(false);
   const [revertNotice, setRevertNotice] = useState(false);
+  const [uploadingSlot, setUploadingSlot] = useState<'main' | number | null>(null);
 
   // Form fields
   const [name, setName] = useState('');
@@ -224,39 +226,86 @@ export default function AddProductModal({
     });
   };
 
-  const addGallerySlot = () => setGallery((prev) => [...prev, '']);
+  const totalImagesCount = (image.trim() ? 1 : 0) + gallery.filter((g) => g.trim() !== '').length;
+
+  const addGallerySlot = () => {
+    const currentSlots = (image.trim() ? 1 : 0) + gallery.length;
+    if (currentSlots >= 4) {
+      setError('Maximum 4 images allowed per product (1 Main Photo + up to 3 Gallery Photos).');
+      return;
+    }
+    setError('');
+    setGallery((prev) => [...prev, '']);
+  };
+
   const removeGallerySlot = (i: number) =>
     setGallery((prev) => prev.filter((_, idx) => idx !== i));
-  const updateGallery = (i: number, val: string) =>
-    setGallery((prev) => prev.map((v, idx) => (idx === i ? val : v)));
 
-  const handleFileUpload = (
+  const updateGallery = (i: number, val: string) => {
+    if (val.trim().startsWith('data:')) {
+      setError('Direct base64 data cannot be saved to Google Sheets. Please click the Upload button to store images in Google Drive.');
+      return;
+    }
+    setError('');
+    setGallery((prev) => prev.map((v, idx) => (idx === i ? val : v)));
+  };
+
+  const handleImageUrlChange = (val: string) => {
+    if (val.trim().startsWith('data:')) {
+      setError('Direct base64 data cannot be saved to Google Sheets. Please click the Upload button to store images in Google Drive.');
+      return;
+    }
+    setError('');
+    setImage(val);
+  };
+
+  const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     isMain: boolean,
     galleryIndex?: number
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = '';
 
-    if (file.size > 8 * 1024 * 1024) {
-      setError('File size must be under 8MB');
+    // Enforce 4-image maximum limit
+    const currentFilledCount = (image.trim() ? 1 : 0) + gallery.filter((g) => g.trim() !== '').length;
+    const isReplacingSlot = isMain
+      ? Boolean(image.trim())
+      : typeof galleryIndex === 'number' && Boolean(gallery[galleryIndex]?.trim());
+
+    if (!isReplacingSlot && currentFilledCount >= 4) {
+      setError('Maximum 4 images allowed per product (1 Main Photo + up to 3 Gallery Photos). Please remove an existing photo first.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        if (isMain) {
-          setImage(dataUrl);
-        } else if (typeof galleryIndex === 'number') {
-          updateGallery(galleryIndex, dataUrl);
-        } else {
-          setGallery((prev) => [...prev, dataUrl]);
-        }
+    if (file.size > 15 * 1024 * 1024) {
+      setError('File size must be under 15MB');
+      return;
+    }
+
+    setError('');
+    const slotKey = isMain ? 'main' : (typeof galleryIndex === 'number' ? galleryIndex : gallery.length);
+    setUploadingSlot(slotKey);
+
+    try {
+      const publicUrl = await uploadProductImage(file);
+      if (isMain) {
+        setImage(publicUrl);
+      } else if (typeof galleryIndex === 'number') {
+        updateGallery(galleryIndex, publicUrl);
+      } else {
+        setGallery((prev) => [...prev, publicUrl].slice(0, 3));
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Drive upload failed:', err);
+      setError(
+        'Failed to upload photo to Google Drive: ' +
+          (err instanceof Error ? err.message : String(err))
+      );
+    } finally {
+      setUploadingSlot(null);
+    }
   };
 
   // Revert / Discard: reload Sheet-fetched values
@@ -277,8 +326,36 @@ export default function AddProductModal({
       return setError('A valid price per metre is required.');
     if (!composition.trim()) return setError('Composition / fabric description is required.');
 
+    // 10,000-character description validations
+    if (blurb.length > 10000) {
+      return setError(`Short description exceeds the 10,000-character limit (${blurb.length.toLocaleString()} / 10,000). Please shorten it before saving.`);
+    }
+    if (details.length > 10000) {
+      return setError(`Full description exceeds the 10,000-character limit (${details.length.toLocaleString()} / 10,000). Please shorten it before saving.`);
+    }
+
+    // Strict base64 checks: NEVER allow base64 to reach Google Sheets
+    if (image.startsWith('data:')) {
+      return setError('Main fabric photo is in base64 format. Please click Change Photo to upload it to Google Drive.');
+    }
+    if (gallery.some((g) => g.startsWith('data:'))) {
+      return setError('One or more gallery photos are in base64 format. Please re-upload them to Google Drive.');
+    }
+
+    // 4 images cap validation
+    const totalPhotos = (image.trim() ? 1 : 0) + gallery.filter((g) => g.trim() !== '').length;
+    if (totalPhotos > 4) {
+      return setError(`Maximum 4 images allowed per product (current: ${totalPhotos}). Please remove additional photos.`);
+    }
+
     setError('');
     setIsSaving(true);
+    setSaveTimedOut(false);
+
+    // 15-second timeout trigger to notify user
+    const timeoutTimer = setTimeout(() => {
+      setSaveTimedOut(true);
+    }, 15000);
 
     try {
       const activeCat = categories.find((c) => c.slug === categoryId);
@@ -307,7 +384,7 @@ export default function AddProductModal({
         stock,
         tags: finalTags as Tag[],
         image: image.trim(),
-        gallery: gallery.filter((g) => g.trim() !== ''),
+        gallery: gallery.filter((g) => g.trim() !== '').slice(0, 3),
         blurb: blurb.trim(),
         details: details.trim() || blurb.trim(),
         suggestedGarmentIds: suggestedGarments,
@@ -315,8 +392,12 @@ export default function AddProductModal({
       };
 
       await onSave(updatedItem);
+      clearTimeout(timeoutTimer);
+      setSaveTimedOut(false);
       setSaveSuccess(true);
     } catch (err) {
+      clearTimeout(timeoutTimer);
+      setSaveTimedOut(false);
       setError(
         'Save failed: ' + (err instanceof Error ? err.message : String(err))
       );
@@ -378,6 +459,31 @@ export default function AddProductModal({
               <div className="rounded-2xl border border-rose-500/40 bg-rose-950/40 px-4 py-3 text-[12px] text-rose-300 flex items-start gap-2.5">
                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                 <div className="flex-1">{error}</div>
+              </div>
+            )}
+
+            {saveTimedOut && isSaving && (
+              <div className="rounded-2xl border border-amber-500/40 bg-amber-950/50 p-4 text-[12px] text-amber-300 flex items-start gap-3 shadow-lg">
+                <AlertCircle className="h-5 w-5 shrink-0 text-amber-400 mt-0.5" />
+                <div className="flex-1 space-y-1">
+                  <p className="font-semibold text-amber-200">Saving is taking longer than 15 seconds…</p>
+                  <p className="text-[11px] text-amber-300/80">
+                    Google Sheets is taking longer to process the request. Your changes are safe in this form. You can wait or retry saving immediately.
+                  </p>
+                  <div className="pt-1.5 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSaving(false);
+                        setSaveTimedOut(false);
+                        handleSave();
+                      }}
+                      className="rounded-xl bg-gradient-to-r from-[#d4af37] to-[#aa8024] text-[#160b09] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider shadow hover:brightness-110"
+                    >
+                      Retry Save Now
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -711,9 +817,23 @@ export default function AddProductModal({
 
             {/* Images */}
             <section className="space-y-4 pt-2 border-t border-ivory/10">
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#d4af37] flex items-center gap-2">
-                <Upload className="h-3.5 w-3.5" /> Product Images &amp; Uploads
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#d4af37] flex items-center gap-2">
+                  <Upload className="h-3.5 w-3.5" /> Product Images &amp; Drive Uploads
+                </h3>
+                <span
+                  className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${
+                    totalImagesCount >= 4
+                      ? 'bg-amber-500/15 border-amber-500/30 text-amber-300 font-bold'
+                      : 'bg-[#d4af37]/15 border-[#d4af37]/30 text-[#d4af37]'
+                  }`}
+                >
+                  {totalImagesCount} / 4 Images (Max 4)
+                </span>
+              </div>
+              <p className="text-[10px] text-ivory/50">
+                Uploaded photos are stored securely in Google Drive and saved as public URLs. Base64 is never saved to Google Sheets.
+              </p>
 
               {/* Main Product Image Dropzone */}
               <div>
@@ -721,7 +841,13 @@ export default function AddProductModal({
                   Main Fabric Photo *
                 </label>
 
-                {image ? (
+                {uploadingSlot === 'main' ? (
+                  <div className="rounded-2xl border border-[#d4af37]/40 bg-night/80 p-8 flex flex-col items-center justify-center space-y-2.5 text-center shadow-lg animate-pulse">
+                    <Loader2 className="h-7 w-7 animate-spin text-[#d4af37]" />
+                    <p className="text-[13px] font-bold text-white">Uploading to Google Drive…</p>
+                    <p className="text-[11px] text-ivory/60">Converting file into high-speed public CDN URL</p>
+                  </div>
+                ) : image ? (
                   <div className="relative rounded-2xl border border-[#d4af37]/30 bg-night/70 p-4 flex items-center gap-4 shadow-lg">
                     <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-[#d4af37]/40 shadow-inner bg-black">
                       <img
@@ -738,8 +864,8 @@ export default function AddProductModal({
                       <div className="flex items-center gap-2 text-emerald-400 text-[11px] font-semibold">
                         <CheckCircle2 className="h-4 w-4 shrink-0" /> Photo Loaded Ready Live
                       </div>
-                      <p className="text-[10px] text-ivory/50 truncate max-w-[280px]">
-                        {image.startsWith('data:') ? 'Uploaded from device (base64)' : image}
+                      <p className="text-[10px] text-ivory/50 truncate max-w-[280px]" title={image}>
+                        {image}
                       </p>
                       <div className="flex gap-2">
                         <label className="cursor-pointer rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/40 px-3 py-1.5 text-[11px] font-semibold text-[#d4af37] hover:bg-[#d4af37]/30 transition-all inline-flex items-center gap-1.5">
@@ -777,7 +903,7 @@ export default function AddProductModal({
                         Click or Drag &amp; Drop Fabric Photo Here
                       </p>
                       <p className="text-[11px] text-ivory/50">
-                        Direct upload (JPG, PNG, WebP)
+                        Uploads directly to Google Drive (JPG, PNG, WebP)
                       </p>
                     </div>
                   </div>
@@ -786,11 +912,11 @@ export default function AddProductModal({
                 {/* Alternative Image URL input */}
                 <div className="mt-3">
                   <p className="text-[10px] text-ivory/40 uppercase tracking-widest font-semibold mb-1">
-                    Or paste image URL
+                    Or paste direct image URL
                   </p>
                   <input
                     value={image}
-                    onChange={(e) => setImage(e.target.value)}
+                    onChange={(e) => handleImageUrlChange(e.target.value)}
                     placeholder="/images/fabrics/f01.jpg  or  https://..."
                     className="w-full rounded-xl border border-ivory/15 bg-night/50 px-3.5 py-2 text-[12px] text-ivory outline-none focus:border-[#d4af37]"
                   />
@@ -804,23 +930,31 @@ export default function AddProductModal({
                     Additional Gallery Photos ({gallery.length})
                   </label>
                   <div className="flex items-center gap-2">
-                    <label className="cursor-pointer flex items-center gap-1 text-[11px] text-[#d4af37] hover:underline font-semibold">
-                      <Upload className="h-3 w-3" /> Upload Photo
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileUpload(e, false)}
-                        className="hidden"
-                      />
-                    </label>
-                    <span className="text-ivory/20">|</span>
-                    <button
-                      type="button"
-                      onClick={addGallerySlot}
-                      className="flex items-center gap-1 text-[11px] text-[#d4af37] hover:underline"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Add URL Slot
-                    </button>
+                    {totalImagesCount >= 4 ? (
+                      <span className="text-[10px] font-bold text-amber-400">
+                        Max 4 Photos Reached
+                      </span>
+                    ) : (
+                      <>
+                        <label className="cursor-pointer flex items-center gap-1 text-[11px] text-[#d4af37] hover:underline font-semibold">
+                          <Upload className="h-3 w-3" /> Upload Photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, false)}
+                            className="hidden"
+                          />
+                        </label>
+                        <span className="text-ivory/20">|</span>
+                        <button
+                          type="button"
+                          onClick={addGallerySlot}
+                          className="flex items-center gap-1 text-[11px] text-[#d4af37] hover:underline"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Add URL Slot
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -830,35 +964,44 @@ export default function AddProductModal({
                       key={i}
                       className="flex items-center gap-2 bg-night/40 p-2 rounded-xl border border-ivory/10"
                     >
-                      {url && (
-                        <img
-                          src={url}
-                          alt=""
-                          className="h-8 w-8 object-cover rounded border border-[#d4af37]/30 shrink-0"
-                        />
+                      {uploadingSlot === i ? (
+                        <div className="flex-1 flex items-center gap-2 py-1 px-2 text-[#d4af37] text-[12px]">
+                          <Loader2 className="h-4 w-4 animate-spin text-[#d4af37]" />
+                          <span>Uploading photo {i + 1} to Google Drive…</span>
+                        </div>
+                      ) : (
+                        <>
+                          {url && (
+                            <img
+                              src={url}
+                              alt=""
+                              className="h-8 w-8 object-cover rounded border border-[#d4af37]/30 shrink-0"
+                            />
+                          )}
+                          <input
+                            value={url}
+                            onChange={(e) => updateGallery(i, e.target.value)}
+                            placeholder={`Gallery photo ${i + 1} URL`}
+                            className="flex-1 rounded-lg border border-ivory/15 bg-night/50 px-3 py-1.5 text-[12px] text-ivory outline-none focus:border-[#d4af37]"
+                          />
+                          <label className="cursor-pointer p-1.5 text-[#d4af37] hover:bg-[#d4af37]/10 rounded-lg shrink-0">
+                            <Upload className="h-4 w-4" />
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleFileUpload(e, false, i)}
+                              className="hidden"
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => removeGallerySlot(i)}
+                            className="flex h-8 w-8 items-center justify-center text-ivory/40 hover:text-red-400 shrink-0"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
                       )}
-                      <input
-                        value={url}
-                        onChange={(e) => updateGallery(i, e.target.value)}
-                        placeholder={`Gallery photo ${i + 1} URL or uploaded file`}
-                        className="flex-1 rounded-lg border border-ivory/15 bg-night/50 px-3 py-1.5 text-[12px] text-ivory outline-none focus:border-[#d4af37]"
-                      />
-                      <label className="cursor-pointer p-1.5 text-[#d4af37] hover:bg-[#d4af37]/10 rounded-lg shrink-0">
-                        <Upload className="h-4 w-4" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload(e, false, i)}
-                          className="hidden"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => removeGallerySlot(i)}
-                        className="flex h-8 w-8 items-center justify-center text-ivory/40 hover:text-red-400 shrink-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -871,28 +1014,73 @@ export default function AddProductModal({
                 Descriptions
               </h3>
               <div>
-                <label className="mb-1 block text-[11px] text-ivory/50">
-                  Short Blurb * (shown on product cards)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-semibold text-ivory/70 uppercase tracking-wider">
+                    Short Blurb * (shown on product cards)
+                  </label>
+                  <span
+                    className={`text-[10px] font-mono ${
+                      blurb.length > 10000
+                        ? 'text-red-400 font-bold'
+                        : blurb.length > 8000
+                        ? 'text-amber-400 font-semibold'
+                        : 'text-ivory/50'
+                    }`}
+                  >
+                    {blurb.length.toLocaleString()} / 10,000 chars
+                  </span>
+                </div>
                 <textarea
                   rows={2}
                   value={blurb}
                   onChange={(e) => setBlurb(e.target.value)}
                   placeholder="e.g. Whisper-light tulle with hand-couched gold zardozi..."
-                  className="w-full rounded-2xl border border-ivory/15 bg-black/40 px-4 py-2.5 text-[13px] text-ivory outline-none focus:border-[#d4af37] resize-none"
+                  className={`w-full rounded-2xl border bg-black/40 px-4 py-2.5 text-[13px] text-ivory outline-none transition-colors resize-none ${
+                    blurb.length > 10000
+                      ? 'border-red-500/70 focus:border-red-400'
+                      : 'border-ivory/15 focus:border-[#d4af37]'
+                  }`}
                 />
+                {blurb.length > 10000 && (
+                  <p className="text-[10px] text-red-400 mt-1">
+                    Exceeds maximum ceiling of 10,000 characters. Please reduce by {blurb.length - 10000} chars.
+                  </p>
+                )}
               </div>
+
               <div>
-                <label className="mb-1 block text-[11px] text-ivory/50">
-                  Full Description (shown on product page)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-semibold text-ivory/70 uppercase tracking-wider">
+                    Full Description (shown on product page)
+                  </label>
+                  <span
+                    className={`text-[10px] font-mono ${
+                      details.length > 10000
+                        ? 'text-red-400 font-bold'
+                        : details.length > 8000
+                        ? 'text-amber-400 font-semibold'
+                        : 'text-ivory/50'
+                    }`}
+                  >
+                    {details.length.toLocaleString()} / 10,000 chars
+                  </span>
+                </div>
                 <textarea
                   rows={4}
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
                   placeholder="Longer write-up for the product detail page..."
-                  className="w-full rounded-2xl border border-ivory/15 bg-black/40 px-4 py-2.5 text-[13px] text-ivory outline-none focus:border-[#d4af37] resize-none"
+                  className={`w-full rounded-2xl border bg-black/40 px-4 py-2.5 text-[13px] text-ivory outline-none transition-colors resize-none ${
+                    details.length > 10000
+                      ? 'border-red-500/70 focus:border-red-400'
+                      : 'border-ivory/15 focus:border-[#d4af37]'
+                  }`}
                 />
+                {details.length > 10000 && (
+                  <p className="text-[10px] text-red-400 mt-1">
+                    Exceeds maximum ceiling of 10,000 characters. Please reduce by {details.length - 10000} chars.
+                  </p>
+                )}
               </div>
             </section>
           </div>
@@ -934,7 +1122,7 @@ export default function AddProductModal({
             {isSaving ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin text-[#1F0505]" />
-                <span>Saving to Google Sheets…</span>
+                <span>{saveTimedOut ? 'Saving (Queue Busy)…' : 'Saving to Google Sheets…'}</span>
               </>
             ) : saveSuccess ? (
               <>

@@ -6,7 +6,7 @@
 
 import type { Item } from '../data/catalog';
 
-const SCRIPT_URL   = (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined) || 'https://script.google.com/macros/s/AKfycbwMCiuCL1pR9vqUpPpxnZkUuz9p05RhYA6PX6rGVPi_BSdcIuFX8HzFbzStwoEnsiRG1Q/exec';
+const SCRIPT_URL   = (import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined) || 'https://script.google.com/macros/s/AKfycbzesCZOBLj-hUwoHEPrJZxHScciH031tiIfk3yK1AkYZOHGJVT63i3eWQlDsDluiruQBA/exec';
 const SCRIPT_TOKEN = (import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined) || 'idf-secret-2024';
 
 // Only true when a real deployed Apps Script URL exists (not a placeholder)

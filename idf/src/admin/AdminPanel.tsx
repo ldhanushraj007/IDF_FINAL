@@ -2719,7 +2719,7 @@ export default function AdminPanel() {
             } catch (e) {
               setPublishState('error');
               setPublishError(e instanceof Error ? e.message : 'Update failed');
-              alert('Failed to update fabric in Google Sheets: ' + (e instanceof Error ? e.message : String(e)));
+              throw e;
             }
           }}
         />
@@ -2744,7 +2744,7 @@ export default function AdminPanel() {
             } catch (e) {
               setPublishState('error');
               setPublishError(e instanceof Error ? e.message : 'Publish failed');
-              alert('Failed to save fabric to database: ' + (e instanceof Error ? e.message : String(e)));
+              throw e;
             }
           }}
         />
