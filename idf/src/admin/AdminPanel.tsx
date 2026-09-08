@@ -993,9 +993,7 @@ export default function AdminPanel() {
                         <div
                           key={card.idx}
                           onClick={card.onClick}
-                          className={`relative p-6 rounded-3xl border transition-all duration-300 shadow-md group ${
-                            card.onClick ? 'cursor-pointer hover:-translate-y-1' : ''
-                          } ${
+                          className={`relative p-6 rounded-3xl border transition-all duration-300 shadow-md group cursor-pointer hover:-translate-y-1 ${
                             darkMode
                               ? 'border-[#d4af37]/20 bg-gradient-to-b from-[#180e0c]/90 to-[#100605] hover:border-[#d4af37]/50 shadow-black/50'
                               : 'border-[#1a1a1a]/15 bg-white hover:border-[#d4af37]/50 shadow-gray-200'

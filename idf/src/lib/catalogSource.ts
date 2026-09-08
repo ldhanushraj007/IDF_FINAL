@@ -224,11 +224,18 @@ const bust = (url: string) => `${url}${url.includes('?') ? '&' : '?'}t=${Date.no
 const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined;
 const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined;
 
-export function saveLocalCatalogCache(items: Item[], offer: Offer) {
+export function saveLocalCatalogCache(items: Item[], offer?: Offer) {
   try {
+    let currentOffer = offer;
+    if (!currentOffer) {
+      try {
+        const cached = localStorage.getItem('idf_catalog_cache');
+        if (cached) currentOffer = JSON.parse(cached).offer;
+      } catch {}
+    }
     localStorage.setItem('idf_catalog_cache', JSON.stringify({
       items,
-      offer,
+      offer: currentOffer || { title: '', code: '', discountPercent: 0, active: false },
       updatedAt: new Date().toISOString(),
     }));
   } catch (e) {
