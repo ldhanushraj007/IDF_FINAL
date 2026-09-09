@@ -4,7 +4,7 @@ import { ChevronRight, Minus, Plus, ShoppingBag, X, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { inr } from '../lib/constants';
-import type { Item } from '../data/catalog';
+import { type Item, getProductGallery } from '../data/catalog';
 
 const fadeOverlay = {
   hidden: { opacity: 0 },
@@ -56,7 +56,7 @@ export default function QuickViewModal({ item, onClose }: Props) {
 
   if (!item) return null;
 
-  const gallery = item.gallery && item.gallery.length ? item.gallery : [item.image];
+  const gallery = getProductGallery(item);
   const soldOut = item.stock === 'out';
 
   const handleBuyNow = () => {

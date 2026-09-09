@@ -56,6 +56,31 @@ export interface Item {
   hidden?: boolean; // If true, product is hidden ("Not Live") from customer website
 }
 
+/**
+ * Returns the complete ordered list of product images:
+ * 1. Primary main image first (`item.image`)
+ * 2. Followed by any extra gallery images (`item.gallery`), preserving upload order and deduplicating
+ * 3. Graceful fallback if no image is available
+ */
+export function getProductGallery(item?: { image?: string; gallery?: string[] } | null): string[] {
+  if (!item) return [];
+  const images: string[] = [];
+  const main = typeof item.image === 'string' ? item.image.trim() : '';
+  if (main) {
+    images.push(main);
+  }
+  if (Array.isArray(item.gallery)) {
+    for (const g of item.gallery) {
+      const url = typeof g === 'string' ? g.trim() : '';
+      if (url && !images.includes(url)) {
+        images.push(url);
+      }
+    }
+  }
+  return images.length > 0 ? images : ['/images/fabrics/f01.jpg'];
+}
+
+
 export const TAG_LABELS: Record<Tag, string> = {
   'best-seller': 'Best Selling',
   'new-arrival': 'New Arrivals',

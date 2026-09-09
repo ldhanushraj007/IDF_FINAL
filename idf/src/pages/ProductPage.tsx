@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Minus, Plus, Truck, ShieldCheck, ShoppingCart, Ruler, MessageCircle, Heart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Minus, Plus, Truck, ShieldCheck, ShoppingCart, Ruler, MessageCircle, Heart, ZoomIn, ZoomOut, Maximize2, X } from 'lucide-react';
 import { useCatalog } from '../context/CatalogContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -12,6 +12,7 @@ import { useTrackProductView } from '../lib/useTrackInteraction';
 import { motion, AnimatePresence } from 'framer-motion';
 import BundleOffer from '../components/BundleOffer';
 import MeasurementGuide from '../components/MeasurementGuide';
+import { getProductGallery } from '../data/catalog';
 
 type TabKey = 'description' | 'details' | 'care' | 'shipping';
 
@@ -30,11 +31,22 @@ export default function ProductPage() {
   const [showMeasurementGuide, setShowMeasurementGuide] = useState(false);
   const [addedFeedback, setAddedFeedback] = useState(false);
 
+  // Zoom & High-Res Lightbox states
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxZoomLevel, setLightboxZoomLevel] = useState(1);
+
   const lastLoadedProductId = useRef<string | null>(null);
   useTrackProductView(item?.id);
 
+  // Unified image list: main image first, followed by extra gallery images
+  const images = useMemo(() => getProductGallery(item), [item]);
+
   useEffect(() => {
     setActiveImage(0);
+    setIsZoomed(false);
+    setLightboxZoomLevel(1);
     if (item) {
       if (lastLoadedProductId.current !== item.id) {
         setMetres(item.minMetres);
@@ -44,10 +56,54 @@ export default function ProductPage() {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   }, [item]);
 
-  const gallery = useMemo(() => {
-    if (!item) return [];
-    return item.gallery && item.gallery.length ? item.gallery : [item.image];
-  }, [item]);
+  // Ensure activeImage stays valid if image count changes
+  useEffect(() => {
+    if (activeImage >= images.length) {
+      setActiveImage(0);
+    }
+  }, [images.length, activeImage]);
+
+  // Keyboard navigation for Lightbox
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsLightboxOpen(false);
+        setLightboxZoomLevel(1);
+      } else if (e.key === 'ArrowLeft') {
+        setActiveImage((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+        setLightboxZoomLevel(1);
+      } else if (e.key === 'ArrowRight') {
+        setActiveImage((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+        setLightboxZoomLevel(1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen, images.length]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
+  };
+
+  const nextImage = () => {
+    setActiveImage((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+    setIsZoomed(false);
+    setLightboxZoomLevel(1);
+  };
+
+  const prevImage = () => {
+    setActiveImage((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+    setIsZoomed(false);
+    setLightboxZoomLevel(1);
+  };
+
 
   if (loading && !item) {
     return (
@@ -123,61 +179,136 @@ export default function ProductPage() {
 
             {/* Left — Image Gallery */}
             <div>
-              <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f0ed] mb-3">
+              <div
+                className="relative aspect-[4/5] overflow-hidden bg-[#f5f0ed] mb-3 group select-none cursor-zoom-in rounded-sm"
+                onMouseEnter={() => setIsZoomed(true)}
+                onMouseLeave={() => setIsZoomed(false)}
+                onMouseMove={handleMouseMove}
+                onClick={() => setIsLightboxOpen(true)}
+                title="Click to view full screen high-resolution photos"
+              >
                 <AnimatePresence mode="wait">
                   <motion.img
-                    key={activeImage}
-                    src={gallery[activeImage]}
-                    alt={item.name}
+                    key={`${item.id}-${activeImage}`}
+                    src={images[activeImage]}
+                    alt={`${item.name} - View ${activeImage + 1}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`w-full h-full object-cover ${soldOut ? 'grayscale-[0.4] opacity-80' : ''}`}
+                    transition={{ duration: 0.25 }}
+                    style={{
+                      transformOrigin: isZoomed ? `${zoomPos.x}% ${zoomPos.y}%` : 'center center',
+                    }}
+                    className={`w-full h-full object-cover transition-transform duration-150 ease-out ${
+                      isZoomed ? 'scale-[2.2]' : 'scale-100'
+                    } ${soldOut ? 'grayscale-[0.4] opacity-80' : ''}`}
                   />
                 </AnimatePresence>
 
                 {/* Stock badge */}
-                <div className="absolute top-4 left-4">
-                  <span className={`bg-white/90 backdrop-blur-sm px-2.5 py-1 font-sans text-[9px] font-semibold tracking-[0.1em] uppercase flex items-center gap-1.5 ${soldOut ? 'text-red-600' : 'text-[#1F0505]'}`}>
+                <div className="absolute top-4 left-4 pointer-events-none z-10">
+                  <span className={`bg-white/90 backdrop-blur-sm px-2.5 py-1 font-sans text-[9px] font-semibold tracking-[0.1em] uppercase flex items-center gap-1.5 shadow-sm ${soldOut ? 'text-red-600' : 'text-[#1F0505]'}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${soldOut ? 'bg-red-500' : 'bg-emerald-500'}`} />
                     {soldOut ? 'Out of Stock' : 'In Stock'}
                   </span>
                 </div>
 
                 {/* Image counter */}
-                {gallery.length > 1 && (
-                  <div className="absolute top-4 right-4 font-sans text-[11px] text-white bg-[#1F0505]/60 px-2 py-0.5">
-                    {String(activeImage + 1).padStart(2, '0')} / {String(gallery.length).padStart(2, '0')}
+                {images.length > 1 && (
+                  <div className="absolute top-4 right-4 font-sans text-[11px] font-medium text-white bg-[#1F0505]/75 backdrop-blur-sm px-2.5 py-1 rounded shadow-sm z-10">
+                    {String(activeImage + 1).padStart(2, '0')} / {String(images.length).padStart(2, '0')}
                   </div>
                 )}
 
-                {/* Wishlist */}
-                {enabled && (
-                  <button
-                    type="button"
-                    onClick={handleHeart}
-                    aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
-                    className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center bg-white/90 backdrop-blur-sm hover:bg-white transition-colors"
-                  >
-                    <Heart className={`h-5 w-5 ${liked ? 'fill-[#1F0505] text-[#1F0505]' : 'text-[#1F0505]/40'}`} strokeWidth={1.5} />
-                  </button>
+                {/* Navigation Chevrons on Main Image (when multiple images exist) */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        prevImage();
+                      }}
+                      aria-label="Previous photo"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#1F0505] shadow-md border border-[#1F0505]/10 opacity-85 hover:opacity-100 hover:scale-105 hover:bg-white transition-all sm:opacity-0 sm:group-hover:opacity-100"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        nextImage();
+                      }}
+                      aria-label="Next photo"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#1F0505] shadow-md border border-[#1F0505]/10 opacity-85 hover:opacity-100 hover:scale-105 hover:bg-white transition-all sm:opacity-0 sm:group-hover:opacity-100"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </>
                 )}
+
+                {/* Bottom Bar: Zoom Hint + Fullscreen & Wishlist actions */}
+                <div className="absolute bottom-4 inset-x-4 flex items-center justify-between pointer-events-none z-10">
+                  <div className="hidden sm:flex items-center gap-1.5 bg-[#1F0505]/70 backdrop-blur-sm text-white text-[10px] font-sans px-2.5 py-1 rounded-full opacity-80 group-hover:opacity-100 transition-opacity">
+                    <ZoomIn className="h-3.5 w-3.5 text-[#d4af37]" />
+                    <span>{isZoomed ? 'Pan to inspect weave' : 'Hover to zoom · Click for high-res'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 ml-auto pointer-events-auto">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsLightboxOpen(true);
+                      }}
+                      aria-label="Expand image in high resolution"
+                      title="Expand photo"
+                      className="flex h-10 w-10 items-center justify-center bg-white/90 backdrop-blur-sm text-[#1F0505] hover:bg-white shadow-sm border border-[#1F0505]/10 rounded-sm transition-all hover:scale-105"
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </button>
+
+                    {enabled && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleHeart(e);
+                        }}
+                        aria-label={liked ? 'Remove from wishlist' : 'Add to wishlist'}
+                        className="flex h-10 w-10 items-center justify-center bg-white/90 backdrop-blur-sm text-[#1F0505] hover:bg-white shadow-sm border border-[#1F0505]/10 rounded-sm transition-all hover:scale-105"
+                      >
+                        <Heart className={`h-5 w-5 ${liked ? 'fill-[#1F0505] text-[#1F0505]' : 'text-[#1F0505]/40'}`} strokeWidth={1.5} />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Thumbnails */}
-              {gallery.length > 1 && (
-                <div className="grid grid-cols-5 gap-2">
-                  {gallery.map((src, i) => (
+              {/* Thumbnails Navigation */}
+              {images.length > 1 && (
+                <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
+                  {images.map((src, i) => (
                     <button
                       key={src + i}
                       type="button"
-                      onClick={() => setActiveImage(i)}
-                      className={`aspect-square overflow-hidden border transition-all ${
-                        activeImage === i ? 'border-[#1F0505]' : 'border-transparent opacity-55 hover:opacity-100'
+                      onClick={() => {
+                        setActiveImage(i);
+                        setIsZoomed(false);
+                      }}
+                      aria-label={`Select photo ${i + 1} of ${images.length}`}
+                      className={`relative aspect-square w-16 sm:w-20 shrink-0 overflow-hidden rounded border-2 transition-all ${
+                        activeImage === i
+                          ? 'border-[#1F0505] shadow-sm ring-1 ring-[#1F0505]/40 opacity-100'
+                          : 'border-transparent opacity-50 hover:opacity-90 hover:border-[#1F0505]/20'
                       }`}
                     >
                       <img src={src} alt="" className="w-full h-full object-cover" />
+                      {i === 0 && (
+                        <span className="absolute bottom-0 inset-x-0 bg-[#1F0505]/80 text-[8px] font-sans font-semibold text-white text-center py-0.5 uppercase tracking-wider">
+                          Main
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -462,6 +593,150 @@ export default function ProductPage() {
           </button>
         </div>
       )}
+
+      {/* High-Resolution Fullscreen Lightbox Modal with Zoom */}
+      <AnimatePresence>
+        {isLightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-md"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${item.name} high-resolution gallery`}
+          >
+            {/* Top Lightbox Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 text-white z-20">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-sans uppercase tracking-[0.2em] text-[#d4af37]">
+                  High-Res Gallery
+                </span>
+                <span className="text-white/30 text-xs">|</span>
+                <span className="font-serif text-sm truncate max-w-[200px] sm:max-w-md">{item.name}</span>
+                {images.length > 1 && (
+                  <span className="text-xs font-mono text-white/60 bg-white/10 px-2 py-0.5 rounded">
+                    {activeImage + 1} / {images.length}
+                  </span>
+                )}
+              </div>
+
+              {/* Lightbox Controls */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLightboxZoomLevel((prev) => Math.max(1, prev - 0.5))}
+                  disabled={lightboxZoomLevel <= 1}
+                  className="flex h-9 w-9 items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 transition-colors"
+                  title="Zoom out"
+                  aria-label="Zoom out"
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLightboxZoomLevel((prev) => Math.min(3.5, prev + 0.5))}
+                  disabled={lightboxZoomLevel >= 3.5}
+                  className="flex h-9 w-9 items-center justify-center rounded bg-white/10 hover:bg-white/20 text-white disabled:opacity-30 transition-colors"
+                  title="Zoom in"
+                  aria-label="Zoom in"
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </button>
+                {lightboxZoomLevel > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setLightboxZoomLevel(1)}
+                    className="text-[11px] font-sans text-[#d4af37] px-2 py-1 rounded bg-[#d4af37]/10 hover:bg-[#d4af37]/20 border border-[#d4af37]/30 transition-colors"
+                  >
+                    Reset
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLightboxOpen(false);
+                    setLightboxZoomLevel(1);
+                  }}
+                  className="flex h-9 w-9 items-center justify-center rounded bg-white/10 hover:bg-red-500/80 text-white transition-colors ml-2"
+                  title="Close (Esc)"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Main Stage */}
+            <div className="relative flex-1 flex items-center justify-center overflow-hidden p-4 sm:p-8">
+              {/* Prev Button */}
+              {images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={prevImage}
+                  aria-label="Previous photo"
+                  className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-sm transition-all hover:scale-110"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+              )}
+
+              {/* Active Image with interactive pan / zoom */}
+              <div
+                className="relative max-w-full max-h-full flex items-center justify-center overflow-auto"
+                style={{ cursor: lightboxZoomLevel > 1 ? 'grab' : 'zoom-in' }}
+                onClick={() => setLightboxZoomLevel((prev) => (prev > 1 ? 1 : 2))}
+              >
+                <img
+                  src={images[activeImage]}
+                  alt={`${item.name} high-resolution`}
+                  style={{
+                    transform: `scale(${lightboxZoomLevel})`,
+                    transition: 'transform 0.2s ease-out',
+                  }}
+                  className="max-h-[75vh] max-w-[88vw] object-contain rounded-sm select-none shadow-2xl"
+                />
+              </div>
+
+              {/* Next Button */}
+              {images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={nextImage}
+                  aria-label="Next photo"
+                  className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white backdrop-blur-sm transition-all hover:scale-110"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              )}
+            </div>
+
+            {/* Bottom Lightbox Thumbnails Bar */}
+            {images.length > 1 && (
+              <div className="flex items-center justify-center gap-3 py-4 px-6 border-t border-white/10 bg-black/50 overflow-x-auto z-20">
+                {images.map((src, i) => (
+                  <button
+                    key={'lightbox-' + src + i}
+                    type="button"
+                    onClick={() => {
+                      setActiveImage(i);
+                      setLightboxZoomLevel(1);
+                    }}
+                    aria-label={`Select photo ${i + 1}`}
+                    className={`relative aspect-square h-14 w-14 shrink-0 overflow-hidden rounded border-2 transition-all ${
+                      activeImage === i
+                        ? 'border-[#d4af37] ring-2 ring-[#d4af37]/40 scale-105 opacity-100'
+                        : 'border-white/20 opacity-40 hover:opacity-90 hover:border-white/50'
+                    }`}
+                  >
+                    <img src={src} alt="" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
