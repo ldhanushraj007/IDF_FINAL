@@ -90,7 +90,6 @@ import {
   saveSettings,
   reconcileDatabaseConflicts,
   auditDatabase,
-  clearAllOrders,
   type AdminReviewRow,
   type AdminOrderRow,
   type CustomerRow,
@@ -1270,24 +1269,6 @@ export default function AdminPanel() {
                         >
                           <Download className="h-3.5 w-3.5" />
                           <span>CSV</span>
-                        </button>
-
-                        <button
-                          onClick={async () => {
-                            if (!window.confirm('⚠️ This will permanently delete ALL orders from Google Sheets. This cannot be undone.\n\nAre you sure you want to clear all orders?')) return;
-                            try {
-                              const result = await clearAllOrders();
-                              alert(`✅ ${result.message}`);
-                              setOrders([]);
-                            } catch (err: any) {
-                              alert('❌ Failed to clear orders: ' + err.message);
-                            }
-                          }}
-                          className="rounded-full border border-red-400/60 text-red-500 text-[10px] font-bold px-3.5 py-2 flex items-center gap-1.5 uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                          title="Permanently delete all test/sample orders"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          <span>Clear All</span>
                         </button>
                       </div>
                     </div>
