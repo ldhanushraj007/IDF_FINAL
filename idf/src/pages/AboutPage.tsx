@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Award, Gem, Globe2, HandHeart, Sparkles, Users, Calendar } from 'lucide-react';
+import { Award, Gem, Globe2, HandHeart, Sparkles, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BUSINESS, WA_VISIT } from '../lib/constants';
 
@@ -36,12 +36,6 @@ const VALUES = [
   },
 ];
 
-const TIMELINE = [
-  { year: '2009', text: 'Opened as a single counter of Banarasi silks on Commercial Street, Bengaluru.' },
-  { year: '2014', text: 'Expanded into bridal couture fabrics as demand grew from the city’s designer community.' },
-  { year: '2019', text: 'Began direct sourcing from weaving clusters in Varanasi, Kanchipuram and Bhagalpur.' },
-  { year: 'Today', text: 'A trusted address for boutiques, tailors and brides across India, online and in-store.' },
-];
 
 export default function AboutPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -150,28 +144,10 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Timeline */}
-      <section className="relative w-full border-b border-[#1F1916]/10 py-16 md:py-24 px-6 bg-[#FAF7F5]">
-        <div className="max-w-[1340px] mx-auto">
-          <div className="mb-14">
-            <span className="text-[10px] font-sans tracking-[0.25em] text-[#1F1916]/50 uppercase font-semibold">Our Timeline</span>
-            <h2 className="font-serif text-[32px] md:text-[46px] text-[#1F1916] mt-2 font-light">The Journey Since 2009</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {TIMELINE.map((t) => (
-              <div key={t.year} className="bg-white border border-[#1F1916]/10 p-7 relative hover:shadow-md transition-shadow">
-                <span className="font-serif text-[38px] text-[#1F1916] leading-none mb-4 block font-light">{t.year}</span>
-                <h4 className="font-sans text-[10px] font-semibold tracking-widest text-[#1F1916]/40 uppercase mb-2">Milestone</h4>
-                <p className="text-[13px] text-[#1F1916]/70 leading-relaxed font-sans">{t.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* CTA Section */}
       <section className="relative w-full py-20 px-6 flex flex-col items-center justify-center text-center bg-[#1F1916] text-white">
-        <Calendar className="h-10 w-10 text-[#E8E2DB] mb-5" strokeWidth={1} />
         <h2 className="font-serif text-[32px] md:text-[48px] text-white mb-4 max-w-2xl leading-tight font-light">
           Experience the drape in person.
         </h2>
