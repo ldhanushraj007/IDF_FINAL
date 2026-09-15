@@ -24,8 +24,8 @@ export const BUSINESS = {
     'https://www.google.com/maps?q=Shop+No.+32,+Ibrahim+Sahib+Street,+Shivaji+Nagar,+Bengaluru,+Karnataka+560001&output=embed',
 
   hours: [
-    { days: 'Monday – Saturday', time: '10:30 AM – 8:30 PM' },
-    { days: 'Sunday', time: '11:00 AM – 7:00 PM' },
+    { days: 'Monday – Saturday', time: '11:00 AM – 9:30 PM' },
+    { days: 'Sunday', time: '11:00 AM – 9:30 PM' },
   ],
 } as const;
 

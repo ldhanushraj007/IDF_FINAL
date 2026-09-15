@@ -119,7 +119,7 @@ export default function ContactPage() {
               <div className="flex items-start gap-4">
                 <Clock className="h-5 w-5 text-[#1F1916] shrink-0 mt-0.5" strokeWidth={1.3} />
                 <div>
-                  <p className="font-medium text-[#1F1916]">10:30 AM - 8:00 PM</p>
+                  <p className="font-medium text-[#1F1916]">11:00 AM - 9:30 PM</p>
                   <p className="text-[13px] text-[#1F1916]/60 mt-0.5">Monday - Sunday</p>
                 </div>
               </div>
