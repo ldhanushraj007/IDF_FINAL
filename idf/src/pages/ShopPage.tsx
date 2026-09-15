@@ -287,7 +287,7 @@ export default function ShopPage() {
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
               {sortOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-[#1F1916]/10 rounded-xl shadow-lg z-30 p-1">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-[#1F1916]/10 rounded-xl shadow-lg z-50 p-1">
                   {SORT_OPTIONS.map((s) => (
                     <button
                       key={s.id}
