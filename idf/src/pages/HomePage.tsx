@@ -216,6 +216,17 @@ export default function HomePage() {
               ))}
             </div>
           )}
+
+          {/* Mobile-only Shop Now button */}
+          <div className="mt-8 flex justify-center md:hidden">
+            <Link
+              to="/shop"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#1F0505] text-white font-sans text-[11px] font-bold tracking-[0.2em] uppercase rounded-full shadow-md hover:bg-[#3a0a0a] active:scale-95 transition-all duration-200"
+            >
+              <span>Shop Now</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
       </section>
 
