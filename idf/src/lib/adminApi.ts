@@ -350,8 +350,7 @@ export interface AdminOrderRow {
 }
 
 export async function fetchOrders(): Promise<AdminOrderRow[]> {
-  try {
-    const res = await adminPost<any>('fetch_orders');
+  const parseOrders = (res: any): AdminOrderRow[] => {
     const rawList = Array.isArray(res) ? res : (res?.data || []);
     return rawList.map((o: any) => ({
       ...o,
@@ -361,9 +360,21 @@ export async function fetchOrders(): Promise<AdminOrderRow[]> {
         lineTotal: Number(line.lineTotal || 0),
       })),
     }));
-  } catch (err) {
-    console.error('CRITICAL: fetch_orders failed from Google Sheets backend:', err);
-    throw err; // Fail loudly instead of silently returning empty
+  };
+
+  // 35s timeout to handle Apps Script cold starts; auto-retry once on failure
+  try {
+    const res = await adminPost<any>('fetch_orders', {}, true, 35000);
+    return parseOrders(res);
+  } catch (firstErr) {
+    console.warn('fetch_orders first attempt failed (possible cold start), retrying once...', firstErr);
+    try {
+      const res = await adminPost<any>('fetch_orders', {}, true, 35000);
+      return parseOrders(res);
+    } catch (err) {
+      console.error('CRITICAL: fetch_orders failed after retry:', err);
+      throw err;
+    }
   }
 }
 
@@ -550,7 +561,7 @@ export interface AdminBootstrapData {
 
 export async function fetchAdminBootstrap(): Promise<AdminBootstrapData | null> {
   try {
-    const data = await adminPost<AdminBootstrapData>('admin_bootstrap');
+    const data = await adminPost<AdminBootstrapData>('admin_bootstrap', {}, true, 40000);
     if (data) {
       if (data.categories?.length) {
         localStorage.setItem('idf_categories_cache', JSON.stringify(data.categories));
