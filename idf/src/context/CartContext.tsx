@@ -44,7 +44,7 @@ const STORAGE_KEY = 'idlf_cart_v1';
 export function CartProvider({ children }: { children: ReactNode }) {
   // Prices and stock come from the LIVE catalog, so a cart left open overnight
   // reprices itself against today's numbers instead of yesterday's.
-  const { byId } = useCatalog();
+  const { byId, activeCombos } = useCatalog();
   const [lines, setLines] = useState<CartLine[]>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -134,20 +134,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
     const bulkDiscount = Math.round(subtotal * bulkDiscountRate);
 
-    // 2. Combo Offer Detection
-    // Seeded Combo: "aurelia-tulle" and "noor-organza" bought together triggers 10% off
-    const hasTulle = items.some(i => i.item.id === 'aurelia-tulle');
-    const hasOrganza = items.some(i => i.item.id === 'noor-organza');
-    let comboDiscount = 0;
-    if (hasTulle && hasOrganza) {
-      const eligibleTotal = items
-        .filter(i => i.item.id === 'aurelia-tulle' || i.item.id === 'noor-organza')
-        .reduce((sum, i) => sum + i.lineTotal, 0);
-      comboDiscount = Math.round(eligibleTotal * 0.10);
+    // 2. Dynamic Combo Offer Detection
+    let maxComboDiscount = 0;
+    const cartProductIds = new Set(items.map(i => i.item.id));
+
+    if (activeCombos && activeCombos.length > 0) {
+      for (const combo of activeCombos) {
+        if (!combo.productIds || combo.productIds.length < 2) continue;
+        const allPresent = combo.productIds.every(pid => cartProductIds.has(pid));
+        if (allPresent) {
+          const comboLineTotal = items
+            .filter(i => combo.productIds.includes(i.item.id))
+            .reduce((sum, i) => sum + i.lineTotal, 0);
+          const currentComboDiscount = Math.round(comboLineTotal * (combo.discountPercent / 100));
+          if (currentComboDiscount > maxComboDiscount) {
+            maxComboDiscount = currentComboDiscount;
+          }
+        }
+      }
+    } else {
+      // Fallback Seeded Combo: "aurelia-tulle" and "noor-organza"
+      const hasTulle = items.some(i => i.item.id === 'aurelia-tulle');
+      const hasOrganza = items.some(i => i.item.id === 'noor-organza');
+      if (hasTulle && hasOrganza) {
+        const eligibleTotal = items
+          .filter(i => i.item.id === 'aurelia-tulle' || i.item.id === 'noor-organza')
+          .reduce((sum, i) => sum + i.lineTotal, 0);
+        maxComboDiscount = Math.round(eligibleTotal * 0.10);
+      }
     }
 
     // Apply whichever discount is larger (not stacking them to keep margins safe)
-    const discount = Math.max(bulkDiscount, comboDiscount);
+    const discount = Math.max(bulkDiscount, maxComboDiscount);
     const isWholesale = totalMetres >= 20;
 
     const afterDiscount = subtotal - discount;

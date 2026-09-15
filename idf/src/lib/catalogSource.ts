@@ -86,10 +86,10 @@ export function normaliseItem(raw: Record<string, unknown>): Item | null {
   const name = String(raw.name ?? '').trim();
   if (!id || !name) return null;
 
-  const pricePerMetre = asNumber(raw.pricePerMetre);
+  const pricePerMetre = asNumber(raw.pricePerMetre ?? raw.price_per_metre ?? raw.PricePerMetre);
   if (pricePerMetre <= 0) return null;
 
-  const mrp = asNumber(raw.mrp, 0);
+  const mrp = asNumber(raw.mrp ?? raw.Mrp, 0);
 
   const galleryRaw = raw.gallery;
   const gallery = Array.isArray(galleryRaw)
@@ -98,29 +98,31 @@ export function normaliseItem(raw: Record<string, unknown>): Item | null {
       ? galleryRaw.split(/[|,]/).map((s) => s.trim()).filter(Boolean)
       : [];
 
+  const suggestedRaw = (raw as any).suggestedGarmentIds ?? (raw as any).suggested_garment_ids;
+  const suggestedGarmentIds = Array.isArray(suggestedRaw)
+    ? (suggestedRaw as string[]).map(String)
+    : typeof suggestedRaw === 'string' && suggestedRaw.trim()
+      ? suggestedRaw.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
+      : undefined;
+
   return {
     id,
     name,
     category: asCategory(raw.category),
-    categoryId: raw.categoryId ? String(raw.categoryId).trim() : undefined,
+    categoryId: raw.categoryId ? String(raw.categoryId).trim() : (raw.category_id ? String(raw.category_id).trim() : undefined),
     composition: String(raw.composition ?? '').trim(),
     width: String(raw.width ?? '44 in').trim(),
     pricePerMetre,
-    // Only keep an MRP that is genuinely higher, otherwise the "Save ₹X"
-    // badge would show a nonsense or negative saving.
     ...(mrp > pricePerMetre ? { mrp } : {}),
-    minMetres: Math.max(0.5, asNumber(raw.minMetres ?? raw.min_metres ?? raw.MinMetres, 0.5)),
+    minMetres: Math.max(0.1, asNumber(raw.minMetres ?? raw.min_metres ?? raw.MinMetres, 0.5)),
     stock: asStock(raw.stock),
     tags: asTags(raw.tags),
     image: String(raw.image ?? '/images/fabrics/f01.jpg').trim(),
     blurb: String(raw.blurb ?? '').trim(),
     ...(gallery.length ? { gallery } : {}),
     ...(String(raw.details ?? '').trim() ? { details: String(raw.details).trim() } : {}),
-    suggestedGarmentIds: Array.isArray((raw as any).suggestedGarmentIds)
-      ? ((raw as any).suggestedGarmentIds as string[]).map(String)
-      : typeof (raw as any).suggestedGarmentIds === 'string' && (raw as any).suggestedGarmentIds.trim()
-        ? (raw as any).suggestedGarmentIds.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
-        : undefined,
+    suggestedGarmentIds,
+    hidden: Boolean(raw.hidden),
   };
 }
 
@@ -222,7 +224,56 @@ const bust = (url: string) => `${url}${url.includes('?') ? '&' : '?'}t=${Date.no
 const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined;
 const SCRIPT_TOKEN = import.meta.env.VITE_APPS_SCRIPT_TOKEN as string | undefined;
 
+export function saveLocalCatalogCache(items: Item[], offer?: Offer) {
+  try {
+    let currentOffer = offer;
+    if (!currentOffer) {
+      try {
+        const cached = localStorage.getItem('idf_catalog_cache');
+        if (cached) currentOffer = JSON.parse(cached).offer;
+      } catch {}
+    }
+    localStorage.setItem('idf_catalog_cache', JSON.stringify({
+      items,
+      offer: currentOffer || { title: '', code: '', discountPercent: 0, active: false },
+      updatedAt: new Date().toISOString(),
+    }));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('idf_catalog_updated', {
+        detail: { items, offer: currentOffer }
+      }));
+    }
+  } catch (e) {
+    console.warn('Failed to save catalog to localStorage cache', e);
+  }
+}
+
 export async function loadCatalog(): Promise<LoadedCatalog> {
+  // 0. LocalStorage Cache (Instant 0s local reflection for newly published items)
+  try {
+    const cached = localStorage.getItem('idf_catalog_cache');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      const items = (Array.isArray(parsed.items) ? parsed.items : [])
+        .map((i: any) => normaliseItem(i))
+        .filter((i: any): i is Item => i !== null);
+      if (items.length) {
+        // Asynchronously re-sync from server in background
+        setTimeout(() => refreshServerCatalog(), 100);
+        return {
+          items,
+          offer: normaliseOffer(parsed.offer),
+          origin: 'sheet',
+          updatedAt: parsed.updatedAt,
+        };
+      }
+    }
+  } catch {}
+
+  return await refreshServerCatalog();
+}
+
+async function refreshServerCatalog(): Promise<LoadedCatalog> {
   // 1. Google Sheets Apps Script Web App (Real-time DB)
   if (SCRIPT_URL && SCRIPT_TOKEN) {
     try {
@@ -239,9 +290,11 @@ export async function loadCatalog(): Promise<LoadedCatalog> {
             .map((i: any) => normaliseItem(i))
             .filter((i: any): i is Item => i !== null);
           if (items.length) {
+            const offer = normaliseOffer(json.data.offer);
+            saveLocalCatalogCache(items, offer);
             return {
               items,
-              offer: normaliseOffer(json.data.offer),
+              offer,
               origin: 'sheet',
               updatedAt: json.data.updatedAt,
             };

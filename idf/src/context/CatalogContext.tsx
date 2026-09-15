@@ -13,6 +13,8 @@ import {
   type CatalogOrigin,
   type Offer,
 } from '../lib/catalogSource';
+import { DEFAULT_CATEGORIES, type CategoryConfig } from '../lib/categories';
+import { DEFAULT_COMBOS, fetchCategories, fetchCombos, type ComboDeal } from '../lib/adminApi';
 
 interface CatalogValue {
   items: Item[];
@@ -23,6 +25,10 @@ interface CatalogValue {
   loading: boolean;
   origin: CatalogOrigin;
   updatedAt?: string;
+  categories: CategoryConfig[];
+  activeCategories: CategoryConfig[];
+  combos: ComboDeal[];
+  activeCombos: ComboDeal[];
 }
 
 const Ctx = createContext<CatalogValue | null>(null);
@@ -35,6 +41,57 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const [origin, setOrigin] = useState<CatalogOrigin>('bundled');
   const [updatedAt, setUpdatedAt] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<CategoryConfig[]>(() => {
+    try {
+      const cached = localStorage.getItem('idf_categories_cache');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return DEFAULT_CATEGORIES;
+  });
+  const [combos, setCombos] = useState<ComboDeal[]>(() => {
+    try {
+      const cached = localStorage.getItem('idf_combos_cache');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return DEFAULT_COMBOS;
+  });
+
+  const refreshCategories = () => {
+    fetchCategories().then((cats) => {
+      if (cats && cats.length > 0) setCategories(cats);
+    });
+  };
+
+  const refreshCombos = () => {
+    fetchCombos().then((c) => {
+      if (c && c.length > 0) setCombos(c);
+    });
+  };
+
+  useEffect(() => {
+    refreshCategories();
+    refreshCombos();
+
+    const onCatsUpdate = () => refreshCategories();
+    const onCombosUpdate = () => refreshCombos();
+    const onCatalogUpdate = (e: any) => {
+      if (e.detail?.items && Array.isArray(e.detail.items)) {
+        setItems(e.detail.items);
+      }
+      if (e.detail?.offer) {
+        setOffer(e.detail.offer);
+      }
+    };
+
+    window.addEventListener('idf_categories_updated', onCatsUpdate);
+    window.addEventListener('idf_combos_updated', onCombosUpdate);
+    window.addEventListener('idf_catalog_updated', onCatalogUpdate);
+    return () => {
+      window.removeEventListener('idf_categories_updated', onCatsUpdate);
+      window.removeEventListener('idf_combos_updated', onCombosUpdate);
+      window.removeEventListener('idf_catalog_updated', onCatalogUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,7 +126,11 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
     // Also refresh the moment someone returns to the tab, so switching back
     // after a while doesn't wait for the next tick.
     const onVisible = () => {
-      if (document.visibilityState === 'visible') refresh(false);
+      if (document.visibilityState === 'visible') {
+        refresh(false);
+        refreshCategories();
+        refreshCombos();
+      }
     };
     document.addEventListener('visibilitychange', onVisible);
 
@@ -81,17 +142,26 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<CatalogValue>(() => {
-    const map = new Map(items.map((i) => [i.id, i]));
+    // Exclude products marked hidden (Not Live) from customer website view
+    const liveItems = items.filter((i) => !i.hidden);
+    const map = new Map(liveItems.map((i) => [i.id, i]));
+    const activeCategories = categories.filter((c) => c.active !== false);
+    const activeCombos = combos.filter((c) => c.active !== false);
+
     return {
-      items,
-      available: items.filter((i) => i.stock !== 'out'),
+      items: liveItems,
+      available: liveItems.filter((i) => i.stock !== 'out'),
       offer,
       byId: (id: string) => map.get(id),
       loading,
       origin,
       updatedAt,
+      categories,
+      activeCategories,
+      combos,
+      activeCombos,
     };
-  }, [items, offer, loading, origin, updatedAt]);
+  }, [items, offer, loading, origin, updatedAt, categories, combos]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

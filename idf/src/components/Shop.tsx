@@ -14,15 +14,13 @@ import { DEFAULT_CATEGORIES } from '../lib/categories';
 type FilterType = 'all' | Tag | string; // Allow category slugs as string
 type SortKey = 'newest' | 'price-asc' | 'price-desc';
 
-const FILTERS: { id: FilterType; label: string; isCategory?: boolean }[] = [
+const BASE_FILTERS: { id: FilterType; label: string; isCategory?: boolean }[] = [
   { id: 'all', label: 'All Fabrics' },
   { id: 'best-seller', label: 'Best Selling' },
   { id: 'new-arrival', label: 'New Arrivals' },
   { id: 'festival', label: 'Festival Offers' },
   { id: 'seasonal', label: 'Seasonal Edit' },
   { id: 'wholesale', label: 'Wholesale' },
-  // Inject the categories dynamically
-  ...DEFAULT_CATEGORIES.map(c => ({ id: c.slug, label: c.name, isCategory: true }))
 ];
 
 const SORT_OPTIONS: { id: SortKey; label: string; }[] = [
@@ -32,16 +30,21 @@ const SORT_OPTIONS: { id: SortKey; label: string; }[] = [
 ];
 
 export default function Shop() {
-  const { items: catalog } = useCatalog();
+  const { items: catalog, activeCategories } = useCatalog();
   const [filter, setFilter] = useState<FilterType>('all');
   const [sort, setSort] = useState<SortKey>('newest');
   const [sortOpen, setSortOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const filters = useMemo(() => [
+    ...BASE_FILTERS,
+    ...(activeCategories || []).map(c => ({ id: c.slug, label: c.name, isCategory: true }))
+  ], [activeCategories]);
+
   const items = useMemo(() => {
     let list = catalog;
     if (filter !== 'all') {
-      const isCat = FILTERS.find(f => f.id === filter)?.isCategory;
+      const isCat = filters.find(f => f.id === filter)?.isCategory;
       if (isCat) {
         list = catalog.filter((i) => {
           const itemCatLower = i.category?.toLowerCase() || '';
@@ -55,7 +58,7 @@ export default function Shop() {
     if (sort === 'price-asc') list = [...list].sort((a, b) => a.pricePerMetre - b.pricePerMetre);
     if (sort === 'price-desc') list = [...list].sort((a, b) => b.pricePerMetre - a.pricePerMetre);
     return list;
-  }, [filter, sort, catalog]);
+  }, [filter, sort, catalog, filters]);
 
   // Group items into rows of 4
   const rows = useMemo(() => {
@@ -119,7 +122,7 @@ export default function Shop() {
       <section className="shop-filter-bar grid-line relative px-6 md:px-12 py-5 flex flex-wrap justify-between items-center bg-surface border-b border-[#1a1a1a] gap-y-3 z-20">
         {/* Filter tabs */}
         <div className="flex items-center gap-6 overflow-x-auto hide-scrollbar scroll-smooth">
-          {FILTERS.map((f) => {
+          {filters.map((f) => {
             const active = filter === f.id;
             return (
               <button

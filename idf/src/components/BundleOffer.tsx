@@ -36,23 +36,34 @@ const SAMPLE_BUNDLES: BundleDef[] = [
 ];
 
 export default function BundleOffer({ currentProduct }: Props) {
-  const { byId } = useCatalog();
+  const { byId, activeCombos } = useCatalog();
   const { add } = useCart();
 
-  // Find a bundle that includes the current product
-  const activeBundle = useMemo(() => {
-    return SAMPLE_BUNDLES.find((b) => {
-      const containsCurrent = b.items.some((i) => i.productId === currentProduct.id);
-      if (!containsCurrent) return false;
+  // Find an active combo from admin that includes the current product
+  const activeBundle = useMemo<BundleDef | null>(() => {
+    if (!activeCombos || activeCombos.length === 0) return null;
 
-      const allInStock = b.items.every((bi) => {
-        const item = byId(bi.productId);
-        return item && item.stock !== 'out';
+    const matchingCombo = activeCombos.find((combo) => {
+      if (!combo.productIds?.includes(currentProduct.id)) return false;
+      return combo.productIds.every((pid) => {
+        const it = byId(pid);
+        return it && it.stock !== 'out';
       });
-
-      return allInStock;
     });
-  }, [currentProduct, byId]);
+
+    if (!matchingCombo) return null;
+
+    return {
+      title: matchingCombo.title,
+      description: matchingCombo.description || 'Bundle & Save on these curated couture fabrics',
+      discountPercent: matchingCombo.discountPercent,
+      items: matchingCombo.productIds.map((pid) => ({
+        productId: pid,
+        role: pid === currentProduct.id ? 'Selected Fabric' : 'Curated Pairing',
+        metres: byId(pid)?.minMetres || 1,
+      })),
+    };
+  }, [currentProduct, byId, activeCombos]);
 
   if (!activeBundle) return null;
 

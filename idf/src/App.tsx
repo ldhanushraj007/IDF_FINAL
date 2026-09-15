@@ -26,6 +26,7 @@ import { useAuth } from './context/AuthContext';
 const ShopPage = lazy(() => import('./pages/ShopPage'));
 const ProductPage = lazy(() => import('./pages/ProductPage'));
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'));
+const LookbookPage = lazy(() => import('./pages/LookbookPage'));
 const ReviewsPage = lazy(() => import('./pages/ReviewsPage'));
 const VisitPage = lazy(() => import('./pages/VisitPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
@@ -81,7 +82,7 @@ function ScrollToTop() {
 function SiteChrome() {
   const { authModalOpen, closeAuthModal } = useAuth();
   const { pathname } = useLocation();
-  const isLoginPage = pathname === '/login';
+  const isStandalonePage = pathname === '/login' || pathname === '/checkout';
 
   return (
     <>
@@ -93,9 +94,9 @@ function SiteChrome() {
         Skip to content
       </a>
       <Preloader />
-      {!isLoginPage && <ScrollProgress />}
-      {!isLoginPage && <OfferBar />}
-      {!isLoginPage && <Navbar />}
+      {!isStandalonePage && <ScrollProgress />}
+      {!isStandalonePage && <OfferBar />}
+      {!isStandalonePage && <Navbar />}
       <main id="main">
         <Suspense fallback={<RouteFallback />}>
           <AnimatePresence mode="wait">
@@ -112,6 +113,7 @@ function SiteChrome() {
                 <Route path="/shop/:category" element={<ShopPage />} />
                 <Route path="/shop/product/:id" element={<ProductPage />} />
                 <Route path="/collections" element={<CollectionsPage />} />
+                <Route path="/lookbook" element={<LookbookPage />} />
                 <Route path="/reviews" element={<ReviewsPage />} />
                 <Route path="/visit" element={<VisitPage />} />
                 <Route path="/contact" element={<ContactPage />} />
@@ -127,8 +129,8 @@ function SiteChrome() {
           </AnimatePresence>
         </Suspense>
       </main>
-      {!isLoginPage && <Footer />}
-      {!isLoginPage && <FloatingWhatsApp />}
+      {!isStandalonePage && <Footer />}
+      {!isStandalonePage && <FloatingWhatsApp />}
       <CartDrawer />
       <PendingOrderBanner />
       <AuthModal open={authModalOpen} onClose={closeAuthModal} />

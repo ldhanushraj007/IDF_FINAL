@@ -274,11 +274,39 @@
         "seasonal"
       ],
       "image": "/images/fabrics/f12.jpg",
-      "blurb": "Crisp body that holds a shape — a tailor’s dependable workhorse.",
+      "blurb": "Crisp body that holds a shape — a tailor’s dependable workhorse."
+    },
+    {
+      "id": "pure-organza-position-print-with-beads-work-mtudi3i9-pmyo",
+      "name": "Pure Organza Position Print with Beads Work",
+      "category": "Printed",
+      "categoryId": "printed",
+      "composition": "Pure Organza",
+      "width": "44 in",
+      "pricePerMetre": 1899,
+      "minMetres": 0.5,
+      "stock": "in",
+      "tags": [
+        "new-arrival",
+        "best-seller",
+        "seasonal",
+        "wholesale",
+        "festival"
+      ],
+      "image": "https://lh3.googleusercontent.com/d/1v-pb_S0QpV9paGJzhpszN03KjW-0uIBF",
       "gallery": [
-        "/images/fabrics/f12.jpg",
-        "/images/fabrics/detail-contemporary-1.jpg",
-        "/images/fabrics/detail-contemporary-2.jpg"
+        "https://lh3.googleusercontent.com/d/1zGPKJOdkATNwMYiBd8Ybrls1e4sKN9-Q",
+        "https://lh3.googleusercontent.com/d/1u3SOQyW-fNKIm8d31LmxJFiQ8YcbOk4k",
+        "https://lh3.googleusercontent.com/d/1RhQPifORktoNHiAPlTuEwqw8_GJspMUs"
+      ],
+      "blurb": "Elegant pure organza featuring vibrant position prints with intricate beads work, perfect for festive and occasion wear.",
+      "details": "Elevate your festive wardrobe with our Pure Organza Position Print with Beads Work. Crafted in lightweight and elegant organza, this fabric features vibrant floral position prints enhanced with delicate beads work, adding a beautiful touch of sparkle and sophistication.\n\nAvailable Colors: Turquoise, Peach, Lime Green, Yellow, Sky Blue, Beige & Coral Pink.\n\nPerfect for salwar suits, Anarkalis, kurtas, lehengas, blouses, and festive occasion wear.",
+      "suggestedGarmentIds": [
+        "kurta-top",
+        "salwar-kameez-suit",
+        "anarkali-suit",
+        "lehenga-skirt",
+        "blouse"
       ]
     }
   ]

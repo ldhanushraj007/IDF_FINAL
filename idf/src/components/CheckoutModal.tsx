@@ -89,9 +89,11 @@ export default function CheckoutModal({ open, onClose }: Props) {
     if (!profile) return;
     setCustomer((c) => ({
       ...c,
-      name: c.name || profile.name,
-      phone: c.phone || profile.phone.replace(/^\+91/, ''),
-      city: c.city || profile.city,
+      name: c.name || profile.name || '',
+      phone: c.phone || (profile.phone ? profile.phone.replace(/^\+91/, '') : '') || '',
+      city: c.city || profile.city || '',
+      address: c.address || profile.address || '',
+      pincode: c.pincode || (profile.address ? profile.address.match(/\b\d{6}\b/)?.[0] || '' : ''),
     }));
   }, [profile]);
 
@@ -100,11 +102,9 @@ export default function CheckoutModal({ open, onClose }: Props) {
     if (customer.name.trim().length < 2) e.name = 'Please enter your name';
     if (!/^[6-9]\d{9}$/.test(customer.phone.replace(/\s/g, '')))
       e.phone = 'Enter a valid 10-digit mobile number';
-    if (customer.fulfilment === 'delivery') {
-      if (customer.address.trim().length < 6) e.address = 'Please enter your full address';
-      if (customer.city.trim().length < 2) e.city = 'Please enter your city';
-      if (!/^\d{6}$/.test(customer.pincode.trim())) e.pincode = 'Enter a valid 6-digit PIN code';
-    }
+    if (customer.address.trim().length < 6) e.address = 'Please enter your full address';
+    if (customer.city.trim().length < 2) e.city = 'Please enter your city';
+    if (!/^\d{6}$/.test(customer.pincode.trim())) e.pincode = 'Enter a valid 6-digit PIN code';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -259,23 +259,6 @@ export default function CheckoutModal({ open, onClose }: Props) {
               {/* ============ STEP 1 — details ============ */}
               {step === 1 && !needsAuth && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    {(['delivery', 'pickup'] as const).map((f) => (
-                      <button
-                        key={f}
-                        type="button"
-                        onClick={() => setCustomer((c) => ({ ...c, fulfilment: f }))}
-                        className={`rounded-[2px] border px-3 py-3 text-[12px] font-semibold uppercase tracking-[0.14em] transition-colors ${
-                          customer.fulfilment === f
-                            ? 'border-gold bg-gold/10 text-gold'
-                            : 'border-ivory/15 text-ivory/55 hover:border-ivory/30'
-                        }`}
-                      >
-                        {f === 'delivery' ? 'Ship to me' : 'Pick up in store'}
-                      </button>
-                    ))}
-                  </div>
-
                   <div>
                     <input {...field('name')} placeholder="Full name" className={inputClass('name')} />
                     {errors.name && <p className="mt-1 text-[11px] text-maroon">{errors.name}</p>}
@@ -291,40 +274,36 @@ export default function CheckoutModal({ open, onClose }: Props) {
                     {errors.phone && <p className="mt-1 text-[11px] text-maroon">{errors.phone}</p>}
                   </div>
 
-                  {customer.fulfilment === 'delivery' && (
-                    <>
-                      <div>
-                        <textarea
-                          {...field('address')}
-                          rows={2}
-                          placeholder="Delivery address"
-                          className={inputClass('address')}
-                        />
-                        {errors.address && (
-                          <p className="mt-1 text-[11px] text-maroon">{errors.address}</p>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <input {...field('city')} placeholder="City" className={inputClass('city')} />
-                          {errors.city && (
-                            <p className="mt-1 text-[11px] text-maroon">{errors.city}</p>
-                          )}
-                        </div>
-                        <div>
-                          <input
-                            {...field('pincode')}
-                            inputMode="numeric"
-                            placeholder="PIN code"
-                            className={inputClass('pincode')}
-                          />
-                          {errors.pincode && (
-                            <p className="mt-1 text-[11px] text-maroon">{errors.pincode}</p>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
+                  <div>
+                    <textarea
+                      {...field('address')}
+                      rows={2}
+                      placeholder="Delivery address (House/Flat, Street, Area)"
+                      className={inputClass('address')}
+                    />
+                    {errors.address && (
+                      <p className="mt-1 text-[11px] text-maroon">{errors.address}</p>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <input {...field('city')} placeholder="City" className={inputClass('city')} />
+                      {errors.city && (
+                        <p className="mt-1 text-[11px] text-maroon">{errors.city}</p>
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        {...field('pincode')}
+                        inputMode="numeric"
+                        placeholder="PIN code"
+                        className={inputClass('pincode')}
+                      />
+                      {errors.pincode && (
+                        <p className="mt-1 text-[11px] text-maroon">{errors.pincode}</p>
+                      )}
+                    </div>
+                  </div>
 
                   <textarea
                     {...field('notes')}
@@ -354,13 +333,8 @@ export default function CheckoutModal({ open, onClose }: Props) {
                   </div>
 
                   <div className="text-center">
-                    <img
-                      src={UPI.staticQrImage || qr}
-                      alt="UPI payment QR code"
-                      className="mx-auto h-56 w-56 rounded-[3px] border border-gold/20 bg-ivory object-contain p-2"
-                    />
-                    <p className="mt-3 text-[12px] text-ivory/50">
-                      Scan with GPay, PhonePe, Paytm or any UPI app
+                    <p className="mt-1 text-[13px] text-ivory/70">
+                      Pay via UPI App or UPI ID
                     </p>
 
                     <a href={upiLink(order)} className="btn btn-gold btn-sheen mt-4 w-full sm:hidden">
@@ -436,20 +410,29 @@ export default function CheckoutModal({ open, onClose }: Props) {
                     <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
                     <div>
                       <p className="text-[14px] font-semibold text-ivory">
-                        One last step — press Send in WhatsApp
+                        One last step — transmit your order on WhatsApp
                       </p>
                       <p className="mt-1.5 text-[13px] leading-relaxed text-ivory/65">
-                        WhatsApp has opened with your order typed out, but the message is not sent
-                        until you press the send button yourself. Until then the showroom has not
-                        received anything.
+                        Tap the green button below to open WhatsApp with your prefilled order text and press send.
                       </p>
                     </div>
                   </div>
+
+                  <a
+                    href={waOrderLink(order)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white py-3.5 px-4 rounded-[2px] font-sans text-[13px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all text-center"
+                  >
+                    <MessageCircle className="h-5 w-5 fill-current shrink-0" />
+                    <span>Send Order on WhatsApp Now</span>
+                  </a>
 
                   <button type="button" onClick={confirmSent} className="btn btn-gold btn-sheen w-full">
                     <Check className="h-4 w-4" />
                     Yes — I pressed Send
                   </button>
+
 
                   <div className="space-y-2.5 rounded-[3px] border border-ivory/15 p-4">
                     <p className="text-[12px] uppercase tracking-[0.16em] text-ivory/45">

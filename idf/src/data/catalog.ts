@@ -53,7 +53,33 @@ export interface Item {
   /** Longer write-up for the product page. Falls back to `blurb` when empty. */
   details?: string;
   suggestedGarmentIds?: string[];
+  hidden?: boolean; // If true, product is hidden ("Not Live") from customer website
 }
+
+/**
+ * Returns the complete ordered list of product images:
+ * 1. Primary main image first (`item.image`)
+ * 2. Followed by any extra gallery images (`item.gallery`), preserving upload order and deduplicating
+ * 3. Graceful fallback if no image is available
+ */
+export function getProductGallery(item?: { image?: string; gallery?: string[] } | null): string[] {
+  if (!item) return [];
+  const images: string[] = [];
+  const main = typeof item.image === 'string' ? item.image.trim() : '';
+  if (main) {
+    images.push(main);
+  }
+  if (Array.isArray(item.gallery)) {
+    for (const g of item.gallery) {
+      const url = typeof g === 'string' ? g.trim() : '';
+      if (url && !images.includes(url)) {
+        images.push(url);
+      }
+    }
+  }
+  return images.length > 0 ? images : ['/images/fabrics/f01.jpg'];
+}
+
 
 export const TAG_LABELS: Record<Tag, string> = {
   'best-seller': 'Best Selling',
@@ -240,5 +266,26 @@ export const CATALOG: Item[] = [
     image: '/images/fabrics/f12.jpg',
     blurb: 'Crisp body that holds a shape — a tailor’s dependable workhorse.',
     suggestedGarmentIds: ['kurta-top', 'salwar-trouser', 'mens-shirt'],
+  },
+  {
+    id: 'pure-organza-position-print-with-beads-work-mtudi3i9-pmyo',
+    name: 'Pure Organza Position Print with Beads Work',
+    category: 'Printed',
+    categoryId: 'printed',
+    composition: 'Pure Organza',
+    width: '44 in',
+    pricePerMetre: 1899,
+    minMetres: 0.5,
+    stock: 'in',
+    tags: ['new-arrival', 'best-seller', 'seasonal', 'wholesale', 'festival'],
+    image: 'https://lh3.googleusercontent.com/d/1v-pb_S0QpV9paGJzhpszN03KjW-0uIBF',
+    gallery: [
+      'https://lh3.googleusercontent.com/d/1zGPKJOdkATNwMYiBd8Ybrls1e4sKN9-Q',
+      'https://lh3.googleusercontent.com/d/1u3SOQyW-fNKIm8d31LmxJFiQ8YcbOk4k',
+      'https://lh3.googleusercontent.com/d/1RhQPifORktoNHiAPlTuEwqw8_GJspMUs',
+    ],
+    blurb: 'Elegant pure organza featuring vibrant position prints with intricate beads work, perfect for festive and occasion wear.',
+    details: 'Elevate your festive wardrobe with our Pure Organza Position Print with Beads Work. Crafted in lightweight and elegant organza, this fabric features vibrant floral position prints enhanced with delicate beads work, adding a beautiful touch of sparkle and sophistication.\n\nAvailable Colors: Turquoise, Peach, Lime Green, Yellow, Sky Blue, Beige & Coral Pink.\n\nPerfect for salwar suits, Anarkalis, kurtas, lehengas, blouses, and festive occasion wear.',
+    suggestedGarmentIds: ['kurta-top', 'salwar-kameez-suit', 'anarkali-suit', 'lehenga-skirt', 'blouse'],
   },
 ];
