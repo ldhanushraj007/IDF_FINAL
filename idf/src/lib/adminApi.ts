@@ -387,6 +387,11 @@ export async function setOrderStatus(id: string, order_status?: string, payment_
   await adminPost('set_order_status', { id, order_status, payment_status });
 }
 
+/** Clears ALL test/sample orders from Google Sheets. Irreversible. */
+export async function clearAllOrders(): Promise<{ deleted: number; message: string }> {
+  return await adminPost<{ deleted: number; message: string }>('clear_orders');
+}
+
 export interface CustomerRow {
   id?: string;
   name: string;

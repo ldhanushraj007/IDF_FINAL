@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block admin and private routes
+Disallow: /admin
+Disallow: /account
+Disallow: /checkout
+
+Sitemap: https://www.indesignluxuryfabrics.com/sitemap.xml

@@ -239,6 +239,9 @@ function doPost(e) {
       case 'set_order_status':
         result = withScriptLock(function() { return setOrderStatusBackend(body); });
         break;
+      case 'clear_orders':
+        result = withScriptLock(function() { return clearOrdersBackend(body); });
+        break;
 
       // Wishlist
       case 'get_wishlist':
@@ -732,6 +735,19 @@ function saveOrder(body) {
   }
 
   return { ok: true };
+}
+
+/**
+ * Clears ALL rows from the Orders sheet (keeps header row).
+ * Used by admin to reset test/sample orders before going live.
+ */
+function clearOrdersBackend(body) {
+  var sh = sheet('Orders');
+  var lastRow = sh.getLastRow();
+  if (lastRow < 2) return { ok: true, deleted: 0, message: 'Orders sheet already empty.' };
+  var rowsToDelete = lastRow - 1; // exclude header
+  sh.deleteRows(2, rowsToDelete);
+  return { ok: true, deleted: rowsToDelete, message: 'All ' + rowsToDelete + ' order(s) cleared successfully.' };
 }
 
 function fetchOrdersBackend(body) {
