@@ -6,4 +6,4 @@ Disallow: /admin
 Disallow: /account
 Disallow: /checkout
 
-Sitemap: https://www.indesignluxuryfabrics.com/sitemap.xml
+Sitemap: https://www.indesignfabrics.com/sitemap.xml
